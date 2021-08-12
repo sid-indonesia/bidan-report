@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.Version;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -17,13 +16,6 @@ import lombok.Data;
 @Entity(name = "client_mother")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class ClientMother implements Serializable {
-
-	/**
-	 * The optimistic lock. Available via standard bean get/set operations.
-	 */
-	@Version
-	@Column(name = "LOCK_FLAG")
-	private Integer lockFlag;
 
 	@Column(name = "source_id", unique = false, nullable = false, precision = 19)
 	private long sourceId;

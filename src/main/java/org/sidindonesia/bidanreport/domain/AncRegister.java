@@ -9,7 +9,6 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
-import javax.persistence.Version;
 
 import lombok.Data;
 
@@ -18,13 +17,6 @@ import lombok.Data;
 @Table(name = "anc_register", indexes = {
 		@Index(name = "anc_register_event_id_IX", columnList = "event_id", unique = true) })
 public class AncRegister implements Serializable {
-
-	/**
-	 * The optimistic lock. Available via standard bean get/set operations.
-	 */
-	@Version
-	@Column(name = "LOCK_FLAG")
-	private Integer lockFlag;
 
 	@Id
 	@Column(name = "event_id", unique = true, nullable = false, precision = 19)
