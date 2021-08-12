@@ -68,15 +68,7 @@ public final class ExcelHelper {
 					throw new ExcelWriteException("Fail to import data to Excel file: " + e.getMessage());
 				}
 			});
-//
-//			int rowIdx = 1;
-//			for (AncClose ancClose : ancCloses) {
-//				Row row = sheet.createRow(rowIdx++);
-//
-//				row.createCell(0).setCellValue(ancClose.getEventId());
-//				row.createCell(1).setCellValue(ancClose.getBirthAttendant());
-//			}
-//
+
 			workbook.write(out);
 			return new ByteArrayInputStream(out.toByteArray());
 		} catch (IOException e) {
