@@ -25,7 +25,7 @@ spring:
       indent-output: true
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:postgresql://localhost:5432/opensrp
+    url: jdbc:postgresql://localhost:5432/dbconverter_test_lotim
     username: postgres
     password: postgres
     hikari:
@@ -45,7 +45,7 @@ server:
 # ===================================================================
 
 keycloak:
-  realm: bidan-report-api
+  realm: bidan-report
   resource: dev-client
   auth-server-url: https://keycloak.dev.sid-indonesia.org/auth
   public-client: true
