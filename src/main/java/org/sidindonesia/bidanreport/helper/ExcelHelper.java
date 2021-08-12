@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.poi.ss.usermodel.Cell;
@@ -14,6 +16,7 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.sidindonesia.bidanreport.exception.ExcelWriteException;
 import org.sidindonesia.bidanreport.util.CamelCaseUtil;
 import org.sidindonesia.bidanreport.util.ReflectionsUtil;
+import org.springframework.context.ApplicationContext;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -22,7 +25,7 @@ import lombok.NoArgsConstructor;
 public final class ExcelHelper {
 	public static final String TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
-	public static ByteArrayInputStream allEntitiesToExcelSheets() {
+	public static ByteArrayInputStream allEntitiesToExcelSheets(ApplicationContext context) {
 
 		try (Workbook workbook = new SXSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream();) {
 
@@ -40,6 +43,14 @@ public final class ExcelHelper {
 					cell.setCellValue(CamelCaseUtil.camelToSnake(field.getName()));
 				}
 
+				Class<?> repositoryClass = ReflectionsUtil.getRepositoryClassOfEntity(entityClass);
+				try {
+					Object instance = context.getBean(repositoryClass);
+					List<?> result = (List<?>) repositoryClass.getMethod("findAll").invoke(instance);
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
+					| NoSuchMethodException | SecurityException e) {
+					throw new ExcelWriteException("Fail to import data to Excel file: " + e.getMessage());
+				}
 			});
 //
 //			int rowIdx = 1;
