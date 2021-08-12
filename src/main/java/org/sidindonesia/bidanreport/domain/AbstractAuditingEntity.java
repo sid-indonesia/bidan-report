@@ -1,4 +1,4 @@
-package org.sidindonesia.bidanreport.domain.base;
+package org.sidindonesia.bidanreport.domain;
 
 import java.io.Serializable;
 import java.time.Instant;
