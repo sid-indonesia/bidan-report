@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.persistence.Version;
@@ -29,6 +30,7 @@ public class MotherClose implements Serializable {
 	@Column(name = "LOCK_FLAG")
 	private Integer lockFlag;
 
+	@Id
 	@Column(name = "event_id", unique = true, nullable = false, precision = 19)
 	private long eventId;
 	@Column(name = "source_date_deleted")

@@ -5,9 +5,9 @@ import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
-import javax.persistence.Version;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -20,13 +20,7 @@ import lombok.Data;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class AncClose implements Serializable {
 
-	/**
-	 * The optimistic lock. Available via standard bean get/set operations.
-	 */
-	@Version
-	@Column(name = "LOCK_FLAG")
-	private Integer lockFlag;
-
+	@Id
 	@Column(name = "event_id", unique = true, nullable = false, precision = 19)
 	private long eventId;
 	@Column(name = "source_date_deleted")

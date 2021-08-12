@@ -2,7 +2,8 @@ package org.sidindonesia.bidanreport.service;
 
 import java.io.ByteArrayInputStream;
 
-import org.sidindonesia.bidanreport.repository.BasicEntityRepository;
+import org.sidindonesia.bidanreport.helper.ExcelHelper;
+import org.sidindonesia.bidanreport.repository.AncCloseRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,10 +16,10 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class ExcelSheetService {
 
-	private final BasicEntityRepository basicEntityRepository;
+	private final AncCloseRepository ancCloseRepository;
 
 	public ByteArrayInputStream downloadAllTablesAsExcelSheets() {
-		// TODO Auto-generated method stub
-		return null;
+		log.debug("Request to retrieve all tables as Excel Sheets");
+		return ExcelHelper.ancClosesToExcel(ancCloseRepository.findAll());
 	}
 }
