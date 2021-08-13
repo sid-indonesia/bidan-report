@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    name: Build Executable JAR
+    name: Build Executable WAR
     runs-on: ubuntu-latest
 
     # Service containers to run with `build` job
@@ -55,10 +55,10 @@ jobs:
       - name: Run tests
         run: ./mvnw test
 
-      - name: Build JAR
+      - name: Build WAR
         run: ./mvnw package
 
-      - name: Upload JAR
+      - name: Upload WAR
         uses: actions/upload-artifact@v2
         with:
           name: executable-war
