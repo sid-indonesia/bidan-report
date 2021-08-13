@@ -1,8 +1,8 @@
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/opensrp_test
-    username: postgres
-    password: postgres
+    username: opensrp_admin
+    password: admin
     driver-class-name: org.postgresql.Driver
     hikari:
       poolName: Hikari
@@ -16,6 +16,6 @@ spring:
       hibernate.cache.use_second_level_cache: false
       hibernate.cache.use_query_cache: false
       hibernate.generate_statistics: false
-      hibernate.hbm2ddl.auto: validate
+      hibernate.hbm2ddl.auto: none
       hibernate.jdbc.time_zone: UTC
       hibernate.query.fail_on_pagination_over_collection_fetch: true
