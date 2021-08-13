@@ -48,9 +48,6 @@ public final class ExcelHelper {
 				try {
 					Object repositoryInstance = context.getBean(repositoryClass);
 					Object invokeResult = repositoryClass.getMethod("findAll").invoke(repositoryInstance);
-					if (invokeResult == null) {
-						System.out.println("NULL NIH BOS");
-					}
 					List<?> result = (List<?>) invokeResult;
 
 					AtomicInteger rowIdx = new AtomicInteger(0);
