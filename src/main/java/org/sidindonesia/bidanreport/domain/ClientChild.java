@@ -6,17 +6,21 @@ import java.time.LocalDateTime;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.sidindonesia.bidanreport.domain.pk.ClientId;
 
 import lombok.Data;
 
 @Data
 @Entity(name = "client_child")
+@IdClass(ClientId.class)
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class ClientChild implements Serializable {
 
+	@Id
 	@Column(name = "source_id", unique = false, nullable = false, precision = 19)
 	private long sourceId;
 	@Column(name = "source_date_deleted")

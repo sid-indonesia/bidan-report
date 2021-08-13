@@ -62,7 +62,7 @@ public final class ExcelHelper {
 					});
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
 					| NoSuchMethodException | SecurityException e) {
-					throw new ExcelWriteException("Fail to import data to Excel file: " + e.getMessage());
+					throw new ExcelWriteException("Fail to import data to Excel file: " + e.getCause());
 				}
 			});
 
