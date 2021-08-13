@@ -24,8 +24,8 @@ spring:
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     url: jdbc:postgresql://localhost:5432/opensrp
-    username: postgres
-    password: postgres
+    username: sid_bidan_readonly
+    password: readonly
     hikari:
       poolName: Hikari
       auto-commit: false
