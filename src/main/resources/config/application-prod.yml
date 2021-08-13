@@ -64,7 +64,7 @@ server:
 # ===================================================================
 
 keycloak:
-  realm: bidan-report-api
+  realm: bidan-report
   resource: prod-client
   auth-server-url: https://keycloak.sid-indonesia.org/auth
   public-client: true
