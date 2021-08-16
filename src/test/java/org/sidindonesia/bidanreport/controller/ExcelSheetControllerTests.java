@@ -1,4 +1,4 @@
-package org.sidindonesia.bidanreport.service;
+package org.sidindonesia.bidanreport.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @IntegrationTest
 @Transactional
-class ExcelSheetControllerIT {
+class ExcelSheetControllerTests {
 
 	@Autowired
 	private ExcelSheetController excelSheetController;

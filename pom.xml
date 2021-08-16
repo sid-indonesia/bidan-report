@@ -22,13 +22,13 @@
     <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
     <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
     <sonar.language>java</sonar.language>
-    <sonar.exclusions>org/sidindonesia/bidanreport/aop/logging/**/*,
-      org/sidindonesia/bidanreport/config/**/*,
-      org/sidindonesia/bidanreport/domain/**/*,
-      org/sidindonesia/bidanreport/exception/**/*,
-      org/sidindonesia/bidanreport/Application.class</sonar.exclusions>
+    <sonar.exclusions>**/aop/logging/**/*,
+      **/config/**/*,
+      **/domain/**/*,
+      **/exception/**/*,
+      **/Application.class</sonar.exclusions>
     <sonar.coverage.exclusions>${sonar.exclusions}</sonar.coverage.exclusions>
-    <sonar.cpd.exclusions>org/sidindonesia/bidanreport/domain/**/*</sonar.cpd.exclusions>
+    <sonar.cpd.exclusions>**/domain/**/*</sonar.cpd.exclusions>
   </properties>
   <dependencies>
     <dependency>
@@ -64,11 +64,6 @@
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
       <version>0.9.12</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jacoco</groupId>
-      <artifactId>jacoco-maven-plugin</artifactId>
-      <version>${jacoco.version}</version>
     </dependency>
 
     <dependency>
