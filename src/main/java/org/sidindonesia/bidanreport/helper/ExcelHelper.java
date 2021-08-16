@@ -29,7 +29,7 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ExcelHelper {
-	private static final String FAIL_TO_IMPORT_DATA_TO_EXCEL_FILE = "Fail to import data to Excel file: ";
+	private static final String FAILED_TO_IMPORT_DATA_TO_EXCEL_FILE = "Failed to import data to Excel file: ";
 
 	public static ByteArrayInputStream allEntitiesToExcelSheets(ApplicationContext context) {
 
@@ -40,7 +40,7 @@ public final class ExcelHelper {
 			workbook.write(out);
 			return new ByteArrayInputStream(out.toByteArray());
 		} catch (IOException e) {
-			throw new ExcelWriteException(FAIL_TO_IMPORT_DATA_TO_EXCEL_FILE + e.getMessage());
+			throw new ExcelWriteException(FAILED_TO_IMPORT_DATA_TO_EXCEL_FILE + e.getMessage());
 		}
 	}
 
@@ -65,7 +65,7 @@ public final class ExcelHelper {
 				getterMethodsByFieldName.put(field.getName(),
 					new PropertyDescriptor(field.getName(), entityClass).getReadMethod());
 			} catch (IntrospectionException e) {
-				throw new ExcelWriteException(FAIL_TO_IMPORT_DATA_TO_EXCEL_FILE + e.getCause());
+				throw new ExcelWriteException(FAILED_TO_IMPORT_DATA_TO_EXCEL_FILE + e.getCause());
 			}
 		}
 		return getterMethodsByFieldName;
@@ -93,7 +93,8 @@ public final class ExcelHelper {
 			result.stream().forEach(entry -> fillContentRows(sheet, fields, rowIdx, entry, getterMethods));
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
 			| SecurityException e) {
-			throw new ExcelWriteException(FAIL_TO_IMPORT_DATA_TO_EXCEL_FILE + e.getCause());
+			throw new ExcelWriteException("Failed to invoke method `findAll` of class: " + repositoryClass + "\nCause: "
+				+ e.getCause() + "\nMessage: " + e.getMessage());
 		}
 	}
 
@@ -107,7 +108,7 @@ public final class ExcelHelper {
 				Object invokeGetterResult = getterMethods.get(field.getName()).invoke(entry);
 				cell.setCellValue(invokeGetterResult == null ? null : invokeGetterResult.toString());
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				throw new ExcelWriteException(FAIL_TO_IMPORT_DATA_TO_EXCEL_FILE + e.getCause());
+				throw new ExcelWriteException(FAILED_TO_IMPORT_DATA_TO_EXCEL_FILE + e.getCause());
 			}
 		}
 	}
