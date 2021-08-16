@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @IntegrationTest
 @Transactional
-@SpringBootTest(properties = "spring.jpa.properties.hibernate.hbm2ddl.auto=none")
+@SpringBootTest(properties = "spring.jpa.properties.hibernate.hbm2ddl.auto=drop")
 @DirtiesContext
 class ExcelSheetControllerFailingTests {
 
