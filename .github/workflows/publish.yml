@@ -62,7 +62,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: executable-war
-          path: target/bidan-report-api-*.war
+          path: target/bidan-report-*.war
 
   release:
     name: Release WAR
