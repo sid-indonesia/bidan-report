@@ -30,6 +30,7 @@
     <sonar.coverage.exclusions>${sonar.exclusions}</sonar.coverage.exclusions>
     <sonar.cpd.exclusions>**/domain/**/*</sonar.cpd.exclusions>
   </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
