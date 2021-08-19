@@ -8,12 +8,14 @@
   lang="en"
 >
     <head>
-        <title>Bidan Report</title>
+        <title th:text="${@environment.getProperty('spring.application.name', 'SID Report')}"></title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     </head>
     <body>
-        <h1>Bidan Report</h1>
-        <a href="/api/ExcelSheet/$download">Download all rows from tables in schema "sid_bidan" as Excel Sheets</a>
+        <h1 th:text="${@environment.getProperty('spring.application.name', 'SID Report')}"></h1>
+        <a href="/api/ExcelSheet/$download">Download all rows from tables in schema
+          "<span th:text="${@environment.getProperty('spring.jpa.properties.hibernate.default_schema', 'sid')}"></span>"
+        as Excel Sheets</a>
         <br><br><br>
         <a href="/api/logout">Logout</a>
     </body>
