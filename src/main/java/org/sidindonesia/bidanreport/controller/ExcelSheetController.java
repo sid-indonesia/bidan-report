@@ -1,6 +1,7 @@
 package org.sidindonesia.bidanreport.controller;
 
 import org.sidindonesia.bidanreport.service.ExcelSheetService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -21,10 +22,13 @@ public class ExcelSheetController {
 
 	private final ExcelSheetService excelSheetService;
 
+	@Value("${spring.jpa.properties.hibernate.default_schema:sid}")
+	private String schemaName;
+
 	@GetMapping("/$download")
 	public ResponseEntity<Resource> downloadAllTablesAsExcelSheets() {
-		String filename = "sid_bidan.xlsx";
-		log.debug("REST request to get all tables in schema `sid_bidan` as Excel Sheets");
+		String filename = schemaName + ".xlsx";
+		log.debug("REST request to get all tables in schema `" + schemaName + "` as Excel Sheets");
 		InputStreamResource file = new InputStreamResource(excelSheetService.downloadAllTablesAsExcelSheets());
 
 		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
