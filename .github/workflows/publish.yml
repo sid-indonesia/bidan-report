@@ -53,10 +53,10 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Run tests
-        run: ./mvnw test
+        run: ./mvnw -B test
 
       - name: Build WAR
-        run: ./mvnw package
+        run: ./mvnw -B package
 
       - name: Upload WAR
         uses: actions/upload-artifact@v2
