@@ -47,7 +47,7 @@ public final class ExcelHelper {
 	private static void processEachEntityAsAnExcelSheet(ApplicationContext context, Workbook workbook) {
 		Set<Class<?>> entityClasses = ReflectionsUtil.getAllEntityClasses();
 
-		entityClasses.stream().forEach(entityClass -> {
+		entityClasses.forEach(entityClass -> {
 			Sheet sheet = workbook.createSheet(CamelCaseUtil.camelToSnake(entityClass.getSimpleName()));
 
 			Field[] fields = entityClass.getDeclaredFields();
