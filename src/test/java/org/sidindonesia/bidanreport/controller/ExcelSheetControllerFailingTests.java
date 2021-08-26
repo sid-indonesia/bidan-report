@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 import org.sidindonesia.bidanreport.IntegrationTest;
-import org.sidindonesia.bidanreport.exception.ExcelWriteException;
+import org.sidindonesia.jpatoexcel.exception.ExcelWriteException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
