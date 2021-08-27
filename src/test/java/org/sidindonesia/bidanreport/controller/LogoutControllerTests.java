@@ -12,7 +12,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Integration tests for {@link ExcelSheetController}.
+ * Integration tests for {@link LogoutController}.
  */
 @IntegrationTest
 @Transactional
