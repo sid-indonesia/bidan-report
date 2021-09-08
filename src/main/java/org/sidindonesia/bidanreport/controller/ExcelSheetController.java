@@ -1,5 +1,8 @@
 package org.sidindonesia.bidanreport.controller;
 
+import javax.validation.Valid;
+
+import org.sidindonesia.bidanreport.controller.request.ValidationRequestParams;
 import org.sidindonesia.bidanreport.service.ExcelSheetService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
@@ -8,6 +11,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,6 +35,20 @@ public class ExcelSheetController {
 		String filename = schemaName + ".xlsx";
 		log.debug("REST request to get all tables in schema `" + schemaName + "` as Excel Sheets");
 		InputStreamResource file = new InputStreamResource(excelSheetService.downloadAllTablesAsExcelSheets());
+
+		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+			.contentType(MediaType.parseMediaType("application/vnd.ms-excel")).body(file);
+	}
+
+	@PostMapping("/$validate")
+	public ResponseEntity<Resource> validateThenDownloadAsExcelSheets(
+		@Valid @RequestBody ValidationRequestParams params) {
+		String filename = schemaName + " validations " + params.getFromDate() + " to " + params.getToDate() + " .xlsx";
+		log.debug("REST request to validate all tables in schema `" + schemaName
+			+ "` then download as Excel Sheets with filename: \"" + filename + "\"");
+
+		InputStreamResource file = new InputStreamResource(
+			excelSheetService.validateAllThenRetrieveAsExcelSheets(params));
 
 		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
 			.contentType(MediaType.parseMediaType("application/vnd.ms-excel")).body(file);

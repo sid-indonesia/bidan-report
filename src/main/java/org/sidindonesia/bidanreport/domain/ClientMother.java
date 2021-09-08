@@ -15,10 +15,11 @@ import org.sidindonesia.bidanreport.domain.pk.ClientId;
 import lombok.Data;
 
 @Data
-@Entity(name = "client_mother")
+@Entity(name = ClientMother.TABLE_NAME)
 @IdClass(ClientId.class)
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class ClientMother implements Serializable {
+	public static final String TABLE_NAME = "client_mother";
 
 	@Id
 	@Column(name = "source_id", unique = false, nullable = false, precision = 19)
