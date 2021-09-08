@@ -31,14 +31,20 @@ public class ExcelSheetService {
 	public ByteArrayInputStream validateAllThenRetrieveAsExcelSheets(ValidationRequestParams params) {
 		log.debug("Request to validate column(s) is/are not null or blank then retrieve as ExcelSheets");
 
-		if (params.getTables() == null || params.getTables().isEmpty()) {
+		if (params.getTables().isEmpty()) {
 			return ExcelHelper.validateAllColumnsAreNotEmpty(context, JPA_REPOSITORY_PACKAGE_NAME,
-				JPA_ENTITY_PACKAGE_NAME);
+				JPA_ENTITY_PACKAGE_NAME, params.getFromDate(), params.getUntilDate());
 		} else {
 			// TODO get tables based on user input
 			params.getTables().stream().forEach(table -> {
 				Class<?> clazz = ReflectionsUtil.getAllEntityClasses(JPA_ENTITY_PACKAGE_NAME).stream()
 					.filter(entityClass -> table.getName().equals(entityClass.getSimpleName())).findAny().orElseThrow();
+
+				if (table.getColumns().isEmpty()) {
+					// TODO validate all columns of the table
+				} else {
+					// TODO validate specified column(s) of the table
+				}
 			});
 
 			return new ByteArrayInputStream(null);
