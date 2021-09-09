@@ -43,8 +43,8 @@ public class ExcelSheetController {
 	@PostMapping("/$validate")
 	public ResponseEntity<Resource> validateTableColumnsThenDownloadAsExcelSheets(
 		@Valid @RequestBody ValidationRequestParams params) {
-		String filename = schemaName + " validations " + params.getFromDate() + " to " + params.getUntilDate()
-			+ " .xlsx";
+		String filename = schemaName + "-validations_" + params.getFromDate().toString().replace(':', '_') + "_to_"
+			+ params.getUntilDate().toString().replace(':', '_') + ".xlsx";
 		log.debug("REST request to validate all tables in schema `" + schemaName
 			+ "` then download as Excel Sheets with filename: \"" + filename + "\"");
 
