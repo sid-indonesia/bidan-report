@@ -27,7 +27,7 @@ public class ExcelSheetService {
 		return ExcelHelper.allEntitiesToExcelSheets(context, JPA_ENTITY_PACKAGE_NAME, JPA_REPOSITORY_PACKAGE_NAME);
 	}
 
-	public ByteArrayInputStream validateAllThenRetrieveAsExcelSheets(ValidationRequestParams params) {
+	public ByteArrayInputStream validateThenRetrieveAsExcelSheets(ValidationRequestParams params) {
 		log.debug("Request to validate column(s) is/are not null or blank then retrieve as ExcelSheets");
 
 		if (params.getTables().isEmpty()) {

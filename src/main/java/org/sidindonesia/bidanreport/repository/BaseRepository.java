@@ -8,5 +8,5 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 @NoRepositoryBean
 public interface BaseRepository<T, ID> extends JpaRepository<T, ID> {
-	List<T> findAllByCreatedDateBetween(LocalDateTime fromDate, LocalDateTime untilDate);
+	List<T> findAllByDateCreatedBetween(LocalDateTime fromDate, LocalDateTime untilDate);
 }

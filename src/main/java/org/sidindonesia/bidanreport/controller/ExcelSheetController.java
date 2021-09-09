@@ -49,7 +49,7 @@ public class ExcelSheetController {
 			+ "` then download as Excel Sheets with filename: \"" + filename + "\"");
 
 		InputStreamResource file = new InputStreamResource(
-			excelSheetService.validateAllThenRetrieveAsExcelSheets(params));
+			excelSheetService.validateThenRetrieveAsExcelSheets(params));
 
 		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
 			.contentType(MediaType.parseMediaType("application/vnd.ms-excel")).body(file);
