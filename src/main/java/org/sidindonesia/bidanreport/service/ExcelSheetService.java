@@ -6,6 +6,7 @@ import org.sidindonesia.bidanreport.controller.request.ValidationRequestParams;
 import org.sidindonesia.bidanreport.domain.AncClose;
 import org.sidindonesia.bidanreport.repository.AncCloseRepository;
 import org.sidindonesia.jpatoexcel.helper.ExcelHelper;
+import org.sidindonesia.jpatoexcel.util.ReflectionsUtil;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,10 +32,9 @@ public class ExcelSheetService {
 		log.debug("Request to validate column(s) is/are not null or blank then retrieve as ExcelSheets");
 
 		if (params.getTables().isEmpty()) {
-			return ExcelHelper.validateAllColumnsAreNotEmpty(context, JPA_ENTITY_PACKAGE_NAME,
+			return ExcelHelper.validateAllTableColumnsAreNotEmpty(context, JPA_ENTITY_PACKAGE_NAME,
 				JPA_REPOSITORY_PACKAGE_NAME, params.getFromDate(), params.getUntilDate());
 		} else {
-			// TODO get tables based on user input
 			params.getTables().stream().forEach(table -> {
 //				Class<?> clazz = ReflectionsUtil.getAllEntityClasses(JPA_ENTITY_PACKAGE_NAME).stream()
 //					.filter(entityClass -> table.getName().equals(entityClass.getSimpleName())).findAny().orElseThrow();

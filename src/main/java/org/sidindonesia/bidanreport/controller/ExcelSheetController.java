@@ -12,7 +12,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -42,14 +41,16 @@ public class ExcelSheetController {
 
 	@PostMapping("/$validate")
 	public ResponseEntity<Resource> validateTableColumnsThenDownloadAsExcelSheets(
-		@Valid @RequestBody ValidationRequestParams params) {
+// TODO
+//		@Valid @RequestBody ValidationRequestParams params) {
+		@Valid ValidationRequestParams params) {
+
 		String filename = schemaName + "-validations_" + params.getFromDate().toString().replace(':', '_') + "_to_"
 			+ params.getUntilDate().toString().replace(':', '_') + ".xlsx";
 		log.debug("REST request to validate all tables in schema `" + schemaName
 			+ "` then download as Excel Sheets with filename: \"" + filename + "\"");
 
-		InputStreamResource file = new InputStreamResource(
-			excelSheetService.validateThenRetrieveAsExcelSheets(params));
+		InputStreamResource file = new InputStreamResource(excelSheetService.validateThenRetrieveAsExcelSheets(params));
 
 		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
 			.contentType(MediaType.parseMediaType("application/vnd.ms-excel")).body(file);

@@ -14,8 +14,12 @@
     <body>
         <h1 th:text="${@environment.getProperty('spring.application.name', 'SID Report')}"></h1>
         <a href="/api/ExcelSheet/$download">Download all rows from tables in schema
-          "<span th:text="${@environment.getProperty('spring.jpa.properties.hibernate.default_schema', 'sid')}"></span>"
-        as Excel Sheets</a>
+            "<span th:text="${@environment.getProperty('spring.jpa.properties.hibernate.default_schema', 'sid')}"></span>"
+            as Excel Sheets</a>
+
+        <br><br>
+        <a href="/ExcelSheet/$validate">Validate tables data</a>
+
         <br><br><br>
         <a href="/api/logout">Logout</a>
     </body>
