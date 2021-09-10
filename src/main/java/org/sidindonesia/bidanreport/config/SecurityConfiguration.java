@@ -19,30 +19,33 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 @EnableWebSecurity
 public class SecurityConfiguration extends KeycloakWebSecurityConfigurerAdapter {
 
-    @Autowired
+	@Autowired
 	public void configureGlobal(AuthenticationManagerBuilder auth) {
-        KeycloakAuthenticationProvider authenticationProvider = keycloakAuthenticationProvider();
-        authenticationProvider.setGrantedAuthoritiesMapper(new SimpleAuthorityMapper());
-        auth.authenticationProvider(authenticationProvider);
-    }
+		KeycloakAuthenticationProvider authenticationProvider = keycloakAuthenticationProvider();
+		authenticationProvider.setGrantedAuthoritiesMapper(new SimpleAuthorityMapper());
+		auth.authenticationProvider(authenticationProvider);
+	}
 
-    @Bean
-    public KeycloakConfigResolver keycloakConfigResolver() {
-        return new KeycloakSpringBootConfigResolver();
-    }
+	@Bean
+	public KeycloakConfigResolver keycloakConfigResolver() {
+		return new KeycloakSpringBootConfigResolver();
+	}
 
-    @Bean
-    @Override
-    protected SessionAuthenticationStrategy sessionAuthenticationStrategy() {
-        return new RegisterSessionAuthenticationStrategy(new SessionRegistryImpl());
-    }
+	@Bean
+	@Override
+	protected SessionAuthenticationStrategy sessionAuthenticationStrategy() {
+		return new RegisterSessionAuthenticationStrategy(new SessionRegistryImpl());
+	}
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        super.configure(http);
-        http
-                .authorizeRequests()
-                .anyRequest()
-                .authenticated();
-    }
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		super.configure(http);
+		http
+			.authorizeRequests()
+			.anyRequest()
+			.authenticated()
+			.and()
+			.csrf()
+			.ignoringAntMatchers("/**");
+	}
 }
