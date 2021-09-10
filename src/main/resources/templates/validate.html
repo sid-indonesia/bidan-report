@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.thymeleaf.org"
+  th:lang="${#locale.language}"
+  lang="en"
+>
+    <head>
+        <title th:text="${@environment.getProperty('spring.application.name', 'SID Report')}"></title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    </head>
+    <body>
+        <h1 th:text="${@environment.getProperty('spring.application.name', 'SID Report')}"></h1>
+
+        <form action="/api/ExcelSheet/$validate" method="POST">
+			<div class="form-group">
+				<label for="fromDateString">From Date:</label>
+				<input type="datetime-local" id="fromDateString" name="fromDateString" placeholder="From Date" autocomplete="off"
+					class="form-control" required/>
+			</div>
+			<div class="form-group">
+				<label for="untilDateString">Until Date:</label>
+				<input type="datetime-local" id="untilDateString" name="untilDateString" placeholder="Until Date" autocomplete="off"
+					class="form-control" required/>
+			</div>
+			<button class="btn btn-primary" type="submit">Validate and Download as Excel Sheets</button>
+		</form>
+    </body>
+</html>
