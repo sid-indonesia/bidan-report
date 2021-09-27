@@ -35,6 +35,8 @@ public class QontakAuthenticationListener implements ApplicationListener<Applica
 
 		QontakWhatsAppAuthResponse responseBody = response.block();
 		qontakProperties.getWhatsApp().setAccessToken(responseBody.getAccess_token());
+		qontakProperties.getWhatsApp().setRefreshToken(responseBody.getRefresh_token());
+		qontakProperties.getWhatsApp().setTokenType(responseBody.getToken_type());
 		log.info("Authenticated to {} successfully.", qontakProperties.getWhatsApp().getBaseUrl());
 		syncLastId();
 	}

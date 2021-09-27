@@ -56,6 +56,7 @@ public class WhatsAppMessageService {
 				.uri("/api/open/v1/broadcasts/whatsapp/direct").bodyValue(requestBody)
 				.header("Authorization", "Bearer " + qontakProperties.getWhatsApp().getAccessToken()).retrieve()
 				.bodyToMono(QontakWhatsAppBroadcastResponse.class);
+
 			if ("success".equals(response.block().getStatus())) {
 				successCount.incrementAndGet();
 			}

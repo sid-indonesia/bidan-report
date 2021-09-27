@@ -19,6 +19,8 @@ public class QontakProperties {
 		private String username;
 		private String password;
 		private String accessToken;
+		private String refreshToken;
+		private String tokenType;
 		private String messageTemplateId;
 		private String channelIntegrationId;
 		private String districtHealthOfficeName;
