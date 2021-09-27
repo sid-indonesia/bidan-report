@@ -1,12 +1,12 @@
-package org.sidindonesia.bidanreport.service;
+package org.sidindonesia.bidanreport.integration.qontak.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.sidindonesia.bidanreport.IntegrationTest;
-import org.sidindonesia.bidanreport.config.property.QontakProperties;
-import org.sidindonesia.bidanreport.controller.request.QontakWhatsAppAuthRequest;
-import org.sidindonesia.bidanreport.controller.response.QontakWhatsAppAuthResponse;
+import org.sidindonesia.bidanreport.integration.qontak.property.QontakProperties;
+import org.sidindonesia.bidanreport.integration.qontak.request.QontakWhatsAppAuthRequest;
+import org.sidindonesia.bidanreport.integration.qontak.response.QontakWhatsAppAuthResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;

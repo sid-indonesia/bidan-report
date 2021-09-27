@@ -1,4 +1,4 @@
-package org.sidindonesia.bidanreport.config.property;
+package org.sidindonesia.bidanreport.integration.qontak.property;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -19,5 +19,7 @@ public class QontakProperties {
 		private String username;
 		private String password;
 		private String accessToken;
+		private String messageTemplateId;
+		private String channelIntegrationId;
 	}
 }

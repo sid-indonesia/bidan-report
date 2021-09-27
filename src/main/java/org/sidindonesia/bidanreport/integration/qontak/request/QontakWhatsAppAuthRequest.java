@@ -1,4 +1,4 @@
-package org.sidindonesia.bidanreport.controller.request;
+package org.sidindonesia.bidanreport.integration.qontak.request;
 
 import lombok.Data;
 

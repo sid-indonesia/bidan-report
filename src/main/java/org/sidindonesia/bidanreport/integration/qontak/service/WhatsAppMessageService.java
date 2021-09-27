@@ -1,4 +1,4 @@
-package org.sidindonesia.bidanreport.service;
+package org.sidindonesia.bidanreport.integration.qontak.service;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional(readOnly = true)
 @Service
 public class WhatsAppMessageService {
-	@Scheduled
+	@Scheduled(fixedRateString = "${scheduling.fixed-rate-in-ms}")
 	public void sendWhatsAppMessageToNewClients() {
 
 	}
