@@ -24,6 +24,7 @@ class WhatsAppMessageServiceTest {
 	private WebClient webClient = WebClient.create(QONTAK_MOCK_SERVER_BASE_URL);
 	@Autowired
 	private QontakProperties qontakProperties;
+	@Autowired WhatsAppMessageService whatsAppMessageService;
 
 	@Test
 	void assertThatQontakWhatsAppConfigPropertiesAreCorrect() {
@@ -54,5 +55,10 @@ class WhatsAppMessageServiceTest {
 
 		QontakWhatsAppAuthResponse responseBody = response.block();
 		assertThat(responseBody.getAccess_token()).isNotBlank();
+	}
+
+	@Test
+	void testSendWhatsAppMessageToNewMothers() {
+		whatsAppMessageService.sendWhatsAppMessageToNewMothers();
 	}
 }

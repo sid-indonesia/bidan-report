@@ -28,6 +28,7 @@
       **/exception/**/*,
       **/request/**/*,
       **/response/**/*,
+      **/property/**/*,
       **/*Application*</sonar.exclusions>
     <sonar.coverage.exclusions>${sonar.exclusions}</sonar.coverage.exclusions>
     <sonar.cpd.exclusions>**/domain/**/*</sonar.cpd.exclusions>

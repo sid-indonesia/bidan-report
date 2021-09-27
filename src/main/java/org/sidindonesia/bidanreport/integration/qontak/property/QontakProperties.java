@@ -21,5 +21,6 @@ public class QontakProperties {
 		private String accessToken;
 		private String messageTemplateId;
 		private String channelIntegrationId;
+		private String districtHealthOfficeName;
 	}
 }
