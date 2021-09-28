@@ -42,8 +42,6 @@ public class SecurityConfiguration extends KeycloakWebSecurityConfigurerAdapter 
 		super.configure(http);
 		http
 			.authorizeRequests()
-			.antMatchers("favicon.ico")
-			.permitAll()
 			.anyRequest()
 			.authenticated()
 			.and()

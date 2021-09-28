@@ -1,3 +1,8 @@
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.sidindonesia.bidanreport: DEBUG
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/opensrp_test
@@ -20,3 +25,21 @@ spring:
       hibernate.hbm2ddl.auto: create-drop
       hibernate.jdbc.time_zone: UTC
       hibernate.query.fail_on_pagination_over_collection_fetch: true
+
+# client-id and client-secret retrieved from
+# https://docs.qontak.com/docs/omnichannel-hub/ZG9jOjE1MzEwMzc4-authentication#how-to-get-token
+qontak:
+  whats-app:
+    base-url: https://stoplight.io/mocks/qontak/omnichannel-hub
+    client-id: RRrn6uIxalR_QaHFlcKOqbjHMG63elEdPTair9B9YdY
+    client-secret: Sa8IGIh_HpVK1ZLAF0iFf7jU760osaUNV659pBIZR00
+    username: test
+    password: password
+    message-template-id: 8ce51d59-f848-4137-960a-49b3e9b9415b
+    channel-integration-id: 5fd26ff5-adc3-4c91-9022-c8069bb09bc4
+    district-health-office-name: Test
+    api-path-broadcast-direct: /15212622/v1/broadcasts/whatsapp/direct
+    api-path-authentication: /17521989/oauth/token
+
+scheduling:
+  enabled: false
