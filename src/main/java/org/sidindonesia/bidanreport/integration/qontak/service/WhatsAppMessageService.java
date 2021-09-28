@@ -34,7 +34,7 @@ public class WhatsAppMessageService {
 	private final WebClient webClient;
 	private final Gson gson;
 
-	@Scheduled(fixedRateString = "${scheduling.fixed-rate-in-ms}")
+	@Scheduled(fixedRateString = "${scheduling.fixed-rate-in-ms}", initialDelayString = "${scheduling.initial-delay-in-ms}")
 	public void sendWhatsAppMessageToNewMothers() {
 		log.info("Executing scheduled \"Send Join Notification via WhatsApp\"...");
 
