@@ -2,12 +2,16 @@ package org.sidindonesia.bidanreport.integration.qontak.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.stream.IntStream;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.sidindonesia.bidanreport.IntegrationTest;
 import org.sidindonesia.bidanreport.integration.qontak.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.request.QontakWhatsAppAuthRequest;
 import org.sidindonesia.bidanreport.integration.qontak.response.QontakWhatsAppAuthResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -26,7 +30,25 @@ class WhatsAppMessageServiceTest {
 	@Autowired
 	private QontakProperties qontakProperties;
 	@Autowired
-	WhatsAppMessageService whatsAppMessageService;
+	private WhatsAppMessageService whatsAppMessageService;
+	@Autowired
+	private JdbcOperations jdbcOperations;
+
+	@BeforeEach
+	void setUp() {
+		IntStream.rangeClosed(1, 2).forEach(id -> {
+			jdbcOperations.execute("INSERT INTO client_mother\n"
+				+ "(source_id, date_created, base_entity_id, birth_date, server_version_epoch, source_date_deleted, full_name)\n"
+				+ "VALUES(" + id + ", CURRENT_TIMESTAMP, '" + id + "', CURRENT_TIMESTAMP, '157663657225" + id
+				+ "', CURRENT_TIMESTAMP, 'Test " + id + "');\n");
+		});
+		IntStream.rangeClosed(1, 3).forEach(id -> {
+			jdbcOperations.execute("INSERT INTO mother_identity\n"
+				+ "(event_id, date_created, event_date, mobile_phone_number, mother_base_entity_id, provider_id, registration_date, server_version_epoch, source_date_deleted, transfer_date)\n"
+				+ "VALUES(" + id + ", CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, '08381234567" + id + "', '" + id
+				+ "', 'test', CURRENT_TIMESTAMP, '157663657225" + id + "', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);\n");
+		});
+	}
 
 	@Test
 	void assertThatQontakWhatsAppConfigPropertiesAreCorrect() {
