@@ -34,17 +34,6 @@ public class ExcelSheetService {
 			return ExcelHelper.validateAllTableColumnsAreNotEmpty(context, JPA_ENTITY_PACKAGE_NAME,
 				JPA_REPOSITORY_PACKAGE_NAME, params.getFromDate(), params.getUntilDate());
 		} else {
-			params.getTables().stream().forEach(table -> {
-//				Class<?> clazz = ReflectionsUtil.getAllEntityClasses(JPA_ENTITY_PACKAGE_NAME).stream()
-//					.filter(entityClass -> table.getName().equals(entityClass.getSimpleName())).findAny().orElseThrow();
-
-				if (table.getColumns().isEmpty()) {
-					// TODO validate all columns of the table
-				} else {
-					// TODO validate specified column(s) of the table
-				}
-			});
-
 			return new ByteArrayInputStream(null);
 		}
 	}
