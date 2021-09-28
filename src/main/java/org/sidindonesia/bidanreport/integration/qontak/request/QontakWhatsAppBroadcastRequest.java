@@ -11,7 +11,7 @@ public class QontakWhatsAppBroadcastRequest {
 	private String to_name;
 	private String message_template_id;
 	private String channel_integration_id;
-	private Language language;
+	private Language language = new Language();
 	private Parameters parameters;
 
 	@Data

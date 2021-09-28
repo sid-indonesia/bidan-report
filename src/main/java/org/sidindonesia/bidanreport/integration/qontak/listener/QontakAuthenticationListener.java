@@ -24,23 +24,34 @@ public class QontakAuthenticationListener implements ApplicationListener<Applica
 	public void onApplicationEvent(ApplicationReadyEvent event) {
 		log.info("Authenticating to {}", qontakProperties.getWhatsApp().getBaseUrl());
 
+		QontakWhatsAppAuthRequest requestBody = createQontakAuthRequestBody();
+		Mono<QontakWhatsAppAuthResponse> response = webClient.post()
+			.uri(qontakProperties.getWhatsApp().getApiPathAuthentication()).bodyValue(requestBody).retrieve()
+			.bodyToMono(QontakWhatsAppAuthResponse.class);
+
+		QontakWhatsAppAuthResponse responseBody = response.block();
+		if (responseBody != null) {
+			qontakProperties.getWhatsApp().setAccessToken(responseBody.getAccess_token());
+			qontakProperties.getWhatsApp().setRefreshToken(responseBody.getRefresh_token());
+			qontakProperties.getWhatsApp().setTokenType(responseBody.getToken_type());
+		} else {
+			log.error("Failed to authenticate to {}", qontakProperties.getWhatsApp().getBaseUrl());
+		}
+		log.info("Authenticated to {} successfully.", qontakProperties.getWhatsApp().getBaseUrl());
+		syncLastId();
+	}
+
+	private QontakWhatsAppAuthRequest createQontakAuthRequestBody() {
 		QontakWhatsAppAuthRequest requestBody = new QontakWhatsAppAuthRequest();
 		requestBody.setClient_id(qontakProperties.getWhatsApp().getClientId());
 		requestBody.setClient_secret(qontakProperties.getWhatsApp().getClientSecret());
 		requestBody.setGrant_type("password");
 		requestBody.setUsername(qontakProperties.getWhatsApp().getUsername());
 		requestBody.setPassword(qontakProperties.getWhatsApp().getPassword());
-		Mono<QontakWhatsAppAuthResponse> response = webClient.post().uri("/oauth/token").bodyValue(requestBody)
-			.retrieve().bodyToMono(QontakWhatsAppAuthResponse.class);
-
-		QontakWhatsAppAuthResponse responseBody = response.block();
-		qontakProperties.getWhatsApp().setAccessToken(responseBody.getAccess_token());
-		qontakProperties.getWhatsApp().setRefreshToken(responseBody.getRefresh_token());
-		qontakProperties.getWhatsApp().setTokenType(responseBody.getToken_type());
-		log.info("Authenticated to {} successfully.", qontakProperties.getWhatsApp().getBaseUrl());
-		syncLastId();
+		return requestBody;
 	}
 
 	private void syncLastId() {
+		// TODO
 	}
 }

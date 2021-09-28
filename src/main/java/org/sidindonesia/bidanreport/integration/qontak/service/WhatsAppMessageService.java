@@ -15,6 +15,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+
+import com.google.gson.Gson;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +32,7 @@ public class WhatsAppMessageService {
 	private final MotherIdentityProperties motherIdentityProperties;
 	private final QontakProperties qontakProperties;
 	private final WebClient webClient;
+	private final Gson gson;
 
 	@Scheduled(fixedRateString = "${scheduling.fixed-rate-in-ms}")
 	public void sendWhatsAppMessageToNewMothers() {
@@ -40,31 +44,52 @@ public class WhatsAppMessageService {
 				motherIdentityProperties.getLastId());
 
 		AtomicLong successCount = new AtomicLong();
-		motherIdentities.forEach(motherIdentity -> {
-			QontakWhatsAppBroadcastRequest requestBody = new QontakWhatsAppBroadcastRequest();
-			requestBody.setChannel_integration_id(qontakProperties.getWhatsApp().getChannelIntegrationId());
-			requestBody.setMessage_template_id(qontakProperties.getWhatsApp().getMessageTemplateId());
-			requestBody.setTo_name(motherIdentity.getFullName());
-			requestBody.setTo_number(IndonesiaPhoneNumberUtil.sanitize(motherIdentity.getMobilePhoneNumber()));
-
-			Parameters parameters = new Parameters();
-			parameters.addBodyWithValues("1", "full_name", motherIdentity.getFullName());
-			parameters.addBodyWithValues("2", "dho", qontakProperties.getWhatsApp().getDistrictHealthOfficeName());
-
-			requestBody.setParameters(parameters);
+		motherIdentities.parallelStream().forEach(motherIdentity -> {
+			QontakWhatsAppBroadcastRequest requestBody = createBroadcastDirectRequestBody(motherIdentity);
 			Mono<QontakWhatsAppBroadcastResponse> response = webClient.post()
-				.uri("/api/open/v1/broadcasts/whatsapp/direct").bodyValue(requestBody)
+				.uri(qontakProperties.getWhatsApp().getApiPathBroadcastDirect()).bodyValue(requestBody)
 				.header("Authorization", "Bearer " + qontakProperties.getWhatsApp().getAccessToken()).retrieve()
-				.bodyToMono(QontakWhatsAppBroadcastResponse.class);
+				.bodyToMono(QontakWhatsAppBroadcastResponse.class).onErrorResume(WebClientResponseException.class,
+					ex -> ex.getRawStatusCode() == 422 || ex.getRawStatusCode() == 401
+						? Mono.just(gson.fromJson(ex.getResponseBodyAsString(), QontakWhatsAppBroadcastResponse.class))
+						: Mono.error(ex));
 
-			if ("success".equals(response.block().getStatus())) {
-				successCount.incrementAndGet();
+			QontakWhatsAppBroadcastResponse responseBody = response.block();
+			if (responseBody != null) {
+				if ("success".equals(responseBody.getStatus())) {
+					successCount.incrementAndGet();
+				} else {
+					log.error(
+						"Request broadcast direct message failed for: {}, at phone number: {}, with error details: {}",
+						motherIdentity.getFullName(), motherIdentity.getMobilePhoneNumber(), responseBody.getError());
+				}
+			} else {
+				log.error("Request broadcast direct message failed with no content for: {}, at phone number: {}",
+					motherIdentity.getFullName(), motherIdentity.getMobilePhoneNumber());
 			}
 		});
 
-		motherIdentityProperties.setLastId(motherIdentities.get(motherIdentities.size() - 1).getEventId());
+		if (!motherIdentities.isEmpty()) {
+			motherIdentityProperties.setLastId(motherIdentities.get(motherIdentities.size() - 1).getEventId());
+		}
 		log.info("\"Send Join Notification via WhatsApp\" completed.");
 		log.info("{} out of {} new enrolled mothers have been notified via WhatsApp successfully.", successCount,
 			motherIdentities.size());
+	}
+
+	private QontakWhatsAppBroadcastRequest createBroadcastDirectRequestBody(
+		MotherIdentityWhatsAppProjection motherIdentity) {
+		QontakWhatsAppBroadcastRequest requestBody = new QontakWhatsAppBroadcastRequest();
+		requestBody.setChannel_integration_id(qontakProperties.getWhatsApp().getChannelIntegrationId());
+		requestBody.setMessage_template_id(qontakProperties.getWhatsApp().getMessageTemplateId());
+		requestBody.setTo_name(motherIdentity.getFullName());
+		requestBody.setTo_number(IndonesiaPhoneNumberUtil.sanitize(motherIdentity.getMobilePhoneNumber()));
+
+		Parameters parameters = new Parameters();
+		parameters.addBodyWithValues("1", "full_name", motherIdentity.getFullName());
+		parameters.addBodyWithValues("2", "dho", qontakProperties.getWhatsApp().getDistrictHealthOfficeName());
+
+		requestBody.setParameters(parameters);
+		return requestBody;
 	}
 }

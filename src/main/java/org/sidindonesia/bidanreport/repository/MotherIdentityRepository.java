@@ -9,11 +9,12 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MotherIdentityRepository extends BaseRepository<MotherIdentity, Long> {
-	@Query("SELECT mi.eventId AS eventId, mi.mobilePhoneNumber AS mobilePhoneNumber, "
-		+ "(SELECT cm.fullName FROM org.sidindonesia.bidanreport.domain.ClientMother cm WHERE cm.baseEntityId = mi.motherBaseEntityId) AS fullName "
-		+ "FROM #{#entityName} mi "
-		+ "WHERE mi.eventId > ?1 AND mi.mobilePhoneNumber IS NOT NULL AND mi.providerId NOT LIKE '%demo%' "
-		+ "ORDER BY mi.eventId")
+	@Query(nativeQuery = true, value = "SELECT mi.event_id AS eventId, mi.mobile_phone_number AS mobilePhoneNumber, "
+		+ "(SELECT cm.full_name FROM client_mother cm "
+		+ "WHERE cm.base_entity_id = mi.mother_base_entity_id ORDER BY cm.server_version_epoch DESC LIMIT 1) AS full_name "
+		+ "FROM mother_identity mi "
+		+ "WHERE mi.event_id > ?1 AND mi.mobile_phone_number IS NOT NULL AND mi.provider_id NOT LIKE '%demo%' "
+		+ "ORDER BY mi.event_id")
 	List<MotherIdentityWhatsAppProjection> findAllByEventIdGreaterThanAndMobilePhoneNumberIsNotNullAndProviderIdNotContainingDemoOrderByEventId(
 		Long lastEventId);
 }

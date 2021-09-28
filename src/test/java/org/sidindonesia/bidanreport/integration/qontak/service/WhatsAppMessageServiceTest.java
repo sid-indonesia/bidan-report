@@ -20,16 +20,16 @@ import reactor.core.publisher.Mono;
 @Transactional
 class WhatsAppMessageServiceTest {
 
-	private static final String QONTAK_MOCK_SERVER_BASE_URL = "https://stoplight.io/mocks/qontak/omnichannel-hub/17521989";
+	private static final String QONTAK_MOCK_SERVER_BASE_URL = "https://stoplight.io/mocks/qontak/omnichannel-hub";
 	private WebClient webClient = WebClient.create(QONTAK_MOCK_SERVER_BASE_URL);
+
 	@Autowired
 	private QontakProperties qontakProperties;
-	@Autowired WhatsAppMessageService whatsAppMessageService;
+	@Autowired
+	WhatsAppMessageService whatsAppMessageService;
 
 	@Test
 	void assertThatQontakWhatsAppConfigPropertiesAreCorrect() {
-		assertThat(qontakProperties.getWhatsApp().getBaseUrl()).isEqualTo("https://chat-service.qontak.com");
-
 		// client-id and client-secret retrieved from
 		// https://docs.qontak.com/docs/omnichannel-hub/ZG9jOjE1MzEwMzc4-authentication#how-to-get-token
 		assertThat(qontakProperties.getWhatsApp().getClientId())
@@ -39,7 +39,6 @@ class WhatsAppMessageServiceTest {
 
 		assertThat(qontakProperties.getWhatsApp().getUsername()).isEqualTo("test");
 		assertThat(qontakProperties.getWhatsApp().getPassword()).isEqualTo("password");
-		assertThat(qontakProperties.getWhatsApp().getAccessToken()).isNull();
 	}
 
 	@Test
@@ -50,7 +49,7 @@ class WhatsAppMessageServiceTest {
 		requestBody.setGrant_type("password");
 		requestBody.setUsername(qontakProperties.getWhatsApp().getUsername());
 		requestBody.setPassword(qontakProperties.getWhatsApp().getPassword());
-		Mono<QontakWhatsAppAuthResponse> response = webClient.post().uri("/oauth/token").bodyValue(requestBody)
+		Mono<QontakWhatsAppAuthResponse> response = webClient.post().uri("/17521989/oauth/token").bodyValue(requestBody)
 			.retrieve().bodyToMono(QontakWhatsAppAuthResponse.class);
 
 		QontakWhatsAppAuthResponse responseBody = response.block();
@@ -59,6 +58,7 @@ class WhatsAppMessageServiceTest {
 
 	@Test
 	void testSendWhatsAppMessageToNewMothers() {
+		assertThat(whatsAppMessageService).isNotNull();
 		whatsAppMessageService.sendWhatsAppMessageToNewMothers();
 	}
 }
