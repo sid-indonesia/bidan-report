@@ -36,7 +36,7 @@ public class WhatsAppMessageService {
 
 	@Scheduled(fixedRateString = "${scheduling.fixed-rate-in-ms}", initialDelayString = "${scheduling.initial-delay-in-ms}")
 	public void sendWhatsAppMessageToNewMothers() {
-		log.info("Executing scheduled \"Send Join Notification via WhatsApp\"...");
+		log.debug("Executing scheduled \"Send Join Notification via WhatsApp\"...");
 
 		log.debug("Retrieving all new mother identities...");
 		List<MotherIdentityWhatsAppProjection> motherIdentities = motherIdentityRepository
