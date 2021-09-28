@@ -71,10 +71,10 @@ public class WhatsAppMessageService {
 
 		if (!motherIdentities.isEmpty()) {
 			motherIdentityProperties.setLastId(motherIdentities.get(motherIdentities.size() - 1).getEventId());
+			log.info("\"Send Join Notification via WhatsApp\" completed.");
+			log.info("{} out of {} new enrolled mothers have been notified via WhatsApp successfully.", successCount,
+				motherIdentities.size());
 		}
-		log.info("\"Send Join Notification via WhatsApp\" completed.");
-		log.info("{} out of {} new enrolled mothers have been notified via WhatsApp successfully.", successCount,
-			motherIdentities.size());
 	}
 
 	private QontakWhatsAppBroadcastRequest createBroadcastDirectRequestBody(

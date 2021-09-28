@@ -1,8 +1,13 @@
 package org.sidindonesia.bidanreport.integration.qontak.listener;
 
+import java.util.Optional;
+
+import org.sidindonesia.bidanreport.config.property.MotherIdentityProperties;
+import org.sidindonesia.bidanreport.domain.MotherIdentity;
 import org.sidindonesia.bidanreport.integration.qontak.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.request.QontakWhatsAppAuthRequest;
 import org.sidindonesia.bidanreport.integration.qontak.response.QontakWhatsAppAuthResponse;
+import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
@@ -19,6 +24,8 @@ public class QontakAuthenticationListener implements ApplicationListener<Applica
 
 	private final QontakProperties qontakProperties;
 	private final WebClient webClient;
+	private final MotherIdentityRepository motherIdentityRepository;
+	private final MotherIdentityProperties motherIdentityProperties;
 
 	@Override
 	public void onApplicationEvent(ApplicationReadyEvent event) {
@@ -52,6 +59,10 @@ public class QontakAuthenticationListener implements ApplicationListener<Applica
 	}
 
 	private void syncLastId() {
-		// TODO
+		Optional<MotherIdentity> optMotherIdentity = motherIdentityRepository.findFirstByOrderByEventIdDesc();
+		if (optMotherIdentity.isPresent()) {
+			motherIdentityProperties.setLastId(optMotherIdentity.get().getEventId());
+		}
+		log.info("Sync-ed last ID from DB successfully.");
 	}
 }
