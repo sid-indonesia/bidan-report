@@ -74,7 +74,7 @@ public class WhatsAppMessageService {
 			QontakWhatsAppBroadcastRequest requestBody = createBroadcastDirectRequestBody(motherIdentity);
 			Mono<QontakWhatsAppBroadcastResponse> response = webClient.post()
 				.uri(qontakProperties.getWhatsApp().getApiPathBroadcastDirect()).bodyValue(requestBody)
-				.header("Authorization", "Bearer " + qontakProperties.getWhatsApp().getAccessToken()).retrieve()
+				.header("Authorization", "Bearer " + qontakProperties.getAccessToken()).retrieve()
 				.bodyToMono(QontakWhatsAppBroadcastResponse.class).onErrorResume(WebClientResponseException.class,
 					ex -> ex.getRawStatusCode() == 422 || ex.getRawStatusCode() == 401
 						? Mono.just(gson.fromJson(ex.getResponseBodyAsString(), QontakWhatsAppBroadcastResponse.class))

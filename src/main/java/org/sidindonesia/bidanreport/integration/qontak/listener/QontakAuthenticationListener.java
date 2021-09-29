@@ -41,9 +41,9 @@ public class QontakAuthenticationListener implements ApplicationListener<Applica
 
 		QontakWhatsAppAuthResponse responseBody = response.block();
 		if (responseBody != null) {
-			qontakProperties.getWhatsApp().setAccessToken(responseBody.getAccess_token());
-			qontakProperties.getWhatsApp().setRefreshToken(responseBody.getRefresh_token());
-			qontakProperties.getWhatsApp().setTokenType(responseBody.getToken_type());
+			qontakProperties.setAccessToken(responseBody.getAccess_token());
+			qontakProperties.setRefreshToken(responseBody.getRefresh_token());
+			qontakProperties.setTokenType(responseBody.getToken_type());
 		} else {
 			log.error("Failed to authenticate to {}", qontakProperties.getWhatsApp().getBaseUrl());
 		}

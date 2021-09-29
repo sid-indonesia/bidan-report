@@ -10,6 +10,9 @@ import lombok.Data;
 @ConfigurationProperties(prefix = "qontak")
 public class QontakProperties {
 	private WhatsApp whatsApp;
+	private String accessToken;
+	private String refreshToken;
+	private String tokenType;
 
 	@Data
 	public static class WhatsApp {
@@ -18,9 +21,6 @@ public class QontakProperties {
 		private String clientSecret;
 		private String username;
 		private String password;
-		private String accessToken;
-		private String refreshToken;
-		private String tokenType;
 		private String messageTemplateId;
 		private String channelIntegrationId;
 		private String districtHealthOfficeName;

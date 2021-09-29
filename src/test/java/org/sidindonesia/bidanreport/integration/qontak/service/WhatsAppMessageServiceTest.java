@@ -109,9 +109,12 @@ class WhatsAppMessageServiceTest {
 
 	@Test
 	void testSendWhatsAppMessageToNewMothers_withHappyFlow() {
+		// given
 		insertDummyData();
-		assertThat(whatsAppMessageService).isNotNull();
+		// when
 		whatsAppMessageService.sendWhatsAppMessageToNewMothers();
+		// then
+		assertThat(whatsAppMessageService).isNotNull();
 	}
 
 	@Test
