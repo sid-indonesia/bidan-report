@@ -2,9 +2,9 @@ package org.sidindonesia.bidanreport.integration.qontak.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.function.IntConsumer;
 import java.util.stream.IntStream;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.sidindonesia.bidanreport.IntegrationTest;
 import org.sidindonesia.bidanreport.integration.qontak.property.QontakProperties;
@@ -34,20 +34,49 @@ class WhatsAppMessageServiceTest {
 	@Autowired
 	private JdbcOperations jdbcOperations;
 
-	@BeforeEach
-	void setUp() {
-		IntStream.rangeClosed(1, 2).forEach(id -> {
+	void insertDummyData() {
+		IntStream.rangeClosed(1, 2).forEach(insertIntoClientMother());
+		IntStream.rangeClosed(1, 3).forEach(insertIntoMotherIdentity());
+
+		IntStream.rangeClosed(4, 5).forEach(insertIntoClientMother());
+		IntStream.rangeClosed(4, 6).forEach(insertIntoMotherIdentityWithoutMobilePhoneNumber());
+		IntStream.rangeClosed(7, 9).forEach(insertIntoMotherEdit());
+	}
+
+	private IntConsumer insertIntoClientMother() {
+		return id -> {
 			jdbcOperations.execute("INSERT INTO client_mother\n"
 				+ "(source_id, date_created, base_entity_id, birth_date, server_version_epoch, source_date_deleted, full_name)\n"
 				+ "VALUES(" + id + ", CURRENT_TIMESTAMP, '" + id + "', CURRENT_TIMESTAMP, '157663657225" + id
 				+ "', CURRENT_TIMESTAMP, 'Test " + id + "');\n");
-		});
-		IntStream.rangeClosed(1, 3).forEach(id -> {
+		};
+	}
+
+	private IntConsumer insertIntoMotherIdentity() {
+		return id -> {
 			jdbcOperations.execute("INSERT INTO mother_identity\n"
 				+ "(event_id, date_created, event_date, mobile_phone_number, mother_base_entity_id, provider_id, registration_date, server_version_epoch, source_date_deleted, transfer_date)\n"
 				+ "VALUES(" + id + ", CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, '08381234567" + id + "', '" + id
 				+ "', 'test', CURRENT_TIMESTAMP, '157663657225" + id + "', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);\n");
-		});
+		};
+	}
+
+	private IntConsumer insertIntoMotherIdentityWithoutMobilePhoneNumber() {
+		return id -> {
+			jdbcOperations.execute("INSERT INTO mother_identity\n"
+				+ "(event_id, date_created, event_date, mother_base_entity_id, provider_id, registration_date, server_version_epoch, source_date_deleted, transfer_date)\n"
+				+ "VALUES(" + id + ", CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, '" + id
+				+ "', 'test', CURRENT_TIMESTAMP, '157663657225" + id + "', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);\n");
+		};
+	}
+
+	private IntConsumer insertIntoMotherEdit() {
+		return id -> {
+			jdbcOperations.execute("INSERT INTO mother_edit\n"
+				+ "(event_id, date_created, event_date, mobile_phone_number, mother_base_entity_id, provider_id, registration_date, server_version_epoch, source_date_deleted, transfer_date)\n"
+				+ "VALUES(" + id + ", CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, '08381234567" + id + "', '" + (id - 3)
+				+ "', 'test', CURRENT_TIMESTAMP, '157663657225" + id + "', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);\n");
+		};
 	}
 
 	@Test
@@ -79,7 +108,14 @@ class WhatsAppMessageServiceTest {
 	}
 
 	@Test
-	void testSendWhatsAppMessageToNewMothers() {
+	void testSendWhatsAppMessageToNewMothers_withHappyFlow() {
+		insertDummyData();
+		assertThat(whatsAppMessageService).isNotNull();
+		whatsAppMessageService.sendWhatsAppMessageToNewMothers();
+	}
+
+	@Test
+	void testSendWhatsAppMessageToNewMothers_withNoNewMothers() {
 		assertThat(whatsAppMessageService).isNotNull();
 		whatsAppMessageService.sendWhatsAppMessageToNewMothers();
 	}

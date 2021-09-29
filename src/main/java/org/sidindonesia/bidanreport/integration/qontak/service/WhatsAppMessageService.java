@@ -2,12 +2,14 @@ package org.sidindonesia.bidanreport.integration.qontak.service;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
-import org.sidindonesia.bidanreport.config.property.MotherIdentityProperties;
+import org.sidindonesia.bidanreport.config.property.LastIdProperties;
 import org.sidindonesia.bidanreport.integration.qontak.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.request.QontakWhatsAppBroadcastRequest;
 import org.sidindonesia.bidanreport.integration.qontak.request.QontakWhatsAppBroadcastRequest.Parameters;
 import org.sidindonesia.bidanreport.integration.qontak.response.QontakWhatsAppBroadcastResponse;
+import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
 import org.sidindonesia.bidanreport.repository.projection.MotherIdentityWhatsAppProjection;
 import org.sidindonesia.bidanreport.util.IndonesiaPhoneNumberUtil;
@@ -29,7 +31,8 @@ import reactor.core.publisher.Mono;
 @Service
 public class WhatsAppMessageService {
 	private final MotherIdentityRepository motherIdentityRepository;
-	private final MotherIdentityProperties motherIdentityProperties;
+	private final MotherEditRepository motherEditRepository;
+	private final LastIdProperties lastIdProperties;
 	private final QontakProperties qontakProperties;
 	private final WebClient webClient;
 	private final Gson gson;
@@ -41,10 +44,33 @@ public class WhatsAppMessageService {
 		log.debug("Retrieving all new mother identities...");
 		List<MotherIdentityWhatsAppProjection> motherIdentities = motherIdentityRepository
 			.findAllByEventIdGreaterThanAndMobilePhoneNumberIsNotNullAndProviderIdNotContainingDemoOrderByEventId(
-				motherIdentityProperties.getLastId());
+				lastIdProperties.getMotherIdentityLastId());
+		List<MotherIdentityWhatsAppProjection> motherEdits = motherEditRepository
+			.findAllMotherEditsWhichLastEditAndPreviouslyInMotherIdentityHasMobilePhoneNumberIsNullOrderByEventId(
+				lastIdProperties.getMotherEditLastId());
 
-		AtomicLong successCount = new AtomicLong();
-		motherIdentities.parallelStream().forEach(motherIdentity -> {
+		AtomicLong newEnrolledMothersSuccessCount = new AtomicLong();
+		motherIdentities.parallelStream().forEach(broadcastDirectMessageViaWhatsApp(newEnrolledMothersSuccessCount));
+		AtomicLong editedMothersSuccessCount = new AtomicLong();
+		motherEdits.parallelStream().forEach(broadcastDirectMessageViaWhatsApp(editedMothersSuccessCount));
+
+		if (!motherIdentities.isEmpty()) {
+			lastIdProperties.setMotherIdentityLastId(motherIdentities.get(motherIdentities.size() - 1).getEventId());
+			log.info("\"Send Join Notification via WhatsApp\" for new enrolled mothers completed.");
+			log.info("{} out of {} new enrolled mothers have been notified via WhatsApp successfully.",
+				newEnrolledMothersSuccessCount, motherIdentities.size());
+		}
+		if (!motherEdits.isEmpty()) {
+			lastIdProperties.setMotherEditLastId(motherEdits.get(motherEdits.size() - 1).getEventId());
+			log.info("\"Send Join Notification via WhatsApp\" for edited mothers completed.");
+			log.info("{} out of {} edited mothers have been notified via WhatsApp successfully.",
+				editedMothersSuccessCount, motherEdits.size());
+		}
+	}
+
+	private Consumer<? super MotherIdentityWhatsAppProjection> broadcastDirectMessageViaWhatsApp(
+		AtomicLong successCount) {
+		return motherIdentity -> {
 			QontakWhatsAppBroadcastRequest requestBody = createBroadcastDirectRequestBody(motherIdentity);
 			Mono<QontakWhatsAppBroadcastResponse> response = webClient.post()
 				.uri(qontakProperties.getWhatsApp().getApiPathBroadcastDirect()).bodyValue(requestBody)
@@ -67,14 +93,7 @@ public class WhatsAppMessageService {
 				log.error("Request broadcast direct message failed with no content for: {}, at phone number: {}",
 					motherIdentity.getFullName(), motherIdentity.getMobilePhoneNumber());
 			}
-		});
-
-		if (!motherIdentities.isEmpty()) {
-			motherIdentityProperties.setLastId(motherIdentities.get(motherIdentities.size() - 1).getEventId());
-			log.info("\"Send Join Notification via WhatsApp\" completed.");
-			log.info("{} out of {} new enrolled mothers have been notified via WhatsApp successfully.", successCount,
-				motherIdentities.size());
-		}
+		};
 	}
 
 	private QontakWhatsAppBroadcastRequest createBroadcastDirectRequestBody(

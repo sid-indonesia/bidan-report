@@ -2,11 +2,13 @@ package org.sidindonesia.bidanreport.integration.qontak.listener;
 
 import java.util.Optional;
 
-import org.sidindonesia.bidanreport.config.property.MotherIdentityProperties;
+import org.sidindonesia.bidanreport.config.property.LastIdProperties;
+import org.sidindonesia.bidanreport.domain.MotherEdit;
 import org.sidindonesia.bidanreport.domain.MotherIdentity;
 import org.sidindonesia.bidanreport.integration.qontak.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.request.QontakWhatsAppAuthRequest;
 import org.sidindonesia.bidanreport.integration.qontak.response.QontakWhatsAppAuthResponse;
+import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
@@ -25,7 +27,8 @@ public class QontakAuthenticationListener implements ApplicationListener<Applica
 	private final QontakProperties qontakProperties;
 	private final WebClient webClient;
 	private final MotherIdentityRepository motherIdentityRepository;
-	private final MotherIdentityProperties motherIdentityProperties;
+	private final MotherEditRepository motherEditRepository;
+	private final LastIdProperties lastIdProperties;
 
 	@Override
 	public void onApplicationEvent(ApplicationReadyEvent event) {
@@ -61,7 +64,11 @@ public class QontakAuthenticationListener implements ApplicationListener<Applica
 	private void syncLastId() {
 		Optional<MotherIdentity> optMotherIdentity = motherIdentityRepository.findFirstByOrderByEventIdDesc();
 		if (optMotherIdentity.isPresent()) {
-			motherIdentityProperties.setLastId(optMotherIdentity.get().getEventId());
+			lastIdProperties.setMotherIdentityLastId(optMotherIdentity.get().getEventId());
+		}
+		Optional<MotherEdit> optMotherEdit = motherEditRepository.findFirstByOrderByEventIdDesc();
+		if (optMotherEdit.isPresent()) {
+			lastIdProperties.setMotherIdentityLastId(optMotherEdit.get().getEventId());
 		}
 		log.info("Sync-ed last ID from DB successfully.");
 	}
