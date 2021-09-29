@@ -7,7 +7,8 @@ import lombok.Data;
 
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "mother-identity")
-public class MotherIdentityProperties {
-	private Long lastId = 0L;
+@ConfigurationProperties(prefix = "last-id")
+public class LastIdProperties {
+	private Long motherIdentityLastId = 0L;
+	private Long motherEditLastId = 0L;
 }
