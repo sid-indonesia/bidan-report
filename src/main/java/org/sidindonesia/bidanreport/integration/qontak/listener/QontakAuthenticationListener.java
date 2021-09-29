@@ -68,7 +68,7 @@ public class QontakAuthenticationListener implements ApplicationListener<Applica
 		}
 		Optional<MotherEdit> optMotherEdit = motherEditRepository.findFirstByOrderByEventIdDesc();
 		if (optMotherEdit.isPresent()) {
-			lastIdProperties.setMotherIdentityLastId(optMotherEdit.get().getEventId());
+			lastIdProperties.setMotherEditLastId(optMotherEdit.get().getEventId());
 		}
 		log.info("Sync-ed last ID from DB successfully.");
 	}
