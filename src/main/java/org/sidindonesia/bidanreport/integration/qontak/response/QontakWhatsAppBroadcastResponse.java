@@ -20,6 +20,6 @@ public class QontakWhatsAppBroadcastResponse {
 	@Data
 	public static class ErrorObj {
 		private Integer code;
-		private List<String> messages;
+		private List<Object> messages;
 	}
 }
