@@ -9,6 +9,12 @@ import lombok.Data;
 @Configuration
 @ConfigurationProperties(prefix = "last-id")
 public class LastIdProperties {
-	private Long motherIdentityLastId = 0L;
-	private Long motherEditLastId = 0L;
+	private LastId motherIdentity = new LastId();
+	private LastId motherEdit = new LastId();
+
+	@Data
+	public static class LastId {
+		private Long pregnantMotherLastId = 0L;
+		private Long nonPregnantMotherLastId = 0L;
+	}
 }

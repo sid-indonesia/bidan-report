@@ -37,9 +37,11 @@ class WhatsAppMessageServiceTest {
 	void insertDummyData() {
 		IntStream.rangeClosed(1, 2).forEach(insertIntoClientMother());
 		IntStream.rangeClosed(1, 3).forEach(insertIntoMotherIdentity());
+		IntStream.rangeClosed(1, 3).forEach(insertIntoAncRegister());
 
 		IntStream.rangeClosed(4, 5).forEach(insertIntoClientMother());
 		IntStream.rangeClosed(4, 6).forEach(insertIntoMotherIdentityWithoutMobilePhoneNumber());
+		IntStream.rangeClosed(4, 6).forEach(insertIntoAncRegister());
 		IntStream.rangeClosed(7, 9).forEach(insertIntoMotherEdit());
 	}
 
@@ -58,6 +60,14 @@ class WhatsAppMessageServiceTest {
 				+ "(event_id, date_created, event_date, mobile_phone_number, mother_base_entity_id, provider_id, registration_date, server_version_epoch, source_date_deleted, transfer_date)\n"
 				+ "VALUES(" + id + ", CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, '08381234567" + id + "', '" + id
 				+ "', 'test', CURRENT_TIMESTAMP, '157663657225" + id + "', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);\n");
+		};
+	}
+
+	private IntConsumer insertIntoAncRegister() {
+		return id -> {
+			jdbcOperations.execute("INSERT INTO anc_register\n"
+				+ "(event_id, date_created, mother_base_entity_id, provider_id, server_version_epoch)\n" + "VALUES("
+				+ id + ", CURRENT_TIMESTAMP, '" + id + "', 'test', '157663657225" + id + "');\n");
 		};
 	}
 

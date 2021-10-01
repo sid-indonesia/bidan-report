@@ -22,9 +22,13 @@ public interface MotherEditRepository extends BaseRepository<MotherEdit, Long> {
 		+ " AND me_id_only.mother_base_entity_id NOT IN (SELECT me_duplicate.mother_base_entity_id"
 		+ "  FROM {h-schema}mother_edit me_duplicate WHERE me_duplicate.mobile_phone_number IS NOT NULL"
 		+ "  AND me_duplicate.event_id <= ?1 AND me_duplicate.provider_id NOT LIKE '%demo%')"
+		+ " AND me_id_only.mother_base_entity_id IN (SELECT ar.mother_base_entity_id FROM {h-schema}anc_register ar)"
 		+ ") ORDER BY me.event_id")
-	List<MotherIdentityWhatsAppProjection> findAllMotherEditsWhichLastEditAndPreviouslyInMotherIdentityHasMobilePhoneNumberIsNullOrderByEventId(
+	List<MotherIdentityWhatsAppProjection> findAllPregnantWomenByLastEditAndPreviouslyInMotherIdentityNoMobilePhoneNumberOrderByEventId(
 		Long motherEditLastId);
 
-	Optional<MotherEdit> findFirstByOrderByEventIdDesc();
+	@Query(nativeQuery = true, value = "SELECT me.event_id FROM {h-schema}mother_edit me "
+		+ "WHERE me.mother_base_entity_id IN (SELECT ar.mother_base_entity_id FROM {h-schema}anc_register ar) "
+		+ "ORDER BY me.event_id DESC LIMIT 1")
+	Optional<Long> findFirstPregnantWomanByOrderByEventIdDesc();
 }

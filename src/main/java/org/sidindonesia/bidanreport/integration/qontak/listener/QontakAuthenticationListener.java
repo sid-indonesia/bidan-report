@@ -3,8 +3,6 @@ package org.sidindonesia.bidanreport.integration.qontak.listener;
 import java.util.Optional;
 
 import org.sidindonesia.bidanreport.config.property.LastIdProperties;
-import org.sidindonesia.bidanreport.domain.MotherEdit;
-import org.sidindonesia.bidanreport.domain.MotherIdentity;
 import org.sidindonesia.bidanreport.integration.qontak.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.request.QontakWhatsAppAuthRequest;
 import org.sidindonesia.bidanreport.integration.qontak.response.QontakWhatsAppAuthResponse;
@@ -62,13 +60,13 @@ public class QontakAuthenticationListener implements ApplicationListener<Applica
 	}
 
 	private void syncLastId() {
-		Optional<MotherIdentity> optMotherIdentity = motherIdentityRepository.findFirstByOrderByEventIdDesc();
-		if (optMotherIdentity.isPresent()) {
-			lastIdProperties.setMotherIdentityLastId(optMotherIdentity.get().getEventId());
+		Optional<Long> optMotherIdentityLastId = motherIdentityRepository.findFirstPregnantWomanByOrderByEventIdDesc();
+		if (optMotherIdentityLastId.isPresent()) {
+			lastIdProperties.getMotherIdentity().setPregnantMotherLastId(optMotherIdentityLastId.get());
 		}
-		Optional<MotherEdit> optMotherEdit = motherEditRepository.findFirstByOrderByEventIdDesc();
-		if (optMotherEdit.isPresent()) {
-			lastIdProperties.setMotherEditLastId(optMotherEdit.get().getEventId());
+		Optional<Long> optMotherEditLastId = motherEditRepository.findFirstPregnantWomanByOrderByEventIdDesc();
+		if (optMotherEditLastId.isPresent()) {
+			lastIdProperties.getMotherEdit().setPregnantMotherLastId(optMotherEditLastId.get());
 		}
 		log.info("Sync-ed last ID from DB successfully.");
 	}

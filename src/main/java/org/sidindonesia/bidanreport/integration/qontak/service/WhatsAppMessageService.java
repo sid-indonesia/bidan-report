@@ -42,29 +42,36 @@ public class WhatsAppMessageService {
 		log.debug("Executing scheduled \"Send Join Notification via WhatsApp\"...");
 
 		log.debug("Retrieving all new mother identities...");
-		List<MotherIdentityWhatsAppProjection> motherIdentities = motherIdentityRepository
-			.findAllByEventIdGreaterThanAndMobilePhoneNumberIsNotNullAndProviderIdNotContainingDemoOrderByEventId(
-				lastIdProperties.getMotherIdentityLastId());
-		List<MotherIdentityWhatsAppProjection> motherEdits = motherEditRepository
-			.findAllMotherEditsWhichLastEditAndPreviouslyInMotherIdentityHasMobilePhoneNumberIsNullOrderByEventId(
-				lastIdProperties.getMotherEditLastId());
+		List<MotherIdentityWhatsAppProjection> pregnantWomenIdentities = motherIdentityRepository
+			.findAllPregnantWomenByEventIdGreaterThanAndHasMobilePhoneNumberOrderByEventId(
+				lastIdProperties.getMotherIdentity().getPregnantMotherLastId());
 
-		AtomicLong newEnrolledMothersSuccessCount = new AtomicLong();
-		motherIdentities.parallelStream().forEach(broadcastDirectMessageViaWhatsApp(newEnrolledMothersSuccessCount));
-		AtomicLong editedMothersSuccessCount = new AtomicLong();
-		motherEdits.parallelStream().forEach(broadcastDirectMessageViaWhatsApp(editedMothersSuccessCount));
+		AtomicLong newEnrolledPregnantWomenSuccessCount = new AtomicLong();
+		pregnantWomenIdentities.parallelStream()
+			.forEach(broadcastDirectMessageViaWhatsApp(newEnrolledPregnantWomenSuccessCount));
 
-		if (!motherIdentities.isEmpty()) {
-			lastIdProperties.setMotherIdentityLastId(motherIdentities.get(motherIdentities.size() - 1).getEventId());
-			log.info("\"Send Join Notification via WhatsApp\" for new enrolled mothers completed.");
-			log.info("{} out of {} new enrolled mothers have been notified via WhatsApp successfully.",
-				newEnrolledMothersSuccessCount, motherIdentities.size());
+		if (!pregnantWomenIdentities.isEmpty()) {
+			lastIdProperties.getMotherIdentity()
+				.setPregnantMotherLastId(pregnantWomenIdentities.get(pregnantWomenIdentities.size() - 1).getEventId());
+			log.info("\"Send Join Notification via WhatsApp\" for new enrolled pregnant women completed.");
+			log.info("{} out of {} new enrolled pregnant women have been notified via WhatsApp successfully.",
+				newEnrolledPregnantWomenSuccessCount, pregnantWomenIdentities.size());
 		}
-		if (!motherEdits.isEmpty()) {
-			lastIdProperties.setMotherEditLastId(motherEdits.get(motherEdits.size() - 1).getEventId());
-			log.info("\"Send Join Notification via WhatsApp\" for edited mothers completed.");
-			log.info("{} out of {} edited mothers have been notified via WhatsApp successfully.",
-				editedMothersSuccessCount, motherEdits.size());
+
+		List<MotherIdentityWhatsAppProjection> editedPregnantWomenIds = motherEditRepository
+			.findAllPregnantWomenByLastEditAndPreviouslyInMotherIdentityNoMobilePhoneNumberOrderByEventId(
+				lastIdProperties.getMotherEdit().getPregnantMotherLastId());
+
+		AtomicLong editedPregnantWomenSuccessCount = new AtomicLong();
+		editedPregnantWomenIds.parallelStream()
+			.forEach(broadcastDirectMessageViaWhatsApp(editedPregnantWomenSuccessCount));
+
+		if (!editedPregnantWomenIds.isEmpty()) {
+			lastIdProperties.getMotherEdit()
+				.setPregnantMotherLastId(editedPregnantWomenIds.get(editedPregnantWomenIds.size() - 1).getEventId());
+			log.info("\"Send Join Notification via WhatsApp\" for edited pregnant women completed.");
+			log.info("{} out of {} edited pregnant women have been notified via WhatsApp successfully.",
+				editedPregnantWomenSuccessCount, editedPregnantWomenIds.size());
 		}
 	}
 
