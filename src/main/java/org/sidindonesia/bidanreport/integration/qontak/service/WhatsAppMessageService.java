@@ -42,29 +42,38 @@ public class WhatsAppMessageService {
 		log.debug("Executing scheduled \"Send Join Notification via WhatsApp\"...");
 
 		log.debug("Retrieving all new mother identities...");
-		List<MotherIdentityWhatsAppProjection> pregnantWomenIdentities = motherIdentityRepository
+		processNewPregnantWomen();
+		processEditedPregnantWomen();
+		processNewNonPregnantWomen();
+		processEditedNonPregnantWomen();
+	}
+
+	private void processNewPregnantWomen() {
+		List<MotherIdentityWhatsAppProjection> newPregnantWomenIdentities = motherIdentityRepository
 			.findAllPregnantWomenByEventIdGreaterThanAndHasMobilePhoneNumberOrderByEventId(
 				lastIdProperties.getMotherIdentity().getPregnantMotherLastId());
 
 		AtomicLong newEnrolledPregnantWomenSuccessCount = new AtomicLong();
-		pregnantWomenIdentities.parallelStream()
-			.forEach(broadcastDirectMessageViaWhatsApp(newEnrolledPregnantWomenSuccessCount));
+		newPregnantWomenIdentities.parallelStream().forEach(broadcastDirectMessageViaWhatsApp(
+			newEnrolledPregnantWomenSuccessCount, qontakProperties.getWhatsApp().getPregnantWomanMessageTemplateId()));
 
-		if (!pregnantWomenIdentities.isEmpty()) {
-			lastIdProperties.getMotherIdentity()
-				.setPregnantMotherLastId(pregnantWomenIdentities.get(pregnantWomenIdentities.size() - 1).getEventId());
+		if (!newPregnantWomenIdentities.isEmpty()) {
+			lastIdProperties.getMotherIdentity().setPregnantMotherLastId(
+				newPregnantWomenIdentities.get(newPregnantWomenIdentities.size() - 1).getEventId());
 			log.info("\"Send Join Notification via WhatsApp\" for new enrolled pregnant women completed.");
 			log.info("{} out of {} new enrolled pregnant women have been notified via WhatsApp successfully.",
-				newEnrolledPregnantWomenSuccessCount, pregnantWomenIdentities.size());
+				newEnrolledPregnantWomenSuccessCount, newPregnantWomenIdentities.size());
 		}
+	}
 
+	private void processEditedPregnantWomen() {
 		List<MotherIdentityWhatsAppProjection> editedPregnantWomenIds = motherEditRepository
 			.findAllPregnantWomenByLastEditAndPreviouslyInMotherIdentityNoMobilePhoneNumberOrderByEventId(
 				lastIdProperties.getMotherEdit().getPregnantMotherLastId());
 
 		AtomicLong editedPregnantWomenSuccessCount = new AtomicLong();
-		editedPregnantWomenIds.parallelStream()
-			.forEach(broadcastDirectMessageViaWhatsApp(editedPregnantWomenSuccessCount));
+		editedPregnantWomenIds.parallelStream().forEach(broadcastDirectMessageViaWhatsApp(
+			editedPregnantWomenSuccessCount, qontakProperties.getWhatsApp().getPregnantWomanMessageTemplateId()));
 
 		if (!editedPregnantWomenIds.isEmpty()) {
 			lastIdProperties.getMotherEdit()
@@ -75,10 +84,48 @@ public class WhatsAppMessageService {
 		}
 	}
 
+	private void processNewNonPregnantWomen() {
+		List<MotherIdentityWhatsAppProjection> newNonPregnantWomenIdentities = motherIdentityRepository
+			.findAllNonPregnantWomenByEventIdGreaterThanAndHasMobilePhoneNumberOrderByEventId(
+				lastIdProperties.getMotherIdentity().getNonPregnantMotherLastId());
+
+		AtomicLong newEnrolledNonPregnantWomenSuccessCount = new AtomicLong();
+		newNonPregnantWomenIdentities.parallelStream()
+			.forEach(broadcastDirectMessageViaWhatsApp(newEnrolledNonPregnantWomenSuccessCount,
+				qontakProperties.getWhatsApp().getNonPregnantWomanMessageTemplateId()));
+
+		if (!newNonPregnantWomenIdentities.isEmpty()) {
+			lastIdProperties.getMotherIdentity().setNonPregnantMotherLastId(
+				newNonPregnantWomenIdentities.get(newNonPregnantWomenIdentities.size() - 1).getEventId());
+			log.info("\"Send Join Notification via WhatsApp\" for new enrolled non-pregnant women completed.");
+			log.info("{} out of {} new enrolled non-pregnant women have been notified via WhatsApp successfully.",
+				newEnrolledNonPregnantWomenSuccessCount, newNonPregnantWomenIdentities.size());
+		}
+	}
+
+	private void processEditedNonPregnantWomen() {
+		List<MotherIdentityWhatsAppProjection> editedNonPregnantWomenIds = motherEditRepository
+			.findAllNonPregnantWomenByLastEditAndPreviouslyInMotherIdentityNoMobilePhoneNumberOrderByEventId(
+				lastIdProperties.getMotherEdit().getNonPregnantMotherLastId());
+
+		AtomicLong editedNonPregnantWomenSuccessCount = new AtomicLong();
+		editedNonPregnantWomenIds.parallelStream().forEach(broadcastDirectMessageViaWhatsApp(
+			editedNonPregnantWomenSuccessCount, qontakProperties.getWhatsApp().getNonPregnantWomanMessageTemplateId()));
+
+		if (!editedNonPregnantWomenIds.isEmpty()) {
+			lastIdProperties.getMotherEdit().setNonPregnantMotherLastId(
+				editedNonPregnantWomenIds.get(editedNonPregnantWomenIds.size() - 1).getEventId());
+			log.info("\"Send Join Notification via WhatsApp\" for edited non-pregnant women completed.");
+			log.info("{} out of {} edited non-pregnant women have been notified via WhatsApp successfully.",
+				editedNonPregnantWomenSuccessCount, editedNonPregnantWomenIds.size());
+		}
+	}
+
 	private Consumer<? super MotherIdentityWhatsAppProjection> broadcastDirectMessageViaWhatsApp(
-		AtomicLong successCount) {
+		AtomicLong successCount, String messageTemplateId) {
 		return motherIdentity -> {
-			QontakWhatsAppBroadcastRequest requestBody = createBroadcastDirectRequestBody(motherIdentity);
+			QontakWhatsAppBroadcastRequest requestBody = createBroadcastDirectRequestBody(motherIdentity,
+				messageTemplateId);
 			Mono<QontakWhatsAppBroadcastResponse> response = webClient.post()
 				.uri(qontakProperties.getWhatsApp().getApiPathBroadcastDirect()).bodyValue(requestBody)
 				.header("Authorization", "Bearer " + qontakProperties.getAccessToken()).retrieve()
@@ -104,10 +151,10 @@ public class WhatsAppMessageService {
 	}
 
 	private QontakWhatsAppBroadcastRequest createBroadcastDirectRequestBody(
-		MotherIdentityWhatsAppProjection motherIdentity) {
+		MotherIdentityWhatsAppProjection motherIdentity, String messageTemplateId) {
 		QontakWhatsAppBroadcastRequest requestBody = new QontakWhatsAppBroadcastRequest();
 		requestBody.setChannel_integration_id(qontakProperties.getWhatsApp().getChannelIntegrationId());
-		requestBody.setMessage_template_id(qontakProperties.getWhatsApp().getMessageTemplateId());
+		requestBody.setMessage_template_id(messageTemplateId);
 		requestBody.setTo_name(motherIdentity.getFullName());
 		requestBody.setTo_number(IndonesiaPhoneNumberUtil.sanitize(motherIdentity.getMobilePhoneNumber()));
 

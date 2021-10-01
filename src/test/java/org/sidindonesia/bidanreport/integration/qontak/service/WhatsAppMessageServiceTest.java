@@ -37,11 +37,11 @@ class WhatsAppMessageServiceTest {
 	void insertDummyData() {
 		IntStream.rangeClosed(1, 2).forEach(insertIntoClientMother());
 		IntStream.rangeClosed(1, 3).forEach(insertIntoMotherIdentity());
-		IntStream.rangeClosed(1, 3).forEach(insertIntoAncRegister());
+		IntStream.rangeClosed(2, 3).forEach(insertIntoAncRegister());
 
 		IntStream.rangeClosed(4, 5).forEach(insertIntoClientMother());
 		IntStream.rangeClosed(4, 6).forEach(insertIntoMotherIdentityWithoutMobilePhoneNumber());
-		IntStream.rangeClosed(4, 6).forEach(insertIntoAncRegister());
+		IntStream.rangeClosed(5, 6).forEach(insertIntoAncRegister());
 		IntStream.rangeClosed(7, 9).forEach(insertIntoMotherEdit());
 	}
 

@@ -60,13 +60,24 @@ public class QontakAuthenticationListener implements ApplicationListener<Applica
 	}
 
 	private void syncLastId() {
-		Optional<Long> optMotherIdentityLastId = motherIdentityRepository.findFirstPregnantWomanByOrderByEventIdDesc();
-		if (optMotherIdentityLastId.isPresent()) {
-			lastIdProperties.getMotherIdentity().setPregnantMotherLastId(optMotherIdentityLastId.get());
+		Optional<Long> optNewPregnantWomenLastId = motherIdentityRepository
+			.findFirstPregnantWomanByOrderByEventIdDesc();
+		if (optNewPregnantWomenLastId.isPresent()) {
+			lastIdProperties.getMotherIdentity().setPregnantMotherLastId(optNewPregnantWomenLastId.get());
 		}
-		Optional<Long> optMotherEditLastId = motherEditRepository.findFirstPregnantWomanByOrderByEventIdDesc();
-		if (optMotherEditLastId.isPresent()) {
-			lastIdProperties.getMotherEdit().setPregnantMotherLastId(optMotherEditLastId.get());
+		Optional<Long> optEditedPregnantWomenLastId = motherEditRepository.findFirstPregnantWomanByOrderByEventIdDesc();
+		if (optEditedPregnantWomenLastId.isPresent()) {
+			lastIdProperties.getMotherEdit().setPregnantMotherLastId(optEditedPregnantWomenLastId.get());
+		}
+		Optional<Long> optNewNonPregnantWomenLastId = motherIdentityRepository
+			.findFirstNonPregnantWomanByOrderByEventIdDesc();
+		if (optNewNonPregnantWomenLastId.isPresent()) {
+			lastIdProperties.getMotherIdentity().setNonPregnantMotherLastId(optNewNonPregnantWomenLastId.get());
+		}
+		Optional<Long> optEditedNonPregnantWomenLastId = motherEditRepository
+			.findFirstNonPregnantWomanByOrderByEventIdDesc();
+		if (optEditedNonPregnantWomenLastId.isPresent()) {
+			lastIdProperties.getMotherEdit().setNonPregnantMotherLastId(optEditedNonPregnantWomenLastId.get());
 		}
 		log.info("Sync-ed last ID from DB successfully.");
 	}
