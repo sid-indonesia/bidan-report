@@ -3,8 +3,6 @@ package org.sidindonesia.bidanreport.integration.qontak.listener;
 import java.util.Optional;
 
 import org.sidindonesia.bidanreport.config.property.LastIdProperties;
-import org.sidindonesia.bidanreport.domain.MotherEdit;
-import org.sidindonesia.bidanreport.domain.MotherIdentity;
 import org.sidindonesia.bidanreport.integration.qontak.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.request.QontakWhatsAppAuthRequest;
 import org.sidindonesia.bidanreport.integration.qontak.response.QontakWhatsAppAuthResponse;
@@ -62,13 +60,24 @@ public class QontakAuthenticationListener implements ApplicationListener<Applica
 	}
 
 	private void syncLastId() {
-		Optional<MotherIdentity> optMotherIdentity = motherIdentityRepository.findFirstByOrderByEventIdDesc();
-		if (optMotherIdentity.isPresent()) {
-			lastIdProperties.setMotherIdentityLastId(optMotherIdentity.get().getEventId());
+		Optional<Long> optNewPregnantWomenLastId = motherIdentityRepository
+			.findFirstPregnantWomanByOrderByEventIdDesc();
+		if (optNewPregnantWomenLastId.isPresent()) {
+			lastIdProperties.getMotherIdentity().setPregnantMotherLastId(optNewPregnantWomenLastId.get());
 		}
-		Optional<MotherEdit> optMotherEdit = motherEditRepository.findFirstByOrderByEventIdDesc();
-		if (optMotherEdit.isPresent()) {
-			lastIdProperties.setMotherEditLastId(optMotherEdit.get().getEventId());
+		Optional<Long> optEditedPregnantWomenLastId = motherEditRepository.findFirstPregnantWomanByOrderByEventIdDesc();
+		if (optEditedPregnantWomenLastId.isPresent()) {
+			lastIdProperties.getMotherEdit().setPregnantMotherLastId(optEditedPregnantWomenLastId.get());
+		}
+		Optional<Long> optNewNonPregnantWomenLastId = motherIdentityRepository
+			.findFirstNonPregnantWomanByOrderByEventIdDesc();
+		if (optNewNonPregnantWomenLastId.isPresent()) {
+			lastIdProperties.getMotherIdentity().setNonPregnantMotherLastId(optNewNonPregnantWomenLastId.get());
+		}
+		Optional<Long> optEditedNonPregnantWomenLastId = motherEditRepository
+			.findFirstNonPregnantWomanByOrderByEventIdDesc();
+		if (optEditedNonPregnantWomenLastId.isPresent()) {
+			lastIdProperties.getMotherEdit().setNonPregnantMotherLastId(optEditedNonPregnantWomenLastId.get());
 		}
 		log.info("Sync-ed last ID from DB successfully.");
 	}

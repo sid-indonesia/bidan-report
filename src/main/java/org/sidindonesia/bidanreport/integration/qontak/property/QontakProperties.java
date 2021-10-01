@@ -21,7 +21,8 @@ public class QontakProperties {
 		private String clientSecret;
 		private String username;
 		private String password;
-		private String messageTemplateId;
+		private String pregnantWomanMessageTemplateId;
+		private String nonPregnantWomanMessageTemplateId;
 		private String channelIntegrationId;
 		private String districtHealthOfficeName;
 		private String apiPathBroadcastDirect;
