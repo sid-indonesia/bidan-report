@@ -46,5 +46,10 @@ qontak:
 
 scheduling:
   enabled: true
-  fixed-rate-in-ms: 300000 # 5 minutes
-  initial-delay-in-ms: 60000 # 1 minute
+  intro-message:
+    fixed-rate-in-ms: 300000 # 5 minutes
+    initial-delay-in-ms: 60000 # 1 minute
+  visit-reminder:
+    cron: "0 0 8 * * ?" # At 08:00 AM
+    zone: Asia/Jakarta
+    initial-delay-in-ms: 60000 # 1 minute

@@ -1,12 +1,11 @@
 package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service;
 
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
+import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.BroadcastMessageService;
+import org.sidindonesia.bidanreport.repository.AncVisitRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.client.WebClient;
-
-import com.google.gson.Gson;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,11 +16,13 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class VisitReminderService {
 	private final QontakProperties qontakProperties;
-	private final WebClient webClient;
-	private final Gson gson;
+	private final AncVisitRepository ancVisitRepository;
+	private final BroadcastMessageService broadcastMessageService;
 
-	@Scheduled(fixedRateString = "${scheduling.fixed-rate-in-ms}", initialDelayString = "${scheduling.initial-delay-in-ms}")
+	@Scheduled(cron = "${scheduling.visit-reminder.cron}", zone = "${scheduling.visit-reminder.zone}", initialDelayString = "${scheduling.visit-reminder.initial-delay-in-ms}")
 	public void sendVisitRemindersToEnrolledMothers() {
 		log.debug("Executing scheduled \"Send Visit Reminder via WhatsApp\"...");
+		log.debug("Retrieving all mothers with -3days ANC visit date timestamp");
+		log.debug("Send visit reminder message to all retrieved mothers");
 	}
 }
