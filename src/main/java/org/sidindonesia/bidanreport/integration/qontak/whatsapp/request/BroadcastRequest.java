@@ -1,4 +1,4 @@
-package org.sidindonesia.bidanreport.integration.qontak.request;
+package org.sidindonesia.bidanreport.integration.qontak.whatsapp.request;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -6,7 +6,7 @@ import java.util.Set;
 import lombok.Data;
 
 @Data
-public class QontakWhatsAppBroadcastRequest {
+public class BroadcastRequest {
 	private String to_number;
 	private String to_name;
 	private String message_template_id;

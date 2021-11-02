@@ -3,9 +3,9 @@ package org.sidindonesia.bidanreport.integration.qontak.listener;
 import java.util.Optional;
 
 import org.sidindonesia.bidanreport.config.property.LastIdProperties;
-import org.sidindonesia.bidanreport.integration.qontak.property.QontakProperties;
-import org.sidindonesia.bidanreport.integration.qontak.request.QontakWhatsAppAuthRequest;
-import org.sidindonesia.bidanreport.integration.qontak.response.QontakWhatsAppAuthResponse;
+import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
+import org.sidindonesia.bidanreport.integration.qontak.web.request.AuthRequest;
+import org.sidindonesia.bidanreport.integration.qontak.web.response.AuthResponse;
 import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -20,7 +20,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class QontakAuthenticationListener implements ApplicationListener<ApplicationReadyEvent> {
+public class AuthenticationListener implements ApplicationListener<ApplicationReadyEvent> {
 
 	private final QontakProperties qontakProperties;
 	private final WebClient webClient;
@@ -32,12 +32,12 @@ public class QontakAuthenticationListener implements ApplicationListener<Applica
 	public void onApplicationEvent(ApplicationReadyEvent event) {
 		log.info("Authenticating to {}", qontakProperties.getWhatsApp().getBaseUrl());
 
-		QontakWhatsAppAuthRequest requestBody = createQontakAuthRequestBody();
-		Mono<QontakWhatsAppAuthResponse> response = webClient.post()
+		AuthRequest requestBody = createQontakAuthRequestBody();
+		Mono<AuthResponse> response = webClient.post()
 			.uri(qontakProperties.getWhatsApp().getApiPathAuthentication()).bodyValue(requestBody).retrieve()
-			.bodyToMono(QontakWhatsAppAuthResponse.class);
+			.bodyToMono(AuthResponse.class);
 
-		QontakWhatsAppAuthResponse responseBody = response.block();
+		AuthResponse responseBody = response.block();
 		if (responseBody != null) {
 			qontakProperties.setAccessToken(responseBody.getAccess_token());
 			qontakProperties.setRefreshToken(responseBody.getRefresh_token());
@@ -49,8 +49,8 @@ public class QontakAuthenticationListener implements ApplicationListener<Applica
 		syncLastId();
 	}
 
-	private QontakWhatsAppAuthRequest createQontakAuthRequestBody() {
-		QontakWhatsAppAuthRequest requestBody = new QontakWhatsAppAuthRequest();
+	private AuthRequest createQontakAuthRequestBody() {
+		AuthRequest requestBody = new AuthRequest();
 		requestBody.setClient_id(qontakProperties.getWhatsApp().getClientId());
 		requestBody.setClient_secret(qontakProperties.getWhatsApp().getClientSecret());
 		requestBody.setGrant_type("password");

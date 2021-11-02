@@ -1,9 +1,9 @@
-package org.sidindonesia.bidanreport.integration.qontak.request;
+package org.sidindonesia.bidanreport.integration.qontak.web.request;
 
 import lombok.Data;
 
 @Data
-public class QontakWhatsAppAuthRequest {
+public class AuthRequest {
 	private String client_id;
 	private String client_secret;
 	private String grant_type = "password";

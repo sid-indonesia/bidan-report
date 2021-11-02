@@ -1,4 +1,4 @@
-package org.sidindonesia.bidanreport.integration.qontak.property;
+package org.sidindonesia.bidanreport.integration.qontak.config.property;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +23,7 @@ public class QontakProperties {
 		private String password;
 		private String pregnantWomanMessageTemplateId;
 		private String nonPregnantWomanMessageTemplateId;
+		private String visitReminderMessageTemplateId;
 		private String channelIntegrationId;
 		private String districtHealthOfficeName;
 		private String apiPathBroadcastDirect;

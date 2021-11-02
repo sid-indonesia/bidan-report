@@ -1,9 +1,9 @@
-package org.sidindonesia.bidanreport.integration.qontak.response;
+package org.sidindonesia.bidanreport.integration.qontak.web.response;
 
 import lombok.Data;
 
 @Data
-public class QontakWhatsAppAuthResponse {
+public class AuthResponse {
 	private String access_token;
 	private String token_type;
 	private Long expires_in;

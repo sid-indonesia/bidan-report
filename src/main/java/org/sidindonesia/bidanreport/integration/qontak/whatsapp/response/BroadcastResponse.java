@@ -1,11 +1,11 @@
-package org.sidindonesia.bidanreport.integration.qontak.response;
+package org.sidindonesia.bidanreport.integration.qontak.whatsapp.response;
 
 import java.util.List;
 
 import lombok.Data;
 
 @Data
-public class QontakWhatsAppBroadcastResponse {
+public class BroadcastResponse {
 	private String status;
 	private DataObj data;
 	private ErrorObj error;

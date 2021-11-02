@@ -1,4 +1,4 @@
-package org.sidindonesia.bidanreport.integration.qontak.service;
+package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -7,9 +7,9 @@ import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 import org.sidindonesia.bidanreport.IntegrationTest;
-import org.sidindonesia.bidanreport.integration.qontak.property.QontakProperties;
-import org.sidindonesia.bidanreport.integration.qontak.request.QontakWhatsAppAuthRequest;
-import org.sidindonesia.bidanreport.integration.qontak.response.QontakWhatsAppAuthResponse;
+import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
+import org.sidindonesia.bidanreport.integration.qontak.web.request.AuthRequest;
+import org.sidindonesia.bidanreport.integration.qontak.web.response.AuthResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,11 +18,11 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 /**
- * Integration tests for {@link WhatsAppMessageService}.
+ * Integration tests for {@link IntroMessageService}.
  */
 @IntegrationTest
 @Transactional
-class WhatsAppMessageServiceTest {
+class IntroMessageServiceTest {
 
 	private static final String QONTAK_MOCK_SERVER_BASE_URL = "https://stoplight.io/mocks/qontak/omnichannel-hub";
 	private WebClient webClient = WebClient.create(QONTAK_MOCK_SERVER_BASE_URL);
@@ -30,7 +30,7 @@ class WhatsAppMessageServiceTest {
 	@Autowired
 	private QontakProperties qontakProperties;
 	@Autowired
-	private WhatsAppMessageService whatsAppMessageService;
+	private IntroMessageService whatsAppMessageService;
 	@Autowired
 	private JdbcOperations jdbcOperations;
 
@@ -104,16 +104,16 @@ class WhatsAppMessageServiceTest {
 
 	@Test
 	void testAuthenticationAtMockServer() {
-		QontakWhatsAppAuthRequest requestBody = new QontakWhatsAppAuthRequest();
+		AuthRequest requestBody = new AuthRequest();
 		requestBody.setClient_id(qontakProperties.getWhatsApp().getClientId());
 		requestBody.setClient_secret(qontakProperties.getWhatsApp().getClientSecret());
 		requestBody.setGrant_type("password");
 		requestBody.setUsername(qontakProperties.getWhatsApp().getUsername());
 		requestBody.setPassword(qontakProperties.getWhatsApp().getPassword());
-		Mono<QontakWhatsAppAuthResponse> response = webClient.post().uri("/17521989/oauth/token").bodyValue(requestBody)
-			.retrieve().bodyToMono(QontakWhatsAppAuthResponse.class);
+		Mono<AuthResponse> response = webClient.post().uri("/17521989/oauth/token").bodyValue(requestBody)
+			.retrieve().bodyToMono(AuthResponse.class);
 
-		QontakWhatsAppAuthResponse responseBody = response.block();
+		AuthResponse responseBody = response.block();
 		assertThat(responseBody.getAccess_token()).isNotBlank();
 	}
 

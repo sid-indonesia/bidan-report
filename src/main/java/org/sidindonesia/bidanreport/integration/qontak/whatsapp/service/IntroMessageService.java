@@ -1,14 +1,14 @@
-package org.sidindonesia.bidanreport.integration.qontak.service;
+package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 import org.sidindonesia.bidanreport.config.property.LastIdProperties;
-import org.sidindonesia.bidanreport.integration.qontak.property.QontakProperties;
-import org.sidindonesia.bidanreport.integration.qontak.request.QontakWhatsAppBroadcastRequest;
-import org.sidindonesia.bidanreport.integration.qontak.request.QontakWhatsAppBroadcastRequest.Parameters;
-import org.sidindonesia.bidanreport.integration.qontak.response.QontakWhatsAppBroadcastResponse;
+import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
+import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
+import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest.Parameters;
+import org.sidindonesia.bidanreport.integration.qontak.whatsapp.response.BroadcastResponse;
 import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
 import org.sidindonesia.bidanreport.repository.projection.MotherIdentityWhatsAppProjection;
@@ -29,7 +29,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @Transactional(readOnly = true)
 @Service
-public class WhatsAppMessageService {
+public class IntroMessageService {
 	private final MotherIdentityRepository motherIdentityRepository;
 	private final MotherEditRepository motherEditRepository;
 	private final LastIdProperties lastIdProperties;
@@ -41,7 +41,6 @@ public class WhatsAppMessageService {
 	public void sendWhatsAppMessageToNewMothers() {
 		log.debug("Executing scheduled \"Send Join Notification via WhatsApp\"...");
 
-		log.debug("Retrieving all new mother identities...");
 		processNewPregnantWomen();
 		processEditedPregnantWomen();
 		processNewNonPregnantWomen();
@@ -124,17 +123,17 @@ public class WhatsAppMessageService {
 	private Consumer<? super MotherIdentityWhatsAppProjection> broadcastDirectMessageViaWhatsApp(
 		AtomicLong successCount, String messageTemplateId) {
 		return motherIdentity -> {
-			QontakWhatsAppBroadcastRequest requestBody = createBroadcastDirectRequestBody(motherIdentity,
+			BroadcastRequest requestBody = createBroadcastDirectRequestBody(motherIdentity,
 				messageTemplateId);
-			Mono<QontakWhatsAppBroadcastResponse> response = webClient.post()
+			Mono<BroadcastResponse> response = webClient.post()
 				.uri(qontakProperties.getWhatsApp().getApiPathBroadcastDirect()).bodyValue(requestBody)
 				.header("Authorization", "Bearer " + qontakProperties.getAccessToken()).retrieve()
-				.bodyToMono(QontakWhatsAppBroadcastResponse.class).onErrorResume(WebClientResponseException.class,
+				.bodyToMono(BroadcastResponse.class).onErrorResume(WebClientResponseException.class,
 					ex -> ex.getRawStatusCode() == 422 || ex.getRawStatusCode() == 401
-						? Mono.just(gson.fromJson(ex.getResponseBodyAsString(), QontakWhatsAppBroadcastResponse.class))
+						? Mono.just(gson.fromJson(ex.getResponseBodyAsString(), BroadcastResponse.class))
 						: Mono.error(ex));
 
-			QontakWhatsAppBroadcastResponse responseBody = response.block();
+			BroadcastResponse responseBody = response.block();
 			if (responseBody != null) {
 				if ("success".equals(responseBody.getStatus())) {
 					successCount.incrementAndGet();
@@ -150,9 +149,9 @@ public class WhatsAppMessageService {
 		};
 	}
 
-	private QontakWhatsAppBroadcastRequest createBroadcastDirectRequestBody(
+	private BroadcastRequest createBroadcastDirectRequestBody(
 		MotherIdentityWhatsAppProjection motherIdentity, String messageTemplateId) {
-		QontakWhatsAppBroadcastRequest requestBody = new QontakWhatsAppBroadcastRequest();
+		BroadcastRequest requestBody = new BroadcastRequest();
 		requestBody.setChannel_integration_id(qontakProperties.getWhatsApp().getChannelIntegrationId());
 		requestBody.setMessage_template_id(messageTemplateId);
 		requestBody.setTo_name(motherIdentity.getFullName());
