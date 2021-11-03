@@ -32,4 +32,8 @@ public interface MotherEditRepository extends BaseRepository<MotherEdit, Long> {
 		+ "WHERE me.mother_base_entity_id NOT IN (SELECT ar.mother_base_entity_id FROM {h-schema}anc_register ar) "
 		+ "ORDER BY me.event_id DESC LIMIT 1")
 	Optional<Long> findFirstNonPregnantWomanByOrderByEventIdDesc();
+
+	@Query(nativeQuery = true, value = QueryConstants.MOTHER_EDIT_NATIVE_QUERY_FIND_ALL_WITH_LATEST_ANC_VISIT_DATE_IS_SOME_DAYS_AGO)
+	List<MotherIdentityWhatsAppProjection> findAllPregnantWomenToBeRemindedForTheNextANCVisit(
+		Integer numberOfDaysBeforeNextVisit);
 }
