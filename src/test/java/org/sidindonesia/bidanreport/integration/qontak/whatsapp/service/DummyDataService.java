@@ -1,8 +1,10 @@
 package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service;
 
+import java.time.LocalDate;
 import java.util.function.IntConsumer;
 import java.util.stream.IntStream;
 
+import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,8 @@ import org.springframework.stereotype.Service;
 public class DummyDataService {
 	@Autowired
 	private JdbcOperations jdbcOperations;
+	@Autowired
+	private QontakProperties qontakProperties;
 
 	void insertDummyData() {
 		IntStream.rangeClosed(1, 2).forEach(insertIntoClientMother());
@@ -21,6 +25,11 @@ public class DummyDataService {
 		IntStream.rangeClosed(4, 6).forEach(insertIntoMotherIdentityWithoutMobilePhoneNumber());
 		IntStream.rangeClosed(5, 6).forEach(insertIntoAncRegister());
 		IntStream.rangeClosed(7, 9).forEach(insertIntoMotherEdit());
+	}
+
+	void insertDummyDataForANCVisitReminder() {
+		insertDummyData();
+		IntStream.rangeClosed(1, 6).forEach(insertIntoAncVisit());
 	}
 
 	private IntConsumer insertIntoClientMother() {
@@ -64,6 +73,15 @@ public class DummyDataService {
 				+ "(event_id, date_created, event_date, mobile_phone_number, mother_base_entity_id, provider_id, registration_date, server_version_epoch, source_date_deleted, transfer_date)\n"
 				+ "VALUES(" + id + ", CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, '08381234567" + id + "', '" + (id - 3)
 				+ "', 'test', CURRENT_TIMESTAMP, '157663657225" + id + "', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);\n");
+		};
+	}
+
+	private IntConsumer insertIntoAncVisit() {
+		return id -> {
+			jdbcOperations.execute("INSERT INTO anc_visit (event_id, mother_base_entity_id, anc_date)\n" + "VALUES("
+				+ id + ", '" + id + "', '" + LocalDate.now().minusMonths(1)
+					.plusDays(qontakProperties.getWhatsApp().getVisitReminderIntervalInDays())
+				+ "');\n");
 		};
 	}
 }
