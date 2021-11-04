@@ -22,7 +22,15 @@ class VisitReminderServiceTest {
 	@Test
 	void testSendVisitReminderMessageToEnrolledPregnantWomen_withHappyFlow() {
 		// given
-		dummyDataService.insertDummyData();
+		dummyDataService.insertDummyDataForANCVisitReminder();
+		// when
+		visitReminderService.sendVisitRemindersToEnrolledMothers();
+		// then
+		assertThat(visitReminderService).isNotNull();
+	}
+
+	@Test
+	void testSendVisitReminderMessageToEnrolledPregnantWomen_withNoDataExisted() {
 		// when
 		visitReminderService.sendVisitRemindersToEnrolledMothers();
 		// then
