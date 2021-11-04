@@ -1,3 +1,6 @@
+[![Run Tests & Build](https://github.com/sid-indonesia/bidan-report/actions/workflows/build.yml/badge.svg)](https://github.com/sid-indonesia/bidan-report/actions/workflows/build.yml)
+[![Build & Release](https://github.com/sid-indonesia/bidan-report/actions/workflows/publish.yml/badge.svg)](https://github.com/sid-indonesia/bidan-report/actions/workflows/publish.yml)
+
 # bidan-report
 Tool for get report of Bidan App
 
