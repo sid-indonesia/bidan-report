@@ -52,4 +52,3 @@ scheduling:
   visit-reminder:
     cron: "0 0 8 * * ?" # At 08:00 AM
     zone: Asia/Jakarta
-    initial-delay-in-ms: 60000 # 1 minute

@@ -25,7 +25,7 @@ public class VisitReminderService {
 	private final MotherEditRepository motherEditRepository;
 	private final BroadcastMessageService broadcastMessageService;
 
-	@Scheduled(cron = "${scheduling.visit-reminder.cron}", zone = "${scheduling.visit-reminder.zone}", initialDelayString = "${scheduling.visit-reminder.initial-delay-in-ms}")
+	@Scheduled(cron = "${scheduling.visit-reminder.cron}", zone = "${scheduling.visit-reminder.zone}")
 	public void sendVisitRemindersToEnrolledMothers() {
 		log.debug("Executing scheduled \"Send Visit Reminder via WhatsApp\"...");
 		log.debug("Send visit reminder to all mothers with -"
