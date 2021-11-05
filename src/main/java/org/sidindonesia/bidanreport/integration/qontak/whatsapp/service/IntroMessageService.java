@@ -43,7 +43,7 @@ public class IntroMessageService {
 				lastIdProperties.getMotherIdentity().getPregnantMotherLastId());
 
 		AtomicLong newEnrolledPregnantWomenSuccessCount = new AtomicLong();
-		newPregnantWomenIdentities.parallelStream().forEach(broadcastMessageService.broadcastDirectMessageViaWhatsApp(
+		newPregnantWomenIdentities.parallelStream().forEach(broadcastMessageService.broadcastIntroMessageViaWhatsApp(
 			newEnrolledPregnantWomenSuccessCount, qontakProperties.getWhatsApp().getPregnantWomanMessageTemplateId()));
 
 		if (!newPregnantWomenIdentities.isEmpty()) {
@@ -61,7 +61,7 @@ public class IntroMessageService {
 				lastIdProperties.getMotherEdit().getPregnantMotherLastId());
 
 		AtomicLong editedPregnantWomenSuccessCount = new AtomicLong();
-		editedPregnantWomenIds.parallelStream().forEach(broadcastMessageService.broadcastDirectMessageViaWhatsApp(
+		editedPregnantWomenIds.parallelStream().forEach(broadcastMessageService.broadcastIntroMessageViaWhatsApp(
 			editedPregnantWomenSuccessCount, qontakProperties.getWhatsApp().getPregnantWomanMessageTemplateId()));
 
 		if (!editedPregnantWomenIds.isEmpty()) {
@@ -80,7 +80,7 @@ public class IntroMessageService {
 
 		AtomicLong newEnrolledNonPregnantWomenSuccessCount = new AtomicLong();
 		newNonPregnantWomenIdentities.parallelStream()
-			.forEach(broadcastMessageService.broadcastDirectMessageViaWhatsApp(newEnrolledNonPregnantWomenSuccessCount,
+			.forEach(broadcastMessageService.broadcastIntroMessageViaWhatsApp(newEnrolledNonPregnantWomenSuccessCount,
 				qontakProperties.getWhatsApp().getNonPregnantWomanMessageTemplateId()));
 
 		if (!newNonPregnantWomenIdentities.isEmpty()) {
@@ -98,7 +98,7 @@ public class IntroMessageService {
 				lastIdProperties.getMotherEdit().getNonPregnantMotherLastId());
 
 		AtomicLong editedNonPregnantWomenSuccessCount = new AtomicLong();
-		editedNonPregnantWomenIds.parallelStream().forEach(broadcastMessageService.broadcastDirectMessageViaWhatsApp(
+		editedNonPregnantWomenIds.parallelStream().forEach(broadcastMessageService.broadcastIntroMessageViaWhatsApp(
 			editedNonPregnantWomenSuccessCount, qontakProperties.getWhatsApp().getNonPregnantWomanMessageTemplateId()));
 
 		if (!editedNonPregnantWomenIds.isEmpty()) {
