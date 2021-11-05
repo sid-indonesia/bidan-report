@@ -40,7 +40,7 @@ public class VisitReminderService {
 				qontakProperties.getWhatsApp().getVisitReminderIntervalInDays());
 		AtomicLong visitReminderSuccessCount = new AtomicLong();
 		allPregnantWomenToBeRemindedForTheNextANCVisit.parallelStream()
-			.forEach(broadcastMessageService.broadcastDirectMessageViaWhatsApp(visitReminderSuccessCount,
+			.forEach(broadcastMessageService.broadcastANCVisitReminderMessageViaWhatsApp(visitReminderSuccessCount,
 				qontakProperties.getWhatsApp().getVisitReminderMessageTemplateId()));
 
 		if (!allPregnantWomenToBeRemindedForTheNextANCVisit.isEmpty()) {
@@ -57,7 +57,7 @@ public class VisitReminderService {
 				qontakProperties.getWhatsApp().getVisitReminderIntervalInDays());
 		AtomicLong visitReminderSuccessCount = new AtomicLong();
 		allPregnantWomenToBeRemindedForTheNextANCVisit.parallelStream()
-			.forEach(broadcastMessageService.broadcastDirectMessageViaWhatsApp(visitReminderSuccessCount,
+			.forEach(broadcastMessageService.broadcastANCVisitReminderMessageViaWhatsApp(visitReminderSuccessCount,
 				qontakProperties.getWhatsApp().getVisitReminderMessageTemplateId()));
 
 		if (!allPregnantWomenToBeRemindedForTheNextANCVisit.isEmpty()) {
