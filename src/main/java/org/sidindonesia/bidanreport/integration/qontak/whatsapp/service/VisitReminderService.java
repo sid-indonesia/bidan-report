@@ -38,16 +38,9 @@ public class VisitReminderService {
 		List<MotherIdentityWhatsAppProjection> allPregnantWomenToBeRemindedForTheNextANCVisit = motherIdentityRepository
 			.findAllPregnantWomenToBeRemindedForTheNextANCVisit(
 				qontakProperties.getWhatsApp().getVisitReminderIntervalInDays());
-		AtomicLong visitReminderSuccessCount = new AtomicLong();
-		allPregnantWomenToBeRemindedForTheNextANCVisit.parallelStream()
-			.forEach(broadcastMessageService.broadcastANCVisitReminderMessageViaWhatsApp(visitReminderSuccessCount,
-				qontakProperties.getWhatsApp().getVisitReminderMessageTemplateId()));
 
 		if (!allPregnantWomenToBeRemindedForTheNextANCVisit.isEmpty()) {
-			log.info("\"Send Visit Reminder via WhatsApp\" for enrolled pregnant women completed.");
-			log.info(
-				"{} out of {} enrolled pregnant women have been reminded of the next ANC visit via WhatsApp successfully.",
-				visitReminderSuccessCount, allPregnantWomenToBeRemindedForTheNextANCVisit.size());
+			broadcastANCVisitReminderMessageTo(allPregnantWomenToBeRemindedForTheNextANCVisit);
 		}
 	}
 
@@ -55,16 +48,21 @@ public class VisitReminderService {
 		List<MotherIdentityWhatsAppProjection> allPregnantWomenToBeRemindedForTheNextANCVisit = motherEditRepository
 			.findAllPregnantWomenToBeRemindedForTheNextANCVisit(
 				qontakProperties.getWhatsApp().getVisitReminderIntervalInDays());
+
+		if (!allPregnantWomenToBeRemindedForTheNextANCVisit.isEmpty()) {
+			broadcastANCVisitReminderMessageTo(allPregnantWomenToBeRemindedForTheNextANCVisit);
+		}
+	}
+
+	private void broadcastANCVisitReminderMessageTo(
+		List<MotherIdentityWhatsAppProjection> allPregnantWomenToBeRemindedForTheNextANCVisit) {
 		AtomicLong visitReminderSuccessCount = new AtomicLong();
 		allPregnantWomenToBeRemindedForTheNextANCVisit.parallelStream()
 			.forEach(broadcastMessageService.broadcastANCVisitReminderMessageViaWhatsApp(visitReminderSuccessCount,
 				qontakProperties.getWhatsApp().getVisitReminderMessageTemplateId()));
-
-		if (!allPregnantWomenToBeRemindedForTheNextANCVisit.isEmpty()) {
-			log.info("\"Send Visit Reminder via WhatsApp\" for enrolled pregnant women completed.");
-			log.info(
-				"{} out of {} enrolled pregnant women have been reminded of the next ANC visit via WhatsApp successfully.",
-				visitReminderSuccessCount, allPregnantWomenToBeRemindedForTheNextANCVisit.size());
-		}
+		log.info("\"Send Visit Reminder via WhatsApp\" for enrolled pregnant women completed.");
+		log.info(
+			"{} out of {} enrolled pregnant women have been reminded of the next ANC visit via WhatsApp successfully.",
+			visitReminderSuccessCount, allPregnantWomenToBeRemindedForTheNextANCVisit.size());
 	}
 }

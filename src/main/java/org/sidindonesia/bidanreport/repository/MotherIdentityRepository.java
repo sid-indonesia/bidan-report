@@ -33,7 +33,11 @@ public interface MotherIdentityRepository extends BaseRepository<MotherIdentity,
 		+ "ORDER BY mi.event_id DESC LIMIT 1")
 	Optional<Long> findFirstNonPregnantWomanByOrderByEventIdDesc();
 
-	@Query(nativeQuery = true, value = QueryConstants.MOTHER_IDENTITY_NATIVE_QUERY_FIND_ALL_WITH_LATEST_ANC_VISIT_DATE_IS_SOME_DAYS_AGO)
+	@Query(nativeQuery = true, value = QueryConstants.MOTHER_IDENTITY_NATIVE_QUERY_FIND_ALL_WITH_LATEST_ANC_VISIT_DATE_IS_CURRENT_DATE_MINUS_ONE_MONTH_PLUS_SOME_DAYS)
 	List<MotherIdentityWhatsAppProjection> findAllPregnantWomenToBeRemindedForTheNextANCVisit(
 		Integer numberOfDaysBeforeNextVisit);
+
+	@Query(nativeQuery = true, value = QueryConstants.MOTHER_IDENTITY_NATIVE_QUERY_FIND_ALL_WITH_LATEST_ANC_VISIT_DATE_IS_SOME_DAYS_AGO)
+	List<MotherIdentityWhatsAppProjection> findAllPregnantWomenToBeInformedOfHerGapOnPregnancy(
+		Integer numberOfDaysAfterLastANCVisit);
 }
