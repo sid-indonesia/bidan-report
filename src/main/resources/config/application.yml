@@ -52,3 +52,6 @@ scheduling:
   visit-reminder:
     cron: "0 0 8 * * ?" # At 08:00 AM
     zone: Asia/Jakarta
+  pregnancy-gap:
+    cron: "0 0 9 * * ?" # At 09:00 AM
+    zone: Asia/Jakarta

@@ -27,7 +27,7 @@ class PregnancyGapServiceTest {
 	}
 
 	@Test
-	void testSendVisitReminderMessageToEnrolledPregnantWomen_withHappyFlow() {
+	void testSendPregnancyGapMessageToEnrolledPregnantWomen_withHappyFlow() {
 		// given
 		insertDummyDataForPregnancyGap();
 		// when
@@ -37,7 +37,7 @@ class PregnancyGapServiceTest {
 	}
 
 	@Test
-	void testSendVisitReminderMessageToEnrolledPregnantWomen_withNoDataExisted() {
+	void testSendPregnancyGapMessageToEnrolledPregnantWomen_withNoDataExisted() {
 		// when
 		pregnancyGapService.sendPregnancyGapMessageToEnrolledMothers();
 		// then

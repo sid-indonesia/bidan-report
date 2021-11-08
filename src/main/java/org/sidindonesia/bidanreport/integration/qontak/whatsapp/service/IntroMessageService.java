@@ -31,7 +31,7 @@ public class IntroMessageService {
 	private final BroadcastMessageService broadcastMessageService;
 
 	@Scheduled(fixedRateString = "${scheduling.intro-message.fixed-rate-in-ms}", initialDelayString = "${scheduling.intro-message.initial-delay-in-ms}")
-	public void sendWhatsAppMessageToNewMothers() {
+	public void sendIntroMessageToNewMothersViaWhatsApp() {
 		log.debug("Executing scheduled \"Send Join Notification via WhatsApp\"...");
 
 		processNewPregnantWomen();
