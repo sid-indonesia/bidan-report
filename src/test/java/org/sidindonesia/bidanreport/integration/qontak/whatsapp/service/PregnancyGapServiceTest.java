@@ -10,37 +10,37 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Integration tests for {@link VisitReminderService}.
+ * Integration tests for {@link PregnancyGapService}.
  */
 @IntegrationTest
 @Transactional
-class VisitReminderServiceTest {
+class PregnancyGapServiceTest {
 
 	@Autowired
-	private VisitReminderService visitReminderService;
+	private PregnancyGapService pregnancyGapService;
 	@Autowired
 	private DummyDataService dummyDataService;
 
-	private void insertDummyDataForANCVisitReminder() {
+	private void insertDummyDataForPregnancyGap() {
 		dummyDataService.insertDummyData();
-		IntStream.rangeClosed(1, 6).forEach(dummyDataService.insertIntoAncVisitForVisitReminder());
+		IntStream.rangeClosed(1, 6).forEach(dummyDataService.insertIntoAncVisitForPregnancyGap());
 	}
 
 	@Test
 	void testSendVisitReminderMessageToEnrolledPregnantWomen_withHappyFlow() {
 		// given
-		insertDummyDataForANCVisitReminder();
+		insertDummyDataForPregnancyGap();
 		// when
-		visitReminderService.sendVisitRemindersToEnrolledMothers();
+		pregnancyGapService.sendPregnancyGapMessageToEnrolledMothers();
 		// then
-		assertThat(visitReminderService).isNotNull();
+		assertThat(pregnancyGapService).isNotNull();
 	}
 
 	@Test
 	void testSendVisitReminderMessageToEnrolledPregnantWomen_withNoDataExisted() {
 		// when
-		visitReminderService.sendVisitRemindersToEnrolledMothers();
+		pregnancyGapService.sendPregnancyGapMessageToEnrolledMothers();
 		// then
-		assertThat(visitReminderService).isNotNull();
+		assertThat(pregnancyGapService).isNotNull();
 	}
 }

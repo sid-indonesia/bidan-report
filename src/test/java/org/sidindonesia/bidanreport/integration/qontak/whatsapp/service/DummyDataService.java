@@ -27,11 +27,6 @@ public class DummyDataService {
 		IntStream.rangeClosed(7, 9).forEach(insertIntoMotherEdit());
 	}
 
-	void insertDummyDataForANCVisitReminder() {
-		insertDummyData();
-		IntStream.rangeClosed(1, 6).forEach(insertIntoAncVisit());
-	}
-
 	private IntConsumer insertIntoClientMother() {
 		return id -> {
 			jdbcOperations.execute("INSERT INTO client_mother\n"
@@ -76,12 +71,20 @@ public class DummyDataService {
 		};
 	}
 
-	private IntConsumer insertIntoAncVisit() {
+	public IntConsumer insertIntoAncVisitForVisitReminder() {
 		return id -> {
 			jdbcOperations.execute("INSERT INTO anc_visit (event_id, mother_base_entity_id, anc_date)\n" + "VALUES("
 				+ id + ", '" + id + "', '" + LocalDate.now().minusMonths(1)
 					.plusDays(qontakProperties.getWhatsApp().getVisitReminderIntervalInDays())
 				+ "');\n");
+		};
+	}
+
+	public IntConsumer insertIntoAncVisitForPregnancyGap() {
+		return id -> {
+			jdbcOperations.execute("INSERT INTO anc_visit (event_id, mother_base_entity_id, anc_date)\n" + "VALUES("
+				+ id + ", '" + id + "', '"
+				+ LocalDate.now().minusDays(qontakProperties.getWhatsApp().getPregnancyGapIntervalInDays()) + "');\n");
 		};
 	}
 }

@@ -1,12 +1,9 @@
 package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util;
 
-import java.time.LocalDate;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
-import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest.Parameters;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.response.BroadcastResponse;
 import org.sidindonesia.bidanreport.repository.projection.MotherIdentityWhatsAppProjection;
 import org.sidindonesia.bidanreport.util.IndonesiaPhoneNumberUtil;
@@ -30,23 +27,7 @@ public class BroadcastMessageService {
 	private final WebClient webClient;
 	private final Gson gson;
 
-	public Consumer<MotherIdentityWhatsAppProjection> broadcastIntroMessageViaWhatsApp(AtomicLong successCount,
-		String messageTemplateId) {
-		return motherIdentity -> {
-			BroadcastRequest requestBody = createIntroMessageRequestBody(motherIdentity, messageTemplateId);
-			sendBroadcastRequestToQontakAPI(successCount, motherIdentity, requestBody);
-		};
-	}
-
-	public Consumer<MotherIdentityWhatsAppProjection> broadcastANCVisitReminderMessageViaWhatsApp(
-		AtomicLong successCount, String messageTemplateId) {
-		return motherIdentity -> {
-			BroadcastRequest requestBody = createANCVisitReminderMessageRequestBody(motherIdentity, messageTemplateId);
-			sendBroadcastRequestToQontakAPI(successCount, motherIdentity, requestBody);
-		};
-	}
-
-	private void sendBroadcastRequestToQontakAPI(AtomicLong successCount,
+	public void sendBroadcastRequestToQontakAPI(AtomicLong successCount,
 		MotherIdentityWhatsAppProjection motherIdentity, BroadcastRequest requestBody) {
 		Mono<BroadcastResponse> response = webClient.post()
 			.uri(qontakProperties.getWhatsApp().getApiPathBroadcastDirect()).bodyValue(requestBody)
@@ -71,23 +52,7 @@ public class BroadcastMessageService {
 		}
 	}
 
-	private BroadcastRequest createIntroMessageRequestBody(MotherIdentityWhatsAppProjection motherIdentity,
-		String messageTemplateId) {
-		BroadcastRequest requestBody = createBroadcastRequestBody(motherIdentity, messageTemplateId);
-
-		setParametersForIntroMessage(motherIdentity, requestBody);
-		return requestBody;
-	}
-
-	private BroadcastRequest createANCVisitReminderMessageRequestBody(MotherIdentityWhatsAppProjection motherIdentity,
-		String messageTemplateId) {
-		BroadcastRequest requestBody = createBroadcastRequestBody(motherIdentity, messageTemplateId);
-
-		setParametersForANCVisitReminderMessage(motherIdentity, requestBody);
-		return requestBody;
-	}
-
-	private BroadcastRequest createBroadcastRequestBody(MotherIdentityWhatsAppProjection motherIdentity,
+	public BroadcastRequest createBroadcastRequestBody(MotherIdentityWhatsAppProjection motherIdentity,
 		String messageTemplateId) {
 		BroadcastRequest requestBody = new BroadcastRequest();
 		requestBody.setChannel_integration_id(qontakProperties.getWhatsApp().getChannelIntegrationId());
@@ -95,22 +60,5 @@ public class BroadcastMessageService {
 		requestBody.setTo_name(motherIdentity.getFullName());
 		requestBody.setTo_number(IndonesiaPhoneNumberUtil.sanitize(motherIdentity.getMobilePhoneNumber()));
 		return requestBody;
-	}
-
-	private void setParametersForIntroMessage(MotherIdentityWhatsAppProjection motherIdentity,
-		BroadcastRequest requestBody) {
-		Parameters parameters = new Parameters();
-		parameters.addBodyWithValues("1", "full_name", motherIdentity.getFullName());
-		parameters.addBodyWithValues("2", "dho", qontakProperties.getWhatsApp().getDistrictHealthOfficeName());
-		requestBody.setParameters(parameters);
-	}
-
-	private void setParametersForANCVisitReminderMessage(MotherIdentityWhatsAppProjection motherIdentity,
-		BroadcastRequest requestBody) {
-		Parameters parameters = new Parameters();
-		parameters.addBodyWithValues("1", "full_name", motherIdentity.getFullName());
-		parameters.addBodyWithValues("2", "date",
-			LocalDate.now().plusDays(qontakProperties.getWhatsApp().getVisitReminderIntervalInDays()).toString());
-		requestBody.setParameters(parameters);
 	}
 }
