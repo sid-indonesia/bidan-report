@@ -51,7 +51,7 @@ public final class QueryConstants {
 		+ "  FROM {h-schema}anc_visit GROUP BY 1) av ON mi_id_only.mother_base_entity_id = av.mother_base_entity_id"
 		+ WHERE + HAS_MOBILE_PHONE_NUMBER_AND_NOT_DEMO_USER + " AND mi_id_only.mother_base_entity_id IN ("
 		+ SELECT_AR_MOTHER_BASE_ENTITY_ID_FROM_H_SCHEMA_ANC_REGISTER_AR
-		+ " AND av.latest_anc_date = current_date - INTERVAL '1 month' + INTERVAL '1 day' * ?1) ORDER BY mi.event_id";
+		+ " AND av.latest_anc_date = current_date - INTERVAL '1 day' * ?1 + INTERVAL '1 day' * ?2) ORDER BY mi.event_id";
 
 	public static final String MOTHER_EDIT_NATIVE_QUERY_FIND_ALL_WITH_LATEST_ANC_VISIT_DATE_IS_CURRENT_DATE_MINUS_ONE_MONTH_PLUS_SOME_DAYS = ""
 		+ SELECT_EVENT_ID_AND_MOBILE_PHONE_NUMBER_FROM_MOTHER_EDIT
@@ -59,7 +59,7 @@ public final class QueryConstants {
 		+ "  FROM {h-schema}anc_visit GROUP BY 1) av ON me_id_only.mother_base_entity_id = av.mother_base_entity_id"
 		+ WHERE + HAS_MOBILE_PHONE_NUMBER_AND_NOT_DEMO_USER_AND_NO_MOBILE_PHONE_NUMBER_IN_MOTHER_IDENTITY
 		+ " AND me_id_only.mother_base_entity_id IN (" + SELECT_AR_MOTHER_BASE_ENTITY_ID_FROM_H_SCHEMA_ANC_REGISTER_AR
-		+ " AND av.latest_anc_date = current_date - INTERVAL '1 month' + INTERVAL '1 day' * ?1) ORDER BY me.event_id";
+		+ " AND av.latest_anc_date = current_date - INTERVAL '1 day' * ?1 + INTERVAL '1 day' * ?2) ORDER BY me.event_id";
 
 	public static final String MOTHER_IDENTITY_NATIVE_QUERY_FIND_ALL_WITH_LATEST_ANC_VISIT_DATE_IS_SOME_DAYS_AGO = ""
 		+ SELECT_EVENT_ID_AND_MOBILE_PHONE_NUMBER_FROM_MOTHER_IDENTITY

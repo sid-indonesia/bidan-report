@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class DummyDataService {
+	private static final LocalDate NOW = LocalDate.now();
 	@Autowired
 	private JdbcOperations jdbcOperations;
 	@Autowired
@@ -74,7 +75,7 @@ public class DummyDataService {
 	public IntConsumer insertIntoAncVisitForVisitReminder() {
 		return id -> {
 			jdbcOperations.execute("INSERT INTO anc_visit (event_id, mother_base_entity_id, anc_date)\n" + "VALUES("
-				+ id + ", '" + id + "', '" + LocalDate.now().minusMonths(1)
+				+ id + ", '" + id + "', '" + NOW.minusDays(qontakProperties.getWhatsApp().getVisitIntervalInDays())
 					.plusDays(qontakProperties.getWhatsApp().getVisitReminderIntervalInDays())
 				+ "');\n");
 		};
@@ -82,9 +83,9 @@ public class DummyDataService {
 
 	public IntConsumer insertIntoAncVisitForPregnancyGap() {
 		return id -> {
-			jdbcOperations.execute("INSERT INTO anc_visit (event_id, mother_base_entity_id, anc_date)\n" + "VALUES("
-				+ id + ", '" + id + "', '"
-				+ LocalDate.now().minusDays(qontakProperties.getWhatsApp().getPregnancyGapIntervalInDays()) + "');\n");
+			jdbcOperations.execute(
+				"INSERT INTO anc_visit (event_id, mother_base_entity_id, anc_date)\n" + "VALUES(" + id + ", '" + id
+					+ "', '" + NOW.minusDays(qontakProperties.getWhatsApp().getPregnancyGapIntervalInDays()) + "');\n");
 		};
 	}
 }
