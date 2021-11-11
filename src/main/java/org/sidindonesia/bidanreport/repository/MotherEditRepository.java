@@ -33,7 +33,7 @@ public interface MotherEditRepository extends BaseRepository<MotherEdit, Long> {
 		+ "ORDER BY me.event_id DESC LIMIT 1")
 	Optional<Long> findFirstNonPregnantWomanByOrderByEventIdDesc();
 
-	@Query(nativeQuery = true, value = QueryConstants.MOTHER_EDIT_NATIVE_QUERY_FIND_ALL_WITH_LATEST_ANC_VISIT_DATE_IS_CURRENT_DATE_MINUS_ONE_MONTH_PLUS_SOME_DAYS)
+	@Query(nativeQuery = true, value = QueryConstants.MOTHER_EDIT_NATIVE_QUERY_FIND_ALL_WITH_LATEST_ANC_VISIT_DATE_IS_CURRENT_DATE_MINUS_ANC_VISIT_INTERVAL_IN_DAYS_PLUS_VISIT_REMINDER_INTERVAL_IN_DAYS)
 	List<MotherIdentityWhatsAppProjection> findAllPregnantWomenToBeRemindedForTheNextANCVisit(
 		Integer visitIntervalInDays, Integer numberOfDaysBeforeNextVisit);
 
