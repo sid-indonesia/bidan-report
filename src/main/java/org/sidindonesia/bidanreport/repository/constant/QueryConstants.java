@@ -65,6 +65,7 @@ public final class QueryConstants {
 		+ " AND me_id_only.mother_base_entity_id IN (" + SELECT_MOTHER_BASE_ENTITY_ID_FROM_ANC_REGISTER
 		+ " AND av.latest_anc_date = current_date - INTERVAL '1 day' * ?1 + INTERVAL '1 day' * ?2) ORDER BY me.event_id";
 
+	// unused
 	public static final String MOTHER_IDENTITY_NATIVE_QUERY_FIND_ALL_WITH_LATEST_ANC_VISIT_DATE_IS_SOME_DAYS_AGO = ""
 		+ SELECT_EVENT_ID_AND_MOBILE_PHONE_NUMBER_FROM_MOTHER_IDENTITY
 		+ INNER_JOIN_SELECT_MOTHER_BASE_ENTITY_ID_MAX_ANC_DATE_AS_LATEST_ANC_DATE
@@ -73,6 +74,7 @@ public final class QueryConstants {
 		+ SELECT_MOTHER_BASE_ENTITY_ID_FROM_ANC_REGISTER
 		+ " AND av.latest_anc_date = current_date - INTERVAL '1 day' * ?1) ORDER BY mi.event_id";
 
+	// unused
 	public static final String MOTHER_EDIT_NATIVE_QUERY_FIND_ALL_WITH_LATEST_ANC_VISIT_DATE_IS_SOME_DAYS_AGO = ""
 		+ SELECT_EVENT_ID_AND_MOBILE_PHONE_NUMBER_FROM_MOTHER_EDIT
 		+ INNER_JOIN_SELECT_MOTHER_BASE_ENTITY_ID_MAX_ANC_DATE_AS_LATEST_ANC_DATE
