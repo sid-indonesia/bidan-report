@@ -25,6 +25,8 @@ public class QontakProperties {
 		private String nonPregnantWomanMessageTemplateId;
 		private String visitReminderMessageTemplateId;
 		private Integer visitReminderIntervalInDays;
+		private Integer visitIntervalInDays;
+		private String pregnancyGapMessageTemplateId;
 		private String channelIntegrationId;
 		private String districtHealthOfficeName;
 		private String apiPathBroadcastDirect;

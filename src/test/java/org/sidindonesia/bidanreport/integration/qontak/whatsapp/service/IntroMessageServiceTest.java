@@ -63,7 +63,7 @@ class IntroMessageServiceTest {
 		// given
 		dummyDataService.insertDummyData();
 		// when
-		whatsAppMessageService.sendWhatsAppMessageToNewMothers();
+		whatsAppMessageService.sendIntroMessageToNewMothersViaWhatsApp();
 		// then
 		assertThat(whatsAppMessageService).isNotNull();
 	}
@@ -71,6 +71,6 @@ class IntroMessageServiceTest {
 	@Test
 	void testSendWhatsAppMessageToNewMothers_withNoNewMothers() {
 		assertThat(whatsAppMessageService).isNotNull();
-		whatsAppMessageService.sendWhatsAppMessageToNewMothers();
+		whatsAppMessageService.sendIntroMessageToNewMothersViaWhatsApp();
 	}
 }

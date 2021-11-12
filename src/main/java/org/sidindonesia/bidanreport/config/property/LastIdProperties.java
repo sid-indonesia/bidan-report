@@ -11,6 +11,7 @@ import lombok.Data;
 public class LastIdProperties {
 	private LastId motherIdentity = new LastId();
 	private LastId motherEdit = new LastId();
+	private Long ancVisitPregnancyGapLastId = 0L;
 
 	@Data
 	public static class LastId {

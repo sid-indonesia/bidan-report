@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class DummyDataService {
+	private static final LocalDate NOW = LocalDate.now();
 	@Autowired
 	private JdbcOperations jdbcOperations;
 	@Autowired
@@ -25,11 +26,6 @@ public class DummyDataService {
 		IntStream.rangeClosed(4, 6).forEach(insertIntoMotherIdentityWithoutMobilePhoneNumber());
 		IntStream.rangeClosed(5, 6).forEach(insertIntoAncRegister());
 		IntStream.rangeClosed(7, 9).forEach(insertIntoMotherEdit());
-	}
-
-	void insertDummyDataForANCVisitReminder() {
-		insertDummyData();
-		IntStream.rangeClosed(1, 6).forEach(insertIntoAncVisit());
 	}
 
 	private IntConsumer insertIntoClientMother() {
@@ -76,12 +72,19 @@ public class DummyDataService {
 		};
 	}
 
-	private IntConsumer insertIntoAncVisit() {
+	public IntConsumer insertIntoAncVisitForVisitReminder() {
 		return id -> {
 			jdbcOperations.execute("INSERT INTO anc_visit (event_id, mother_base_entity_id, anc_date)\n" + "VALUES("
-				+ id + ", '" + id + "', '" + LocalDate.now().minusMonths(1)
+				+ id + ", '" + id + "', '" + NOW.minusDays(qontakProperties.getWhatsApp().getVisitIntervalInDays())
 					.plusDays(qontakProperties.getWhatsApp().getVisitReminderIntervalInDays())
 				+ "');\n");
+		};
+	}
+
+	public IntConsumer insertIntoAncVisitForPregnancyGap() {
+		return id -> {
+			jdbcOperations.execute("INSERT INTO anc_visit (event_id, mother_base_entity_id, anc_date)\n" + "VALUES("
+				+ id + ", '" + id + "', '" + NOW.minusDays(id) + "');\n");
 		};
 	}
 }

@@ -8,6 +8,7 @@ import org.sidindonesia.bidanreport.integration.qontak.web.request.AuthRequest;
 import org.sidindonesia.bidanreport.integration.qontak.web.response.AuthResponse;
 import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
+import org.sidindonesia.bidanreport.service.LastIdService;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
@@ -27,15 +28,15 @@ public class AuthenticationListener implements ApplicationListener<ApplicationRe
 	private final MotherIdentityRepository motherIdentityRepository;
 	private final MotherEditRepository motherEditRepository;
 	private final LastIdProperties lastIdProperties;
+	private final LastIdService lastIdService;
 
 	@Override
 	public void onApplicationEvent(ApplicationReadyEvent event) {
 		log.info("Authenticating to {}", qontakProperties.getWhatsApp().getBaseUrl());
 
 		AuthRequest requestBody = createQontakAuthRequestBody();
-		Mono<AuthResponse> response = webClient.post()
-			.uri(qontakProperties.getWhatsApp().getApiPathAuthentication()).bodyValue(requestBody).retrieve()
-			.bodyToMono(AuthResponse.class);
+		Mono<AuthResponse> response = webClient.post().uri(qontakProperties.getWhatsApp().getApiPathAuthentication())
+			.bodyValue(requestBody).retrieve().bodyToMono(AuthResponse.class);
 
 		AuthResponse responseBody = response.block();
 		if (responseBody != null) {
@@ -79,6 +80,8 @@ public class AuthenticationListener implements ApplicationListener<ApplicationRe
 		if (optEditedNonPregnantWomenLastId.isPresent()) {
 			lastIdProperties.getMotherEdit().setNonPregnantMotherLastId(optEditedNonPregnantWomenLastId.get());
 		}
+
+		lastIdService.syncANCVisitPregnancyGapLastId();
 		log.info("Sync-ed last ID from DB successfully.");
 	}
 }

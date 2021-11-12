@@ -50,5 +50,8 @@ scheduling:
     fixed-rate-in-ms: 300000 # 5 minutes
     initial-delay-in-ms: 60000 # 1 minute
   visit-reminder:
-    cron: "0 0 8 * * ?" # At 08:00 AM
+    cron: "0 30 18 * * ?" # At 06:30 PM
     zone: Asia/Jakarta
+  pregnancy-gap:
+    fixed-rate-in-ms: 300000 # 5 minutes
+    initial-delay-in-ms: 60000 # 1 minute
