@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.sidindonesia.bidanreport.domain.MotherEdit;
 import org.sidindonesia.bidanreport.repository.constant.QueryConstants;
+import org.sidindonesia.bidanreport.repository.projection.PregnancyGapProjection;
 import org.sidindonesia.bidanreport.repository.projection.MotherIdentityWhatsAppProjection;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -37,7 +38,6 @@ public interface MotherEditRepository extends BaseRepository<MotherEdit, Long> {
 	List<MotherIdentityWhatsAppProjection> findAllPregnantWomenToBeRemindedForTheNextANCVisit(
 		Integer visitIntervalInDays, Integer numberOfDaysBeforeNextVisit);
 
-	@Query(nativeQuery = true, value = QueryConstants.MOTHER_EDIT_NATIVE_QUERY_FIND_ALL_WITH_LATEST_ANC_VISIT_DATE_IS_SOME_DAYS_AGO)
-	List<MotherIdentityWhatsAppProjection> findAllPregnantWomenToBeInformedOfHerGapOnPregnancy(
-		Integer numberOfDaysAfterLastANCVisit);
+	@Query(nativeQuery = true, value = QueryConstants.MOTHER_EDIT_NATIVE_QUERY_FIND_ALL_WITH_LATEST_ANC_VISIT_PREGNANCY_GAP)
+	List<PregnancyGapProjection> findAllPregnantWomenToBeInformedOfHerGapOnPregnancy(Long lastEventId);
 }

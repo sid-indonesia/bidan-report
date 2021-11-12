@@ -1,17 +1,17 @@
 package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
+import org.sidindonesia.bidanreport.config.property.LastIdProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest.Parameters;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.BroadcastMessageService;
 import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
-import org.sidindonesia.bidanreport.repository.projection.MotherIdentityWhatsAppProjection;
+import org.sidindonesia.bidanreport.repository.projection.PregnancyGapProjection;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,34 +28,32 @@ public class PregnancyGapService {
 	private final MotherIdentityRepository motherIdentityRepository;
 	private final MotherEditRepository motherEditRepository;
 	private final BroadcastMessageService broadcastMessageService;
+	private final LastIdProperties lastIdProperties;
 
-	@Scheduled(cron = "${scheduling.pregnancy-gap.cron}", zone = "${scheduling.pregnancy-gap.zone}")
+	@Scheduled(fixedRateString = "${scheduling.pregnancy-gap.fixed-rate-in-ms}", initialDelayString = "${scheduling.pregnancy-gap.initial-delay-in-ms}")
 	public void sendPregnancyGapMessageToEnrolledMothers() {
 		log.debug("Executing scheduled \"Inform Pregnancy Gap via WhatsApp\"...");
-		log.debug("Send pregnancy gap message to all mothers with +"
-			+ qontakProperties.getWhatsApp().getPregnancyGapIntervalInDays() + " day(s) latest ANC visit date");
+		log.debug("Send pregnancy gap message to all mothers according to their latest ANC visit");
 		processRowsFromMotherIdentity();
 		processRowsFromMotherEdit();
 	}
 
 	private void processRowsFromMotherIdentity() {
-		List<MotherIdentityWhatsAppProjection> allPregnantWomenToBeInformedOfGapInTheirPregnancy = motherIdentityRepository
-			.findAllPregnantWomenToBeInformedOfHerGapOnPregnancy(
-				qontakProperties.getWhatsApp().getPregnancyGapIntervalInDays());
+		List<PregnancyGapProjection> allPregnantWomenToBeInformedOfGapInTheirPregnancy = motherIdentityRepository
+			.findAllPregnantWomenToBeInformedOfHerGapOnPregnancy(lastIdProperties.getAncVisitPregnancyGapLastId());
 
 		broadcastPregnancyGapMessageTo(allPregnantWomenToBeInformedOfGapInTheirPregnancy);
 	}
 
 	private void processRowsFromMotherEdit() {
-		List<MotherIdentityWhatsAppProjection> allPregnantWomenToBeInformedOfGapInTheirPregnancy = motherEditRepository
-			.findAllPregnantWomenToBeInformedOfHerGapOnPregnancy(
-				qontakProperties.getWhatsApp().getPregnancyGapIntervalInDays());
+		List<PregnancyGapProjection> allPregnantWomenToBeInformedOfGapInTheirPregnancy = motherEditRepository
+			.findAllPregnantWomenToBeInformedOfHerGapOnPregnancy(lastIdProperties.getAncVisitPregnancyGapLastId());
 
 		broadcastPregnancyGapMessageTo(allPregnantWomenToBeInformedOfGapInTheirPregnancy);
 	}
 
 	private void broadcastPregnancyGapMessageTo(
-		List<MotherIdentityWhatsAppProjection> allPregnantWomenToBeInformedOfGapInTheirPregnancy) {
+		List<PregnancyGapProjection> allPregnantWomenToBeInformedOfGapInTheirPregnancy) {
 		if (!allPregnantWomenToBeInformedOfGapInTheirPregnancy.isEmpty()) {
 			AtomicLong pregnantGapSuccessCount = new AtomicLong();
 			allPregnantWomenToBeInformedOfGapInTheirPregnancy.parallelStream()
@@ -68,7 +66,7 @@ public class PregnancyGapService {
 		}
 	}
 
-	private Consumer<MotherIdentityWhatsAppProjection> broadcastPregnancyGapMessageViaWhatsApp(AtomicLong successCount,
+	private Consumer<PregnancyGapProjection> broadcastPregnancyGapMessageViaWhatsApp(AtomicLong successCount,
 		String messageTemplateId) {
 		return motherIdentity -> {
 			BroadcastRequest requestBody = createPregnancyGapMessageRequestBody(motherIdentity, messageTemplateId);
@@ -76,7 +74,7 @@ public class PregnancyGapService {
 		};
 	}
 
-	private BroadcastRequest createPregnancyGapMessageRequestBody(MotherIdentityWhatsAppProjection motherIdentity,
+	private BroadcastRequest createPregnancyGapMessageRequestBody(PregnancyGapProjection motherIdentity,
 		String messageTemplateId) {
 		BroadcastRequest requestBody = broadcastMessageService.createBroadcastRequestBody(motherIdentity,
 			messageTemplateId);
@@ -85,14 +83,11 @@ public class PregnancyGapService {
 		return requestBody;
 	}
 
-	private void setParametersForPregnancyGapMessage(MotherIdentityWhatsAppProjection motherIdentity,
+	private void setParametersForPregnancyGapMessage(PregnancyGapProjection motherIdentity,
 		BroadcastRequest requestBody) {
 		Parameters parameters = new Parameters();
 		parameters.addBodyWithValues("1", "full_name", motherIdentity.getFullName());
-		parameters.addBodyWithValues("2", "date",
-			LocalDate.now().minusDays(qontakProperties.getWhatsApp().getPregnancyGapIntervalInDays()).toString());
-		parameters.addBodyWithValues("3", "gap1", "First Gap");
-		parameters.addBodyWithValues("4", "gap2", "Second Gap");
+		parameters.addBodyWithValues("2", "gaps", motherIdentity.getColumnsWithEmptyOrNullValue());
 		requestBody.setParameters(parameters);
 	}
 }

@@ -38,10 +38,9 @@ qontak:
     pregnant-woman-message-template-id: 8ce51d59-f848-4137-960a-49b3e9b9415b
     non-pregnant-woman-message-template-id: 8ce51d59-f848-4137-960a-49b3e9b9415c
     visit-reminder-message-template-id: 8ce51d59-f848-4137-960a-49b3e9b9415d
-    visit-reminder-interval-in-days: 7
+    visit-reminder-interval-in-days: 1
     visit-interval-in-days: 30
     pregnancy-gap-message-template-id: 8ce51d59-f848-4137-960a-49b3e9b9415e
-    pregnancy-gap-interval-in-days: 1
     channel-integration-id: 5fd26ff5-adc3-4c91-9022-c8069bb09bc4
     district-health-office-name: Test
     api-path-broadcast-direct: /15212622/v1/broadcasts/whatsapp/direct

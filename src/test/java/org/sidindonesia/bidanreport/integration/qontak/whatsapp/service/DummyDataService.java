@@ -83,9 +83,8 @@ public class DummyDataService {
 
 	public IntConsumer insertIntoAncVisitForPregnancyGap() {
 		return id -> {
-			jdbcOperations.execute(
-				"INSERT INTO anc_visit (event_id, mother_base_entity_id, anc_date)\n" + "VALUES(" + id + ", '" + id
-					+ "', '" + NOW.minusDays(qontakProperties.getWhatsApp().getPregnancyGapIntervalInDays()) + "');\n");
+			jdbcOperations.execute("INSERT INTO anc_visit (event_id, mother_base_entity_id, anc_date)\n" + "VALUES("
+				+ id + ", '" + id + "', '" + NOW.minusDays(id) + "');\n");
 		};
 	}
 }

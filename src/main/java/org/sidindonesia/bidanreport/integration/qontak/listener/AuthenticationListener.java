@@ -6,6 +6,7 @@ import org.sidindonesia.bidanreport.config.property.LastIdProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.web.request.AuthRequest;
 import org.sidindonesia.bidanreport.integration.qontak.web.response.AuthResponse;
+import org.sidindonesia.bidanreport.repository.AncVisitRepository;
 import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -27,15 +28,15 @@ public class AuthenticationListener implements ApplicationListener<ApplicationRe
 	private final MotherIdentityRepository motherIdentityRepository;
 	private final MotherEditRepository motherEditRepository;
 	private final LastIdProperties lastIdProperties;
+	private final AncVisitRepository ancVisitRepository;
 
 	@Override
 	public void onApplicationEvent(ApplicationReadyEvent event) {
 		log.info("Authenticating to {}", qontakProperties.getWhatsApp().getBaseUrl());
 
 		AuthRequest requestBody = createQontakAuthRequestBody();
-		Mono<AuthResponse> response = webClient.post()
-			.uri(qontakProperties.getWhatsApp().getApiPathAuthentication()).bodyValue(requestBody).retrieve()
-			.bodyToMono(AuthResponse.class);
+		Mono<AuthResponse> response = webClient.post().uri(qontakProperties.getWhatsApp().getApiPathAuthentication())
+			.bodyValue(requestBody).retrieve().bodyToMono(AuthResponse.class);
 
 		AuthResponse responseBody = response.block();
 		if (responseBody != null) {
@@ -78,6 +79,11 @@ public class AuthenticationListener implements ApplicationListener<ApplicationRe
 			.findFirstNonPregnantWomanByOrderByEventIdDesc();
 		if (optEditedNonPregnantWomenLastId.isPresent()) {
 			lastIdProperties.getMotherEdit().setNonPregnantMotherLastId(optEditedNonPregnantWomenLastId.get());
+		}
+
+		Optional<Long> optAncVisitPregnancyGapLastId = ancVisitRepository.findLastEventId();
+		if (optAncVisitPregnancyGapLastId.isPresent()) {
+			lastIdProperties.setAncVisitPregnancyGapLastId(optAncVisitPregnancyGapLastId.get());
 		}
 		log.info("Sync-ed last ID from DB successfully.");
 	}
