@@ -12,6 +12,7 @@ import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.Bro
 import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
 import org.sidindonesia.bidanreport.repository.projection.PregnancyGapProjection;
+import org.sidindonesia.bidanreport.service.LastIdService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,7 @@ public class PregnancyGapService {
 	private final MotherEditRepository motherEditRepository;
 	private final BroadcastMessageService broadcastMessageService;
 	private final LastIdProperties lastIdProperties;
+	private final LastIdService lastIdService;
 
 	@Scheduled(fixedRateString = "${scheduling.pregnancy-gap.fixed-rate-in-ms}", initialDelayString = "${scheduling.pregnancy-gap.initial-delay-in-ms}")
 	public void sendPregnancyGapMessageToEnrolledMothers() {
@@ -36,6 +38,8 @@ public class PregnancyGapService {
 		log.debug("Send pregnancy gap message to all mothers according to their latest ANC visit");
 		processRowsFromMotherIdentity();
 		processRowsFromMotherEdit();
+
+		lastIdService.syncANCVisitPregnancyGapLastId();
 	}
 
 	private void processRowsFromMotherIdentity() {
