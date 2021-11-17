@@ -1,8 +1,11 @@
 package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import org.sidindonesia.bidanreport.config.property.LastIdProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
@@ -91,7 +94,12 @@ public class PregnancyGapService {
 		BroadcastRequest requestBody) {
 		Parameters parameters = new Parameters();
 		parameters.addBodyWithValues("1", "full_name", motherIdentity.getFullName());
-		parameters.addBodyWithValues("2", "gaps", motherIdentity.getColumnsWithEmptyOrNullValue());
+
+		String csv = motherIdentity.getPregnancyGapCommaSeparatedValues();
+		List<String> values = Stream.of(csv.split(",")).map(String::trim).collect(toList());
+		parameters.addBodyWithValues("2", "anc_date", values.get(0));
+		parameters.addBodyWithValues("3", "subm_date", values.get(1));
+		parameters.addBodyWithValues("4", "gaps", String.join(", ", values.stream().skip(2).collect(toList())));
 		requestBody.setParameters(parameters);
 	}
 }

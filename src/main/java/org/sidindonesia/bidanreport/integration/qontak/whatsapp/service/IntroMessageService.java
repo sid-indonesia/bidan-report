@@ -123,7 +123,8 @@ public class IntroMessageService {
 
 	private BroadcastRequest createIntroMessageRequestBody(MotherIdentityWhatsAppProjection motherIdentity,
 		String messageTemplateId) {
-		BroadcastRequest requestBody = broadcastMessageService.createBroadcastRequestBody(motherIdentity, messageTemplateId);
+		BroadcastRequest requestBody = broadcastMessageService.createBroadcastRequestBody(motherIdentity,
+			messageTemplateId);
 
 		setParametersForIntroMessage(motherIdentity, requestBody);
 		return requestBody;

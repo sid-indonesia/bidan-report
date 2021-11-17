@@ -87,12 +87,14 @@ public final class QueryConstants {
 		+ "SELECT " + " mi.event_id AS eventId, " + " mi.mobile_phone_number AS mobilePhoneNumber, " + " ( " + SELECT
 		+ "  cm.full_name " + FROM + "  {h-schema}client_mother cm " + WHERE
 		+ "  cm.base_entity_id = mi.mother_base_entity_id " + " ORDER BY " + "  cm.server_version_epoch DESC "
-		+ " LIMIT 1) AS fullName, " + " ( " + SELECT + "  CONCAT_WS(', ', "
+		+ " LIMIT 1) AS fullName, " + " ( " + SELECT + "  CONCAT_WS(',', "
+		+ "   CASE WHEN av_sub1.anc_date IS NULL THEN 'N/A' ELSE av_sub1.anc_date\\:\\:varchar END, "
+		+ "   CASE WHEN av_sub1.server_version_epoch IS NULL THEN 'N/A' ELSE date(to_timestamp(av_sub1.server_version_epoch\\:\\:double PRECISION / 1000))\\:\\:varchar END, "
 		+ "   CASE WHEN (av_sub1.vital_sign_diastolic_blood_pressure = '' OR av_sub1.vital_sign_systolic_blood_pressure = '') IS NOT FALSE THEN NULL ELSE 'Tekanan darah' END, "
 		+ "   CASE WHEN (av_sub1.mid_upper_arm_circumference_in_cm = '') IS NOT FALSE THEN NULL ELSE 'Lingkar lengan atas' END, "
 		+ "   CASE WHEN (av_sub1.weight_in_kg = '') IS NOT FALSE THEN NULL ELSE 'Berat badan' END, "
 		+ "   CASE WHEN (av_sub1.is_given_iron_folic_acid_tablet = '') IS NOT FALSE THEN NULL ELSE 'Pemberian tablet IFA' END, "
-		+ "   CASE WHEN (av_sub1.gestational_age\\:\\:integer >= 20) THEN CONCAT_WS(', ', "
+		+ "   CASE WHEN (av_sub1.gestational_age\\:\\:integer >= 20) THEN CONCAT_WS(',', "
 		+ "    CASE WHEN (av_sub1.uterine_fundal_height = '') IS NOT FALSE THEN NULL ELSE 'Tinggi fundus uteri/pemeriksaan perut' END, "
 		+ "    CASE WHEN (av_sub1.fetal_presentation = '') IS NOT FALSE THEN NULL ELSE 'Presentasi janin' END, "
 		+ "    CASE WHEN (av_sub1.fetal_heart_rate = '') IS NOT FALSE THEN NULL ELSE 'Denyut jantung janin' END) "
@@ -105,7 +107,7 @@ public final class QueryConstants {
 		+ "   av_sub2.mother_base_entity_id, " + "   av_sub2.anc_date) av_max_event_id ON "
 		+ "  av_sub1.event_id = av_max_event_id.latest_event_id " + WHERE
 		+ "  av_sub1.mother_base_entity_id = mi.mother_base_entity_id "
-		+ "  AND av_sub1.event_id > ?1) AS columnsWithEmptyOrNullValue " + "FROM " + " {h-schema}mother_identity mi "
+		+ "  AND av_sub1.event_id > ?1) AS pregnancyGapCommaSeparatedValues " + "FROM " + " {h-schema}mother_identity mi "
 		+ "WHERE " + " mi.event_id IN ( " + SELECT + "  MAX(mi_id_only.event_id) " + FROM
 		+ "  {h-schema}mother_identity mi_id_only " + " INNER JOIN {h-schema}anc_visit av ON "
 		+ "  mi_id_only.mother_base_entity_id = av.mother_base_entity_id " + WHERE
@@ -118,12 +120,14 @@ public final class QueryConstants {
 		+ " me.event_id AS eventId, " + " me.mobile_phone_number AS mobilePhoneNumber, " + " ( " + SELECT
 		+ "  cm.full_name " + FROM + "  {h-schema}client_mother cm " + WHERE
 		+ "  cm.base_entity_id = me.mother_base_entity_id " + " ORDER BY " + "  cm.server_version_epoch DESC "
-		+ " LIMIT 1) AS fullName, " + " ( " + SELECT + "  CONCAT_WS(', ', "
+		+ " LIMIT 1) AS fullName, " + " ( " + SELECT + "  CONCAT_WS(',', "
+		+ "   CASE WHEN av_sub1.anc_date IS NULL THEN 'N/A' ELSE av_sub1.anc_date\\:\\:varchar END, "
+		+ "   CASE WHEN av_sub1.server_version_epoch IS NULL THEN 'N/A' ELSE date(to_timestamp(av_sub1.server_version_epoch\\:\\:double PRECISION / 1000))\\:\\:varchar END, "
 		+ "   CASE WHEN (av_sub1.vital_sign_diastolic_blood_pressure = '' OR av_sub1.vital_sign_systolic_blood_pressure = '') IS NOT FALSE THEN NULL ELSE 'Tekanan darah' END, "
 		+ "   CASE WHEN (av_sub1.mid_upper_arm_circumference_in_cm = '') IS NOT FALSE THEN NULL ELSE 'Lingkar lengan atas' END, "
 		+ "   CASE WHEN (av_sub1.weight_in_kg = '') IS NOT FALSE THEN NULL ELSE 'Berat badan' END, "
 		+ "   CASE WHEN (av_sub1.is_given_iron_folic_acid_tablet = '') IS NOT FALSE THEN NULL ELSE 'Pemberian tablet IFA' END, "
-		+ "   CASE WHEN (av_sub1.gestational_age\\:\\:integer >= 20) THEN CONCAT_WS(', ', "
+		+ "   CASE WHEN (av_sub1.gestational_age\\:\\:integer >= 20) THEN CONCAT_WS(',', "
 		+ "    CASE WHEN (av_sub1.uterine_fundal_height = '') IS NOT FALSE THEN NULL ELSE 'Tinggi fundus uteri/pemeriksaan perut' END, "
 		+ "    CASE WHEN (av_sub1.fetal_presentation = '') IS NOT FALSE THEN NULL ELSE 'Presentasi janin' END, "
 		+ "    CASE WHEN (av_sub1.fetal_heart_rate = '') IS NOT FALSE THEN NULL ELSE 'Denyut jantung janin' END) "
@@ -136,7 +140,7 @@ public final class QueryConstants {
 		+ "   av_sub2.mother_base_entity_id, " + "   av_sub2.anc_date) av_max_event_id ON "
 		+ "  av_sub1.event_id = av_max_event_id.latest_event_id " + WHERE
 		+ "  av_sub1.mother_base_entity_id = me.mother_base_entity_id "
-		+ "  AND av_sub1.event_id > ?1) AS columnsWithEmptyOrNullValue " + "FROM " + " {h-schema}mother_edit me "
+		+ "  AND av_sub1.event_id > ?1) AS pregnancyGapCommaSeparatedValues " + "FROM " + " {h-schema}mother_edit me "
 		+ "WHERE " + " me.event_id IN ( " + SELECT + "  MAX(me_id_only.event_id) " + FROM
 		+ "  {h-schema}mother_edit me_id_only " + " INNER JOIN {h-schema}anc_visit av ON "
 		+ "  me_id_only.mother_base_entity_id = av.mother_base_entity_id " + WHERE
