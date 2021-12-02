@@ -85,7 +85,7 @@ public final class QueryConstants {
 		+ "    AND av_sub2.anc_date = av_max_anc_date.latest_anc_date) " + "  GROUP BY "
 		+ "   av_sub2.mother_base_entity_id, " + "   av_sub2.anc_date) av_max_event_id ON "
 		+ "  av_sub1.event_id = av_max_event_id.latest_event_id " + " WHERE "
-		+ "  av_sub1.mother_base_entity_id = me.mother_base_entity_id) AS latentAncVisitNumber "
+		+ "  av_sub1.mother_base_entity_id = me.mother_base_entity_id) AS latestAncVisitNumber "
 		+ "FROM {h-schema}mother_edit me "
 		+ "WHERE me.event_id IN (SELECT MAX(me_id_only.event_id) OVER (PARTITION BY me_id_only.mother_base_entity_id)"
 		+ " FROM {h-schema}mother_edit me_id_only"
