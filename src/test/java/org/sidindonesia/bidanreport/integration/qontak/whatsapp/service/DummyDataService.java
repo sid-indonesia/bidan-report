@@ -74,10 +74,11 @@ public class DummyDataService {
 
 	public IntConsumer insertIntoAncVisitForVisitReminder() {
 		return id -> {
-			jdbcOperations.execute("INSERT INTO anc_visit (event_id, mother_base_entity_id, anc_date)\n" + "VALUES("
-				+ id + ", '" + id + "', '" + NOW.minusDays(qontakProperties.getWhatsApp().getVisitIntervalInDays())
-					.plusDays(qontakProperties.getWhatsApp().getVisitReminderIntervalInDays())
-				+ "');\n");
+			jdbcOperations.execute(
+				"INSERT INTO anc_visit (event_id, mother_base_entity_id, anc_date, anc_visit_number)\n" + "VALUES(" + id
+					+ ", '" + id + "', '" + NOW.minusDays(qontakProperties.getWhatsApp().getVisitIntervalInDays())
+						.plusDays(qontakProperties.getWhatsApp().getVisitReminderIntervalInDays())
+					+ "', '" + id + "');\n");
 		};
 	}
 

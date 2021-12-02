@@ -50,7 +50,22 @@ public final class QueryConstants {
 		+ "  AND me_duplicate.event_id <= ?1 AND me_duplicate.provider_id NOT LIKE '%demo%')";
 
 	public static final String MOTHER_IDENTITY_NATIVE_QUERY_FIND_ALL_WITH_LATEST_ANC_VISIT_DATE_IS_CURRENT_DATE_MINUS_ANC_VISIT_INTERVAL_IN_DAYS_PLUS_VISIT_REMINDER_INTERVAL_IN_DAYS = ""
-		+ SELECT_EVENT_ID_AND_MOBILE_PHONE_NUMBER_FROM_MOTHER_IDENTITY
+		+ "SELECT mi.event_id AS eventId, mi.mobile_phone_number AS mobilePhoneNumber, "
+		+ "(SELECT cm.full_name FROM {h-schema}client_mother cm "
+		+ "WHERE cm.base_entity_id = mi.mother_base_entity_id ORDER BY cm.server_version_epoch DESC LIMIT 1) AS fullName, "
+		+ "( " + " SELECT " + "  av_sub1.anc_visit_number " + " FROM " + "  {h-schema}anc_visit av_sub1 "
+		+ " INNER JOIN ( " + "  SELECT " + "   MAX(av_sub2.event_id) AS latest_event_id " + "  FROM "
+		+ "   {h-schema}anc_visit av_sub2 " + "  INNER JOIN ( " + "   SELECT " + "    mother_base_entity_id, "
+		+ "    MAX(anc_date) AS latest_anc_date " + "   FROM " + "    {h-schema}anc_visit av_sub3 " + "   GROUP BY "
+		+ "    mother_base_entity_id) av_max_anc_date ON "
+		+ "   (av_sub2.mother_base_entity_id = av_max_anc_date.mother_base_entity_id "
+		+ "    AND av_sub2.anc_date = av_max_anc_date.latest_anc_date) " + "  GROUP BY "
+		+ "   av_sub2.mother_base_entity_id, " + "   av_sub2.anc_date) av_max_event_id ON "
+		+ "  av_sub1.event_id = av_max_event_id.latest_event_id " + " WHERE "
+		+ "  av_sub1.mother_base_entity_id = mi.mother_base_entity_id) AS latestAncVisitNumber "
+		+ "FROM {h-schema}mother_identity mi "
+		+ "WHERE mi.event_id IN (SELECT MAX(mi_id_only.event_id) OVER (PARTITION BY mi_id_only.mobile_phone_number)"
+		+ " FROM {h-schema}mother_identity mi_id_only"
 		+ INNER_JOIN_SELECT_MOTHER_BASE_ENTITY_ID_MAX_ANC_DATE_AS_LATEST_ANC_DATE
 		+ "  FROM {h-schema}anc_visit GROUP BY 1) av ON mi_id_only.mother_base_entity_id = av.mother_base_entity_id"
 		+ WHERE + HAS_MOBILE_PHONE_NUMBER_AND_NOT_DEMO_USER + " AND mi_id_only.mother_base_entity_id IN ("
@@ -58,7 +73,22 @@ public final class QueryConstants {
 		+ " AND av.latest_anc_date = current_date - INTERVAL '1 day' * ?1 + INTERVAL '1 day' * ?2) ORDER BY mi.event_id";
 
 	public static final String MOTHER_EDIT_NATIVE_QUERY_FIND_ALL_WITH_LATEST_ANC_VISIT_DATE_IS_CURRENT_DATE_MINUS_ANC_VISIT_INTERVAL_IN_DAYS_PLUS_VISIT_REMINDER_INTERVAL_IN_DAYS = ""
-		+ SELECT_EVENT_ID_AND_MOBILE_PHONE_NUMBER_FROM_MOTHER_EDIT
+		+ "SELECT me.event_id AS eventId, me.mobile_phone_number AS mobilePhoneNumber, "
+		+ "(SELECT cm.full_name FROM {h-schema}client_mother cm "
+		+ "WHERE cm.base_entity_id = me.mother_base_entity_id ORDER BY cm.server_version_epoch DESC LIMIT 1) AS fullName, "
+		+ "( " + " SELECT " + "  av_sub1.anc_visit_number " + " FROM " + "  {h-schema}anc_visit av_sub1 "
+		+ " INNER JOIN ( " + "  SELECT " + "   MAX(av_sub2.event_id) AS latest_event_id " + "  FROM "
+		+ "   {h-schema}anc_visit av_sub2 " + "  INNER JOIN ( " + "   SELECT " + "    mother_base_entity_id, "
+		+ "    MAX(anc_date) AS latest_anc_date " + "   FROM " + "    {h-schema}anc_visit av_sub3 " + "   GROUP BY "
+		+ "    mother_base_entity_id) av_max_anc_date ON "
+		+ "   (av_sub2.mother_base_entity_id = av_max_anc_date.mother_base_entity_id "
+		+ "    AND av_sub2.anc_date = av_max_anc_date.latest_anc_date) " + "  GROUP BY "
+		+ "   av_sub2.mother_base_entity_id, " + "   av_sub2.anc_date) av_max_event_id ON "
+		+ "  av_sub1.event_id = av_max_event_id.latest_event_id " + " WHERE "
+		+ "  av_sub1.mother_base_entity_id = me.mother_base_entity_id) AS latentAncVisitNumber "
+		+ "FROM {h-schema}mother_edit me "
+		+ "WHERE me.event_id IN (SELECT MAX(me_id_only.event_id) OVER (PARTITION BY me_id_only.mother_base_entity_id)"
+		+ " FROM {h-schema}mother_edit me_id_only"
 		+ INNER_JOIN_SELECT_MOTHER_BASE_ENTITY_ID_MAX_ANC_DATE_AS_LATEST_ANC_DATE
 		+ "  FROM {h-schema}anc_visit GROUP BY 1) av ON me_id_only.mother_base_entity_id = av.mother_base_entity_id"
 		+ WHERE + HAS_MOBILE_PHONE_NUMBER_AND_NOT_DEMO_USER_AND_NO_MOBILE_PHONE_NUMBER_IN_MOTHER_IDENTITY
@@ -107,9 +137,9 @@ public final class QueryConstants {
 		+ "   av_sub2.mother_base_entity_id, " + "   av_sub2.anc_date) av_max_event_id ON "
 		+ "  av_sub1.event_id = av_max_event_id.latest_event_id " + WHERE
 		+ "  av_sub1.mother_base_entity_id = mi.mother_base_entity_id "
-		+ "  AND av_sub1.event_id > ?1) AS pregnancyGapCommaSeparatedValues " + "FROM " + " {h-schema}mother_identity mi "
-		+ "WHERE " + " mi.event_id IN ( " + SELECT + "  MAX(mi_id_only.event_id) " + FROM
-		+ "  {h-schema}mother_identity mi_id_only " + " INNER JOIN {h-schema}anc_visit av ON "
+		+ "  AND av_sub1.event_id > ?1) AS pregnancyGapCommaSeparatedValues " + "FROM "
+		+ " {h-schema}mother_identity mi " + "WHERE " + " mi.event_id IN ( " + SELECT + "  MAX(mi_id_only.event_id) "
+		+ FROM + "  {h-schema}mother_identity mi_id_only " + " INNER JOIN {h-schema}anc_visit av ON "
 		+ "  mi_id_only.mother_base_entity_id = av.mother_base_entity_id " + WHERE
 		+ "  mi_id_only.mobile_phone_number IS NOT NULL " + "  AND mi_id_only.provider_id NOT LIKE '%demo%' "
 		+ "  AND mi_id_only.mother_base_entity_id IN ( " + SELECT + "   ar.mother_base_entity_id " + FROM

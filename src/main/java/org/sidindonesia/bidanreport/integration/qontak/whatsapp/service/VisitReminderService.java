@@ -1,6 +1,5 @@
 package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -11,7 +10,7 @@ import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.Broadcas
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.BroadcastMessageService;
 import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
-import org.sidindonesia.bidanreport.repository.projection.MotherIdentityWhatsAppProjection;
+import org.sidindonesia.bidanreport.repository.projection.AncVisitReminderProjection;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,13 +32,13 @@ public class VisitReminderService {
 	public void sendVisitRemindersToEnrolledMothers() {
 		log.debug("Executing scheduled \"Send ANC Visit Reminder via WhatsApp\"...");
 		log.debug("Send ANC visit reminder to all mothers with -"
-			+ qontakProperties.getWhatsApp().getVisitReminderIntervalInDays() + " days ANC visit date");
+			+ qontakProperties.getWhatsApp().getVisitReminderIntervalInDays() + " day(s) for the next ANC visit date");
 		processRowsFromMotherIdentity();
 		processRowsFromMotherEdit();
 	}
 
 	private void processRowsFromMotherIdentity() {
-		List<MotherIdentityWhatsAppProjection> allPregnantWomenToBeRemindedForTheNextANCVisit = motherIdentityRepository
+		List<AncVisitReminderProjection> allPregnantWomenToBeRemindedForTheNextANCVisit = motherIdentityRepository
 			.findAllPregnantWomenToBeRemindedForTheNextANCVisit(qontakProperties.getWhatsApp().getVisitIntervalInDays(),
 				qontakProperties.getWhatsApp().getVisitReminderIntervalInDays());
 
@@ -47,7 +46,7 @@ public class VisitReminderService {
 	}
 
 	private void processRowsFromMotherEdit() {
-		List<MotherIdentityWhatsAppProjection> allPregnantWomenToBeRemindedForTheNextANCVisit = motherEditRepository
+		List<AncVisitReminderProjection> allPregnantWomenToBeRemindedForTheNextANCVisit = motherEditRepository
 			.findAllPregnantWomenToBeRemindedForTheNextANCVisit(qontakProperties.getWhatsApp().getVisitIntervalInDays(),
 				qontakProperties.getWhatsApp().getVisitReminderIntervalInDays());
 
@@ -55,7 +54,7 @@ public class VisitReminderService {
 	}
 
 	private void broadcastANCVisitReminderMessageTo(
-		List<MotherIdentityWhatsAppProjection> allPregnantWomenToBeRemindedForTheNextANCVisit) {
+		List<AncVisitReminderProjection> allPregnantWomenToBeRemindedForTheNextANCVisit) {
 		if (!allPregnantWomenToBeRemindedForTheNextANCVisit.isEmpty()) {
 			AtomicLong visitReminderSuccessCount = new AtomicLong();
 			allPregnantWomenToBeRemindedForTheNextANCVisit.parallelStream()
@@ -68,29 +67,31 @@ public class VisitReminderService {
 		}
 	}
 
-	private Consumer<MotherIdentityWhatsAppProjection> broadcastANCVisitReminderMessageViaWhatsApp(
-		AtomicLong successCount, String messageTemplateId) {
-		return motherIdentity -> {
-			BroadcastRequest requestBody = createANCVisitReminderMessageRequestBody(motherIdentity, messageTemplateId);
-			broadcastMessageService.sendBroadcastRequestToQontakAPI(successCount, motherIdentity, requestBody);
+	private Consumer<AncVisitReminderProjection> broadcastANCVisitReminderMessageViaWhatsApp(AtomicLong successCount,
+		String messageTemplateId) {
+		return ancVisitReminderProjection -> {
+			BroadcastRequest requestBody = createANCVisitReminderMessageRequestBody(ancVisitReminderProjection,
+				messageTemplateId);
+			broadcastMessageService.sendBroadcastRequestToQontakAPI(successCount, ancVisitReminderProjection,
+				requestBody);
 		};
 	}
 
-	private BroadcastRequest createANCVisitReminderMessageRequestBody(MotherIdentityWhatsAppProjection motherIdentity,
-		String messageTemplateId) {
-		BroadcastRequest requestBody = broadcastMessageService.createBroadcastRequestBody(motherIdentity,
+	private BroadcastRequest createANCVisitReminderMessageRequestBody(
+		AncVisitReminderProjection ancVisitReminderProjection, String messageTemplateId) {
+		BroadcastRequest requestBody = broadcastMessageService.createBroadcastRequestBody(ancVisitReminderProjection,
 			messageTemplateId);
 
-		setParametersForANCVisitReminderMessage(motherIdentity, requestBody);
+		setParametersForANCVisitReminderMessage(ancVisitReminderProjection, requestBody);
 		return requestBody;
 	}
 
-	private void setParametersForANCVisitReminderMessage(MotherIdentityWhatsAppProjection motherIdentity,
+	private void setParametersForANCVisitReminderMessage(AncVisitReminderProjection ancVisitReminderProjection,
 		BroadcastRequest requestBody) {
 		Parameters parameters = new Parameters();
-		parameters.addBodyWithValues("1", "full_name", motherIdentity.getFullName());
-		parameters.addBodyWithValues("2", "date",
-			LocalDate.now().plusDays(qontakProperties.getWhatsApp().getVisitReminderIntervalInDays()).toString());
+		parameters.addBodyWithValues("1", "full_name", ancVisitReminderProjection.getFullName());
+		parameters.addBodyWithValues("2", "visit_number",
+			String.valueOf(ancVisitReminderProjection.getLatestAncVisitNumber() + 1));
 		requestBody.setParameters(parameters);
 	}
 }
