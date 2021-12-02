@@ -6,7 +6,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
-@EnableJpaRepositories("org.sidindonesia.bidanreport.repository")
+@EnableJpaRepositories({ "org.sidindonesia.bidanreport.repository",
+		"org.sidindonesia.bidanreport.integration.qontak.repository" })
 @EnableJpaAuditing
 @EnableTransactionManagement
 public class DatabaseConfiguration {
