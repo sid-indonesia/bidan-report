@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
+import org.sidindonesia.bidanreport.integration.qontak.repository.AutomatedMessageStatsRepository;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest.Parameters;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.BroadcastMessageService;
@@ -27,6 +28,7 @@ public class VisitReminderService {
 	private final MotherIdentityRepository motherIdentityRepository;
 	private final MotherEditRepository motherEditRepository;
 	private final BroadcastMessageService broadcastMessageService;
+	private final AutomatedMessageStatsRepository automatedMessageStatsRepository;
 
 	@Scheduled(cron = "${scheduling.visit-reminder.cron}", zone = "${scheduling.visit-reminder.zone}")
 	public void sendVisitRemindersToEnrolledMothers() {
@@ -64,6 +66,10 @@ public class VisitReminderService {
 			log.info(
 				"{} out of {} enrolled pregnant women have been reminded of the next ANC visit via WhatsApp successfully.",
 				visitReminderSuccessCount, allPregnantWomenToBeRemindedForTheNextANCVisit.size());
+
+			automatedMessageStatsRepository.upsert(qontakProperties.getWhatsApp().getVisitReminderMessageTemplateId(),
+				"anc_visit_reminder", visitReminderSuccessCount.get(),
+				allPregnantWomenToBeRemindedForTheNextANCVisit.size() - visitReminderSuccessCount.get());
 		}
 	}
 
