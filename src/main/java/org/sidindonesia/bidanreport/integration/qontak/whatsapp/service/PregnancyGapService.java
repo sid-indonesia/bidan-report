@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 
 import org.sidindonesia.bidanreport.config.property.LastIdProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
+import org.sidindonesia.bidanreport.integration.qontak.repository.AutomatedMessageStatsRepository;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest.Parameters;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.BroadcastMessageService;
@@ -34,6 +35,7 @@ public class PregnancyGapService {
 	private final BroadcastMessageService broadcastMessageService;
 	private final LastIdProperties lastIdProperties;
 	private final LastIdService lastIdService;
+	private final AutomatedMessageStatsRepository automatedMessageStatsRepository;
 
 	@Scheduled(fixedRateString = "${scheduling.pregnancy-gap.fixed-rate-in-ms}", initialDelayString = "${scheduling.pregnancy-gap.initial-delay-in-ms}")
 	public void sendPregnancyGapMessageToEnrolledMothers() {
@@ -70,6 +72,10 @@ public class PregnancyGapService {
 			log.info(
 				"{} out of {} enrolled pregnant women have been informed of the gap in their pregnancy via WhatsApp successfully.",
 				pregnantGapSuccessCount, allPregnantWomenToBeInformedOfGapInTheirPregnancy.size());
+
+			automatedMessageStatsRepository.upsert(qontakProperties.getWhatsApp().getPregnancyGapMessageTemplateId(),
+				"pregnancy_gap", pregnantGapSuccessCount.get(),
+				allPregnantWomenToBeInformedOfGapInTheirPregnancy.size() - pregnantGapSuccessCount.get());
 		}
 	}
 
