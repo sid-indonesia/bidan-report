@@ -47,7 +47,7 @@ public final class QueryConstants {
 		+ "   CASE WHEN (av_sub1.vital_sign_systolic_blood_pressure = '') IS NOT FALSE THEN '-' ELSE av_sub1.vital_sign_systolic_blood_pressure END, "
 		+ "   CASE WHEN (av_sub1.vital_sign_diastolic_blood_pressure = '') IS NOT FALSE THEN '-' ELSE av_sub1.vital_sign_diastolic_blood_pressure END, "
 		+ "   CASE WHEN (av_sub1.gestational_age\\:\\:integer >= 20) THEN ( "
-		+ "    CASE WHEN (av_sub1.uterine_fundal_height = '') IS NOT FALSE THEN '-' ELSE av_sub1.uterine_fundal_height END) ELSE 'Janin belum teraba' END, "
+		+ "    CASE WHEN (av_sub1.uterine_fundal_height = '') IS NOT FALSE THEN '-' ELSE av_sub1.uterine_fundal_height || ' cm' END) ELSE 'Janin belum teraba' END, "
 		+ "   CASE WHEN (av_sub1.gestational_age\\:\\:integer >= 20) THEN ( "
 		+ "    CASE WHEN (av_sub1.fetal_presentation = '') IS NOT FALSE THEN '-' ELSE av_sub1.fetal_presentation END) ELSE 'Janin belum terlihat' END, "
 		+ "   CASE WHEN (av_sub1.gestational_age\\:\\:integer >= 12) THEN ( "
