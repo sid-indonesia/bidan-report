@@ -43,5 +43,6 @@ public interface MotherIdentityRepository extends BaseRepository<MotherIdentity,
 	@Query(nativeQuery = true, value = QueryConstants.MOTHER_IDENTITY_NATIVE_QUERY_FIND_ALL_WITH_LATEST_ANC_VISIT_PREGNANCY_GAP)
 	List<PregnancyGapProjection> findAllPregnantWomenToBeInformedOfHerGapOnPregnancy(Long lastEventId);
 
+	@Query(nativeQuery = true, value = QueryConstants.MOTHER_IDENTITY_NATIVE_QUERY_FIND_ALL_WITH_LAST_MENSTRUAL_PERIOD_DATE_NO_EARLIER_THAN_42_WEEKS_AGO_OR_EXPECTED_DELIVERY_DATE_IS_STILL_IN_THE_FUTURE)
 	List<HealthEducationProjection> findAllPregnantWomenToBeGivenEducationOfTheirHealth();
 }

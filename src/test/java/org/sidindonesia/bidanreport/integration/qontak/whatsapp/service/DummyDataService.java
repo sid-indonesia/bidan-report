@@ -49,8 +49,9 @@ public class DummyDataService {
 	private IntConsumer insertIntoAncRegister() {
 		return id -> {
 			jdbcOperations.execute("INSERT INTO anc_register\n"
-				+ "(event_id, date_created, mother_base_entity_id, provider_id, server_version_epoch)\n" + "VALUES("
-				+ id + ", CURRENT_TIMESTAMP, '" + id + "', 'test', '157663657225" + id + "');\n");
+				+ "(event_id, date_created, mother_base_entity_id, provider_id, server_version_epoch, last_menstrual_period_date, expected_delivery_date)\n"
+				+ "VALUES(" + id + ", CURRENT_TIMESTAMP, '" + id + "', 'test', '157663657225" + id
+				+ "', CURRENT_DATE - INTERVAL '1" + id + " weeks', CURRENT_DATE + INTERVAL '1" + id + " weeks');\n");
 		};
 	}
 
@@ -86,6 +87,13 @@ public class DummyDataService {
 		return id -> {
 			jdbcOperations.execute("INSERT INTO anc_visit (event_id, mother_base_entity_id, anc_date)\n" + "VALUES("
 				+ id + ", '" + id + "', '" + NOW.minusDays(id) + "');\n");
+		};
+	}
+
+	public IntConsumer insertIntoAncVisitForHealthEducation() {
+		return id -> {
+			jdbcOperations.execute("INSERT INTO anc_visit (event_id, mother_base_entity_id, pregnancy_trimester)\n"
+				+ "VALUES(" + id + ", '" + id + "', '" + id % 3 + "');\n");
 		};
 	}
 }

@@ -1,8 +1,5 @@
 package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service;
 
-import static java.time.temporal.ChronoUnit.WEEKS;
-
-import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -99,7 +96,7 @@ public class HealthEducationService {
 		parameters.addBodyWithValues("1", "full_name", healthEducationProjection.getFullName());
 		parameters.addBodyWithValues("2", "pregnancy_trimester", healthEducationProjection.getPregnancyTrimester());
 		parameters.addBodyWithValues("3", "calculated_gestational_age",
-			String.valueOf(WEEKS.between(LocalDate.now(), healthEducationProjection.getLastMenstrualPeriodDate())));
+			healthEducationProjection.getCalculatedGestationalAge());
 		requestBody.setParameters(parameters);
 	}
 }
