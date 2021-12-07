@@ -29,7 +29,8 @@
       **/request/**/*,
       **/response/**/*,
       **/property/**/*,
-      **/*Application*</sonar.exclusions>
+      **/*Application*,
+      **/*QueryConstants*</sonar.exclusions>
     <sonar.coverage.exclusions>${sonar.exclusions}</sonar.coverage.exclusions>
     <sonar.cpd.exclusions>**/domain/**/*</sonar.cpd.exclusions>
   </properties>
