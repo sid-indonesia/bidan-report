@@ -99,6 +99,7 @@ public class PregnancyGapService {
 	private void setParametersForPregnancyGapMessage(PregnancyGapProjection motherIdentity,
 		BroadcastRequest requestBody) {
 		Parameters parameters = new Parameters();
+		// TODO test this in Postman to my number
 		parameters.addBodyWithValues("1", "full_name", motherIdentity.getFullName());
 
 		String csv = motherIdentity.getPregnancyGapCommaSeparatedValues();

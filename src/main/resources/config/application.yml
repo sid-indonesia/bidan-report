@@ -59,3 +59,6 @@ scheduling:
   pregnancy-gap:
     fixed-rate-in-ms: 300000 # 5 minutes
     initial-delay-in-ms: 60000 # 1 minute
+  health-education:
+    cron: "0 0 13 * * Mon" # At 01:00 PM, only on Monday
+    zone: Asia/Jakarta

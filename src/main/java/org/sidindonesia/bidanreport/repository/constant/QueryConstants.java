@@ -49,7 +49,7 @@ public final class QueryConstants {
 		+ "   CASE WHEN (av_sub1.gestational_age\\:\\:integer >= 20) THEN ( "
 		+ "    CASE WHEN (av_sub1.uterine_fundal_height = '') IS NOT FALSE THEN '-' ELSE av_sub1.uterine_fundal_height || ' cm' END) ELSE 'Janin belum teraba' END, "
 		+ "   CASE WHEN (av_sub1.gestational_age\\:\\:integer >= 20) THEN ( "
-		+ "    CASE WHEN (av_sub1.fetal_presentation = '') IS NOT FALSE THEN '-' ELSE av_sub1.fetal_presentation END) ELSE 'Janin belum terlihat' END, "
+		+ "    CASE WHEN (av_sub1.fetal_presentation = '') IS NOT FALSE THEN '-' ELSE av_sub1.fetal_presentation END) ELSE 'Janin belum teraba' END, "
 		+ "   CASE WHEN (av_sub1.gestational_age\\:\\:integer >= 12) THEN ( "
 		+ "    CASE WHEN (av_sub1.fetal_heart_rate = '') IS NOT FALSE THEN '-' ELSE av_sub1.fetal_heart_rate END) ELSE 'Detak jantung janin belum terdengar' END, "
 		+ "   CASE WHEN (av_sub1.tetanus_toxoid_immunization_status = '') IS NOT FALSE THEN '-' ELSE av_sub1.tetanus_toxoid_immunization_status END, "
