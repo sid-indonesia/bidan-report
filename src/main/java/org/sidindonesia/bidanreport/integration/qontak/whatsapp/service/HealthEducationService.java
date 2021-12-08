@@ -92,7 +92,6 @@ public class HealthEducationService {
 	private void setParametersForHealthEducationMessage(HealthEducationProjection healthEducationProjection,
 		BroadcastRequest requestBody) {
 		Parameters parameters = new Parameters();
-		// TODO test this via Postman to my number
 		parameters.addBodyWithValues("1", "full_name", healthEducationProjection.getFullName());
 		parameters.addBodyWithValues("2", "pregna_trimester", healthEducationProjection.getPregnancyTrimester());
 		parameters.addBodyWithValues("3", "calc_gestational",
