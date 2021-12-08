@@ -14,7 +14,7 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "qontak_whatsapp_automated_message_stats")
+@Table(name = "automated_message_stats")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class AutomatedMessageStats implements Serializable {
 
