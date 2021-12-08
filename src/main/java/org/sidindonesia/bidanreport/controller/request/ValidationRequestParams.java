@@ -25,7 +25,6 @@ public class ValidationRequestParams {
 		this.untilDate = LocalDateTime.parse(untilDateString);
 	}
 
-//  TODO change the request param to @RequestBody instead of @ModelAttribute and update UI to create POST request and send JSON request body
 	@NotNull(message = "fromDate is required")
 	private LocalDateTime fromDate;
 	@NotNull(message = "untilDate is required")

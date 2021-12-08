@@ -86,4 +86,8 @@ public class LabTestAncVisit implements Serializable {
 	@Column(name = "anc_id", length = 36)
 	private String ancId;
 	private String village;
+	@Column(name = "has_hiv")
+	private String hasHiv;
+	@Column(name = "treatment_hiv")
+	private String treatmentHiv;
 }

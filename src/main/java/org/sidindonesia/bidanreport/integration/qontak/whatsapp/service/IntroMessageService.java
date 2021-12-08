@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 
 import org.sidindonesia.bidanreport.config.property.LastIdProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
+import org.sidindonesia.bidanreport.integration.qontak.repository.AutomatedMessageStatsRepository;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest.Parameters;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.BroadcastMessageService;
@@ -29,6 +30,7 @@ public class IntroMessageService {
 	private final LastIdProperties lastIdProperties;
 	private final QontakProperties qontakProperties;
 	private final BroadcastMessageService broadcastMessageService;
+	private final AutomatedMessageStatsRepository automatedMessageStatsRepository;
 
 	@Scheduled(fixedRateString = "${scheduling.intro-message.fixed-rate-in-ms}", initialDelayString = "${scheduling.intro-message.initial-delay-in-ms}")
 	public void sendIntroMessageToNewMothersViaWhatsApp() {
@@ -55,6 +57,10 @@ public class IntroMessageService {
 			log.info("\"Send Join Notification via WhatsApp\" for new enrolled pregnant women completed.");
 			log.info("{} out of {} new enrolled pregnant women have been notified via WhatsApp successfully.",
 				newEnrolledPregnantWomenSuccessCount, newPregnantWomenIdentities.size());
+
+			automatedMessageStatsRepository.upsert(qontakProperties.getWhatsApp().getPregnantWomanMessageTemplateId(),
+				"intro_pregnant_woman", newEnrolledPregnantWomenSuccessCount.get(),
+				newPregnantWomenIdentities.size() - newEnrolledPregnantWomenSuccessCount.get());
 		}
 	}
 
@@ -73,6 +79,10 @@ public class IntroMessageService {
 			log.info("\"Send Join Notification via WhatsApp\" for edited pregnant women completed.");
 			log.info("{} out of {} edited pregnant women have been notified via WhatsApp successfully.",
 				editedPregnantWomenSuccessCount, editedPregnantWomenIds.size());
+
+			automatedMessageStatsRepository.upsert(qontakProperties.getWhatsApp().getPregnantWomanMessageTemplateId(),
+				"intro_pregnant_woman", editedPregnantWomenSuccessCount.get(),
+				editedPregnantWomenIds.size() - editedPregnantWomenSuccessCount.get());
 		}
 	}
 
@@ -92,6 +102,11 @@ public class IntroMessageService {
 			log.info("\"Send Join Notification via WhatsApp\" for new enrolled non-pregnant women completed.");
 			log.info("{} out of {} new enrolled non-pregnant women have been notified via WhatsApp successfully.",
 				newEnrolledNonPregnantWomenSuccessCount, newNonPregnantWomenIdentities.size());
+
+			automatedMessageStatsRepository.upsert(
+				qontakProperties.getWhatsApp().getNonPregnantWomanMessageTemplateId(), "intro_non_pregnant_woman",
+				newEnrolledNonPregnantWomenSuccessCount.get(),
+				newNonPregnantWomenIdentities.size() - newEnrolledNonPregnantWomenSuccessCount.get());
 		}
 	}
 
@@ -110,6 +125,11 @@ public class IntroMessageService {
 			log.info("\"Send Join Notification via WhatsApp\" for edited non-pregnant women completed.");
 			log.info("{} out of {} edited non-pregnant women have been notified via WhatsApp successfully.",
 				editedNonPregnantWomenSuccessCount, editedNonPregnantWomenIds.size());
+
+			automatedMessageStatsRepository.upsert(
+				qontakProperties.getWhatsApp().getNonPregnantWomanMessageTemplateId(), "intro_non_pregnant_woman",
+				editedNonPregnantWomenSuccessCount.get(),
+				editedNonPregnantWomenIds.size() - editedNonPregnantWomenSuccessCount.get());
 		}
 	}
 
@@ -123,7 +143,8 @@ public class IntroMessageService {
 
 	private BroadcastRequest createIntroMessageRequestBody(MotherIdentityWhatsAppProjection motherIdentity,
 		String messageTemplateId) {
-		BroadcastRequest requestBody = broadcastMessageService.createBroadcastRequestBody(motherIdentity, messageTemplateId);
+		BroadcastRequest requestBody = broadcastMessageService.createBroadcastRequestBody(motherIdentity,
+			messageTemplateId);
 
 		setParametersForIntroMessage(motherIdentity, requestBody);
 		return requestBody;

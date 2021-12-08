@@ -1,0 +1,23 @@
+databaseChangeLog:
+- changeSet:
+    id: '00000000000000'
+    author: levi
+    changes:
+    - createTable:
+        tableName: automated_message_stats
+        columns:
+        - column:
+            name: message_template_id
+            type: varchar(36) # UUID
+            constraints:
+              primaryKey: true
+              nullable: false
+        - column:
+            name: message_template_name
+            type: varchar
+        - column:
+            name: successful_attempts
+            type: bigint
+        - column:
+            name: failed_attempts
+            type: bigint
