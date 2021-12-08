@@ -33,8 +33,9 @@ public class HealthEducationService {
 	@Scheduled(cron = "${scheduling.health-education.cron}", zone = "${scheduling.health-education.zone}")
 	public void sendHealthEducationsToEnrolledMothers() {
 		log.debug("Executing scheduled \"Send Health Education via WhatsApp\"...");
-		log.debug(
-			"Send scheduled health education messages to all pregnant mothers with last menstrual period date between x and y.");
+		log.debug("Send scheduled health education messages to all pregnant mothers "
+			+ "with current_date between last_menstrual_period_date and expected_delivery_date "
+			+ "and not recorded in `anc_close` within that period.");
 		processRowsFromMotherIdentity();
 		processRowsFromMotherEdit();
 	}
@@ -94,8 +95,7 @@ public class HealthEducationService {
 		Parameters parameters = new Parameters();
 		parameters.addBodyWithValues("1", "full_name", healthEducationProjection.getFullName());
 		parameters.addBodyWithValues("2", "pregna_trimester", healthEducationProjection.getPregnancyTrimester());
-		parameters.addBodyWithValues("3", "calc_gestational",
-			healthEducationProjection.getCalculatedGestationalAge());
+		parameters.addBodyWithValues("3", "calc_gestational", healthEducationProjection.getCalculatedGestationalAge());
 		requestBody.setParameters(parameters);
 	}
 }
