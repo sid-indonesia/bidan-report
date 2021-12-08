@@ -94,8 +94,8 @@ public class HealthEducationService {
 		Parameters parameters = new Parameters();
 		// TODO test this via Postman to my number
 		parameters.addBodyWithValues("1", "full_name", healthEducationProjection.getFullName());
-		parameters.addBodyWithValues("2", "pregnancy_trimester", healthEducationProjection.getPregnancyTrimester());
-		parameters.addBodyWithValues("3", "calculated_gestational_age",
+		parameters.addBodyWithValues("2", "pregna_trimester", healthEducationProjection.getPregnancyTrimester());
+		parameters.addBodyWithValues("3", "calc_gestational",
 			healthEducationProjection.getCalculatedGestationalAge());
 		requestBody.setParameters(parameters);
 	}
