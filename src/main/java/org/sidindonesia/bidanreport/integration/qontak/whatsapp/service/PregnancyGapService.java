@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
 @Slf4j
-@Transactional(readOnly = true)
+@Transactional
 @Service
 public class PregnancyGapService {
 	private final QontakProperties qontakProperties;
