@@ -7,10 +7,10 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 import org.sidindonesia.bidanreport.IntegrationTest;
+import org.sidindonesia.bidanreport.config.property.QRCodeProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.web.response.FileUploadResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -39,14 +39,8 @@ class QRCodeServiceTest {
 	@Autowired
 	private QontakProperties qontakProperties;
 
-	@Value("${qr-code.width}")
-	private int qrCodeWidth;
-
-	@Value("${qr-code.height}")
-	private int qrCodeHeight;
-
-	@Value("${qr-code.directory-path}")
-	private String directoryPath;
+	@Autowired
+	private QRCodeProperties qrCodeProperties;
 
 	@Test
 	void testUploadQRCodeToMockServer() throws Exception {
@@ -59,9 +53,10 @@ class QRCodeServiceTest {
 			+ "Mauris eget velit urna. Nam mollis sapien eu gravida tincidunt. Phasellus vel nisl nulla. Cras non libero hendrerit, aliquet leo quis, vehicula nibh. Nunc porttitor consequat nibh. Nam pretium dignissim malesuada. In malesuada justo quis dui varius, sit amet posuere magna aliquam.\r\n"
 			+ "\r\n"
 			+ "Etiam est diam, pulvinar eu massa eget, elementum elementum magna. Donec eu mi suscipit, laoreet eros velit.";
-		BitMatrix bitMatrix = qrCodeWriter.encode(contents, BarcodeFormat.QR_CODE, qrCodeWidth, qrCodeHeight);
+		BitMatrix bitMatrix = qrCodeWriter.encode(contents, BarcodeFormat.QR_CODE, qrCodeProperties.getWidth(),
+			qrCodeProperties.getHeight());
 
-		Path path = FileSystems.getDefault().getPath(directoryPath + "QR_Code.png");
+		Path path = FileSystems.getDefault().getPath(qrCodeProperties.getDirectoryPath() + "QR_Code-lorem_ipsum.png");
 		FileSystemResource fileSystemResource = new FileSystemResource(path);
 
 		MatrixToImageWriter.writeToPath(bitMatrix, "PNG", path);
