@@ -29,9 +29,8 @@ public class BroadcastMessageService {
 
 	public void sendBroadcastRequestToQontakAPI(AtomicLong successCount,
 		MotherIdentityWhatsAppProjection motherIdentity, BroadcastRequest requestBody) {
-		Mono<BroadcastResponse> response = webClient.post()
-			.uri(qontakProperties.getWhatsApp().getApiPathBroadcastDirect()).bodyValue(requestBody)
-			.header("Authorization", "Bearer " + qontakProperties.getAccessToken()).retrieve()
+		Mono<BroadcastResponse> response = webClient.post().uri(qontakProperties.getApiPathBroadcastDirect())
+			.bodyValue(requestBody).header("Authorization", "Bearer " + qontakProperties.getAccessToken()).retrieve()
 			.bodyToMono(BroadcastResponse.class).onErrorResume(WebClientResponseException.class,
 				ex -> ex.getRawStatusCode() == 422 || ex.getRawStatusCode() == 401
 					? Mono.just(gson.fromJson(ex.getResponseBodyAsString(), BroadcastResponse.class))

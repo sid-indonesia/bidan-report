@@ -32,10 +32,10 @@ public class AuthenticationListener implements ApplicationListener<ApplicationRe
 
 	@Override
 	public void onApplicationEvent(ApplicationReadyEvent event) {
-		log.info("Authenticating to {}", qontakProperties.getWhatsApp().getBaseUrl());
+		log.info("Authenticating to {}", qontakProperties.getBaseUrl());
 
 		AuthRequest requestBody = createQontakAuthRequestBody();
-		Mono<AuthResponse> response = webClient.post().uri(qontakProperties.getWhatsApp().getApiPathAuthentication())
+		Mono<AuthResponse> response = webClient.post().uri(qontakProperties.getApiPathAuthentication())
 			.bodyValue(requestBody).retrieve().bodyToMono(AuthResponse.class);
 
 		AuthResponse responseBody = response.block();
@@ -44,19 +44,19 @@ public class AuthenticationListener implements ApplicationListener<ApplicationRe
 			qontakProperties.setRefreshToken(responseBody.getRefresh_token());
 			qontakProperties.setTokenType(responseBody.getToken_type());
 		} else {
-			log.error("Failed to authenticate to {}", qontakProperties.getWhatsApp().getBaseUrl());
+			log.error("Failed to authenticate to {}", qontakProperties.getBaseUrl());
 		}
-		log.info("Authenticated to {} successfully.", qontakProperties.getWhatsApp().getBaseUrl());
+		log.info("Authenticated to {} successfully.", qontakProperties.getBaseUrl());
 		syncLastId();
 	}
 
 	private AuthRequest createQontakAuthRequestBody() {
 		AuthRequest requestBody = new AuthRequest();
-		requestBody.setClient_id(qontakProperties.getWhatsApp().getClientId());
-		requestBody.setClient_secret(qontakProperties.getWhatsApp().getClientSecret());
+		requestBody.setClient_id(qontakProperties.getClientId());
+		requestBody.setClient_secret(qontakProperties.getClientSecret());
 		requestBody.setGrant_type("password");
-		requestBody.setUsername(qontakProperties.getWhatsApp().getUsername());
-		requestBody.setPassword(qontakProperties.getWhatsApp().getPassword());
+		requestBody.setUsername(qontakProperties.getUsername());
+		requestBody.setPassword(qontakProperties.getPassword());
 		return requestBody;
 	}
 

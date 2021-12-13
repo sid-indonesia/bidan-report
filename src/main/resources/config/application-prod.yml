@@ -69,3 +69,12 @@ keycloak:
   auth-server-url: https://keycloak.sid-indonesia.org/auth
   public-client: true
   principal-attribute: preferred_username
+
+qontak:
+  base-url: https://chat-service.qontak.com
+  api-path-authentication: /oauth/token
+  api-path-broadcast-direct: /api/open/v1/broadcasts/whatsapp/direct
+  api-path-upload-file: /api/open/v1/file_uploader
+
+qr-code:
+  directory-path: /opt/bidan-report/images/

@@ -33,6 +33,7 @@
       **/*QueryConstants*</sonar.exclusions>
     <sonar.coverage.exclusions>${sonar.exclusions}</sonar.coverage.exclusions>
     <sonar.cpd.exclusions>**/domain/**/*</sonar.cpd.exclusions>
+    <zxing.version>3.4.1</zxing.version>
   </properties>
 
   <repositories>
@@ -95,15 +96,25 @@
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.liquibase</groupId>
+      <artifactId>liquibase-core</artifactId>
+    </dependency>
+    <dependency>
+	  <groupId>com.google.zxing</groupId>
+	  <artifactId>core</artifactId>
+	  <version>${zxing.version}</version>
+	</dependency>
+	<dependency>
+	  <groupId>com.google.zxing</groupId>
+	  <artifactId>javase</artifactId>
+	  <version>${zxing.version}</version>
+	</dependency>
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-tomcat</artifactId>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.liquibase</groupId>
-      <artifactId>liquibase-core</artifactId>
     </dependency>
 
     <dependency>
