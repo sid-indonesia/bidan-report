@@ -25,6 +25,7 @@
     <sonar.exclusions>**/aop/logging/**/*,
       **/config/**/*,
       **/domain/**/*,
+      **/projection/**/*,
       **/exception/**/*,
       **/request/**/*,
       **/response/**/*,
