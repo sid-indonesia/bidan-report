@@ -14,14 +14,19 @@ import org.sidindonesia.bidanreport.integration.qontak.web.response.FileUploadRe
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest.ParametersWithHeader;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.BroadcastMessageService;
-import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.UploadFileService;
+import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.QRCodeService;
 import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
+import org.sidindonesia.bidanreport.repository.projection.GapCare;
 import org.sidindonesia.bidanreport.repository.projection.PregnancyGapProjection;
 import org.sidindonesia.bidanreport.service.LastIdService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.gson.Gson;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +44,10 @@ public class PregnancyGapService {
 	private final LastIdProperties lastIdProperties;
 	private final LastIdService lastIdService;
 	private final AutomatedMessageStatsRepository automatedMessageStatsRepository;
-	private final UploadFileService uploadFileService;
+	private final QRCodeService qrCodeService;
+	@Autowired
+	@Qualifier("prettyGson")
+	private Gson gson;
 
 	@Scheduled(fixedRateString = "${scheduling.pregnancy-gap.fixed-rate-in-ms}", initialDelayString = "${scheduling.pregnancy-gap.initial-delay-in-ms}")
 	public void sendPregnancyGapMessageToEnrolledMothers() {
@@ -107,21 +115,7 @@ public class PregnancyGapService {
 
 		ParametersWithHeader parameters = new ParametersWithHeader();
 
-		// TODO replace csv to Stringified GapCare object
-		FileUploadResponse responseBody = uploadFileService.uploadQRCodeImageToQontak(csv);
-		if (responseBody != null) {
-			if ("success".equals(responseBody.getStatus())) {
-				parameters.getHeader().addHeaderParam("url", responseBody.getData().getUrl());
-				parameters.getHeader().addHeaderParam("filename", QR_CODE_GAP_CARE_PNG);
-			} else {
-				log.error(
-					"Upload QR Code Gap Care PNG file failed for: {}, at phone number: {}, with error details: {}",
-					motherIdentity.getFullName(), motherIdentity.getMobilePhoneNumber(), responseBody.getError());
-			}
-		} else {
-			log.error("Upload QR Code Gap Care PNG file failed with no content for: {}, at phone number: {}",
-				motherIdentity.getFullName(), motherIdentity.getMobilePhoneNumber());
-		}
+		fillHeaderWithQRCodeImage(motherIdentity, values, parameters);
 
 		parameters.addBodyWithValues("1", "full_name", motherIdentity.getFullName());
 		parameters.addBodyWithValues("2", "anc_date", values.get(0));
@@ -145,5 +139,33 @@ public class PregnancyGapService {
 		parameters.addBodyWithValues("20", "has_hbsag", values.get(18));
 		parameters.addBodyWithValues("21", "has_hiv", values.get(19));
 		requestBody.setParameters(parameters);
+	}
+
+	private void fillHeaderWithQRCodeImage(PregnancyGapProjection motherIdentity, List<String> values,
+		ParametersWithHeader parameters) {
+
+		String prettyJson = createJsonStringOfGapCareObject(values);
+		FileUploadResponse responseBody = qrCodeService.createQRCodeImageThenUploadToQontak(prettyJson);
+		if (responseBody != null) {
+			if ("success".equals(responseBody.getStatus())) {
+				parameters.getHeader().addHeaderParam("url", responseBody.getData().getUrl());
+				parameters.getHeader().addHeaderParam("filename", QR_CODE_GAP_CARE_PNG);
+			} else {
+				log.error(
+					"Upload QR Code Gap Care PNG file failed for: {}, at phone number: {}, with error details: {}",
+					motherIdentity.getFullName(), motherIdentity.getMobilePhoneNumber(), responseBody.getError());
+			}
+		} else {
+			log.error("Upload QR Code Gap Care PNG file failed with no content for: {}, at phone number: {}",
+				motherIdentity.getFullName(), motherIdentity.getMobilePhoneNumber());
+		}
+	}
+
+	private String createJsonStringOfGapCareObject(List<String> values) {
+		return gson.toJson(new GapCare(values.get(0), values.get(1), values.get(2), values.get(3), values.get(4),
+			values.get(5), values.get(6), values.get(7), values.get(8), values.get(9), values.get(10), values.get(11),
+			values.get(12), values.get(13), values.get(14), values.get(15), values.get(16), values.get(17),
+			values.get(18), values.get(19)));
+
 	}
 }
