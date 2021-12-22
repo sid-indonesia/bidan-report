@@ -43,14 +43,18 @@ public class QRCodeService {
 
 	public FileUploadResponse createQRCodeImageThenUploadToQontak(String contents) {
 		try {
-			BitMatrix bitMatrix = qrCodeWriter.encode(contents, BarcodeFormat.QR_CODE, qrCodeProperties.getWidth(),
-				qrCodeProperties.getHeight());
-			MatrixToImageWriter.writeToPath(bitMatrix, "PNG", qrCodeFilePath);
+			createQRCodeImage(contents);
 
 			return uploadFileService.uploadFileToQontak(qrCodeFileSystemResource);
 		} catch (WriterException | IOException e) {
 			log.warn(Arrays.toString(e.getStackTrace()));
 		}
 		return null;
+	}
+
+	public void createQRCodeImage(String contents) throws WriterException, IOException {
+		BitMatrix bitMatrix = qrCodeWriter.encode(contents, BarcodeFormat.QR_CODE, qrCodeProperties.getWidth(),
+			qrCodeProperties.getHeight());
+		MatrixToImageWriter.writeToPath(bitMatrix, "PNG", qrCodeFilePath);
 	}
 }

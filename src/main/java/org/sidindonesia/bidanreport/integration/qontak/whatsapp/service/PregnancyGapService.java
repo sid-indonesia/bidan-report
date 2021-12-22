@@ -77,9 +77,8 @@ public class PregnancyGapService {
 		List<PregnancyGapProjection> allPregnantWomenToBeInformedOfGapInTheirPregnancy) {
 		if (!allPregnantWomenToBeInformedOfGapInTheirPregnancy.isEmpty()) {
 			AtomicLong pregnantGapSuccessCount = new AtomicLong();
-			allPregnantWomenToBeInformedOfGapInTheirPregnancy.parallelStream()
-				.forEach(broadcastPregnancyGapMessageViaWhatsApp(pregnantGapSuccessCount,
-					qontakProperties.getWhatsApp().getPregnancyGapMessageTemplateId()));
+			allPregnantWomenToBeInformedOfGapInTheirPregnancy.forEach(broadcastPregnancyGapMessageViaWhatsApp(
+				pregnantGapSuccessCount, qontakProperties.getWhatsApp().getPregnancyGapMessageTemplateId()));
 			log.info("\"Inform Pregnancy Gap via WhatsApp\" for enrolled pregnant women completed.");
 			log.info(
 				"{} out of {} enrolled pregnant women have been informed of the gap in their pregnancy via WhatsApp successfully.",
@@ -161,7 +160,7 @@ public class PregnancyGapService {
 		}
 	}
 
-	private String createJsonStringOfGapCareObject(List<String> values) {
+	public String createJsonStringOfGapCareObject(List<String> values) {
 		return gson.toJson(new GapCare(values.get(0), values.get(1), values.get(2), values.get(3), values.get(4),
 			values.get(5), values.get(6), values.get(7), values.get(8), values.get(9), values.get(10), values.get(11),
 			values.get(12), values.get(13), values.get(14), values.get(15), values.get(16), values.get(17),
