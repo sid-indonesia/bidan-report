@@ -1,8 +1,9 @@
 package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.repository.AutomatedMessageStatsRepository;
@@ -12,6 +13,7 @@ import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.Bro
 import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
 import org.sidindonesia.bidanreport.repository.projection.AncVisitReminderProjection;
+import org.springframework.data.util.Pair;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,9 +61,16 @@ public class VisitReminderService {
 		List<AncVisitReminderProjection> allPregnantWomenToBeRemindedForTheNextANCVisit) {
 		if (!allPregnantWomenToBeRemindedForTheNextANCVisit.isEmpty()) {
 			AtomicLong visitReminderSuccessCount = new AtomicLong();
-			allPregnantWomenToBeRemindedForTheNextANCVisit.parallelStream()
-				.forEach(broadcastANCVisitReminderMessageViaWhatsApp(visitReminderSuccessCount,
-					qontakProperties.getWhatsApp().getVisitReminderMessageTemplateId()));
+			List<Pair<AncVisitReminderProjection, BroadcastRequest>> pairs = allPregnantWomenToBeRemindedForTheNextANCVisit
+				.parallelStream()
+				.filter(ancVisitReminderProjection -> ancVisitReminderProjection.getLatestAncVisitNumber() != null)
+				.map(ancVisitReminderProjection -> createANCVisitReminderMessageRequestBody(ancVisitReminderProjection,
+					qontakProperties.getWhatsApp().getVisitReminderMessageTemplateId()))
+				.collect(toList());
+
+			pairs.parallelStream().forEach(pair -> broadcastMessageService
+				.sendBroadcastRequestToQontakAPI(visitReminderSuccessCount, pair.getFirst(), pair.getSecond()));
+
 			log.info("\"Send ANC Visit Reminder via WhatsApp\" for enrolled pregnant women completed.");
 			log.info(
 				"{} out of {} enrolled pregnant women have been reminded of the next ANC visit via WhatsApp successfully.",
@@ -73,23 +82,13 @@ public class VisitReminderService {
 		}
 	}
 
-	private Consumer<AncVisitReminderProjection> broadcastANCVisitReminderMessageViaWhatsApp(AtomicLong successCount,
-		String messageTemplateId) {
-		return ancVisitReminderProjection -> {
-			BroadcastRequest requestBody = createANCVisitReminderMessageRequestBody(ancVisitReminderProjection,
-				messageTemplateId);
-			broadcastMessageService.sendBroadcastRequestToQontakAPI(successCount, ancVisitReminderProjection,
-				requestBody);
-		};
-	}
-
-	private BroadcastRequest createANCVisitReminderMessageRequestBody(
+	private Pair<AncVisitReminderProjection, BroadcastRequest> createANCVisitReminderMessageRequestBody(
 		AncVisitReminderProjection ancVisitReminderProjection, String messageTemplateId) {
 		BroadcastRequest requestBody = broadcastMessageService.createBroadcastRequestBody(ancVisitReminderProjection,
 			messageTemplateId);
 
 		setParametersForANCVisitReminderMessage(ancVisitReminderProjection, requestBody);
-		return requestBody;
+		return Pair.of(ancVisitReminderProjection, requestBody);
 	}
 
 	private void setParametersForANCVisitReminderMessage(AncVisitReminderProjection ancVisitReminderProjection,

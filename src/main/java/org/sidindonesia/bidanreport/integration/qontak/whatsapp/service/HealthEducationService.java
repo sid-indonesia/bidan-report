@@ -1,8 +1,9 @@
 package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.repository.AutomatedMessageStatsRepository;
@@ -12,6 +13,7 @@ import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.Bro
 import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
 import org.sidindonesia.bidanreport.repository.projection.HealthEducationProjection;
+import org.springframework.data.util.Pair;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,9 +60,17 @@ public class HealthEducationService {
 		List<HealthEducationProjection> allPregnantWomenToBeGivenHealthEducationMessage) {
 		if (!allPregnantWomenToBeGivenHealthEducationMessage.isEmpty()) {
 			AtomicLong healthEducationSuccessCount = new AtomicLong();
-			allPregnantWomenToBeGivenHealthEducationMessage.parallelStream()
-				.forEach(broadcastHealthEducationMessageViaWhatsApp(healthEducationSuccessCount,
-					qontakProperties.getWhatsApp().getHealthEducationMessageTemplateId()));
+			List<Pair<HealthEducationProjection, BroadcastRequest>> pairs = allPregnantWomenToBeGivenHealthEducationMessage
+				.parallelStream()
+				.filter(healthEducationProjection -> healthEducationProjection.getCalculatedGestationalAge() != null
+					&& healthEducationProjection.getPregnancyTrimester() != null)
+				.map(healthEducationProjection -> createHealthEducationMessageRequestBody(healthEducationProjection,
+					qontakProperties.getWhatsApp().getHealthEducationMessageTemplateId()))
+				.collect(toList());
+
+			pairs.parallelStream().forEach(pair -> broadcastMessageService
+				.sendBroadcastRequestToQontakAPI(healthEducationSuccessCount, pair.getFirst(), pair.getSecond()));
+
 			log.info("\"Send Health Education via WhatsApp\" for enrolled pregnant women completed.");
 			log.info("{} out of {} enrolled pregnant women have been given health education via WhatsApp successfully.",
 				healthEducationSuccessCount, allPregnantWomenToBeGivenHealthEducationMessage.size());
@@ -71,23 +81,13 @@ public class HealthEducationService {
 		}
 	}
 
-	private Consumer<HealthEducationProjection> broadcastHealthEducationMessageViaWhatsApp(AtomicLong successCount,
-		String messageTemplateId) {
-		return healthEducationProjection -> {
-			BroadcastRequest requestBody = createHealthEducationMessageRequestBody(healthEducationProjection,
-				messageTemplateId);
-			broadcastMessageService.sendBroadcastRequestToQontakAPI(successCount, healthEducationProjection,
-				requestBody);
-		};
-	}
-
-	private BroadcastRequest createHealthEducationMessageRequestBody(
+	private Pair<HealthEducationProjection, BroadcastRequest> createHealthEducationMessageRequestBody(
 		HealthEducationProjection healthEducationProjection, String messageTemplateId) {
 		BroadcastRequest requestBody = broadcastMessageService.createBroadcastRequestBody(healthEducationProjection,
 			messageTemplateId);
 
 		setParametersForHealthEducationMessage(healthEducationProjection, requestBody);
-		return requestBody;
+		return Pair.of(healthEducationProjection, requestBody);
 	}
 
 	private void setParametersForHealthEducationMessage(HealthEducationProjection healthEducationProjection,
