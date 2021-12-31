@@ -1,0 +1,25 @@
+databaseChangeLog:
+- changeSet:
+    id: '20211231160500-1'
+    author: levi
+    changes:
+    - addColumn:
+        tableName: automated_message_stats
+        columns:
+        - column:
+            name: execution_date
+            type: date
+            defaultValueDate: ${dateNow}
+- changeSet:
+    id: '20211231160500-2'
+    author: levi
+    changes:
+    - dropPrimaryKey:
+        tableName: automated_message_stats
+- changeSet:
+    id: '20211231160500-3'
+    author: levi
+    changes:
+    - addPrimaryKey:
+        tableName: automated_message_stats
+        columnNames: message_template_id, execution_date

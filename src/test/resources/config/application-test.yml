@@ -25,6 +25,8 @@ spring:
       hibernate.hbm2ddl.auto: create-drop
       hibernate.jdbc.time_zone: UTC
       hibernate.query.fail_on_pagination_over_collection_fetch: true
+  #liquibase:
+  #  default-schema: test
 
 # client-id and client-secret retrieved from
 # https://docs.qontak.com/docs/omnichannel-hub/ZG9jOjE1MzEwMzc4-authentication#how-to-get-token

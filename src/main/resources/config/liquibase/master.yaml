@@ -8,6 +8,10 @@ databaseChangeLog:
     value: current_timestamp
     dbms: postgresql
 - property:
+    name: dateNow
+    value: current_date
+    dbms: postgresql
+- property:
     name: floatType
     value: float4
     dbms: postgresql, h2
@@ -37,4 +41,7 @@ databaseChangeLog:
     dbms: oracle, mssql, postgresql, h2
 - include:
     file: config/liquibase/changelog/00000000000000_initial_schema.yaml
+    relativeToChangelogFile: false
+- include:
+    file: config/liquibase/changelog/20211231160500_add_column_execution_date.yaml
     relativeToChangelogFile: false
