@@ -10,8 +10,10 @@ import org.sidindonesia.bidanreport.repository.projection.HealthEducationProject
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
+@Slf4j
 public class CSVUtil {
 	public static final String FULL_NAME = "full_name";
 	public static final String PREGNA_TRIMESTER = "pregna_trimester";
@@ -32,7 +34,8 @@ public class CSVUtil {
 						projection.getFullName(), projection.getFullName(), COMPANY, projection.getPregnancyTrimester(),
 						projection.getCalculatedGestationalAge());
 				} catch (IOException e) {
-					e.printStackTrace();
+					log.error("Error writing CSV file: {} with error message: {}, error object: {}", csvFileName,
+						e.getMessage(), e);
 				}
 			});
 		}

@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastDirectRequest;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
+import org.sidindonesia.bidanreport.integration.qontak.whatsapp.response.BroadcastDirectResponse;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.response.BroadcastResponse;
 import org.sidindonesia.bidanreport.repository.projection.MotherIdentityWhatsAppProjection;
 import org.sidindonesia.bidanreport.util.IndonesiaPhoneNumberUtil;
@@ -30,14 +31,14 @@ public class BroadcastMessageService {
 
 	public void sendBroadcastDirectRequestToQontakAPI(AtomicLong successCount,
 		MotherIdentityWhatsAppProjection motherIdentity, BroadcastDirectRequest requestBody) {
-		Mono<BroadcastResponse> response = webClient.post().uri(qontakProperties.getApiPathBroadcastDirect())
+		Mono<BroadcastDirectResponse> response = webClient.post().uri(qontakProperties.getApiPathBroadcastDirect())
 			.bodyValue(requestBody).header("Authorization", "Bearer " + qontakProperties.getAccessToken()).retrieve()
-			.bodyToMono(BroadcastResponse.class).onErrorResume(WebClientResponseException.class,
+			.bodyToMono(BroadcastDirectResponse.class).onErrorResume(WebClientResponseException.class,
 				ex -> ex.getRawStatusCode() == 422 || ex.getRawStatusCode() == 401
-					? Mono.just(gson.fromJson(ex.getResponseBodyAsString(), BroadcastResponse.class))
+					? Mono.just(gson.fromJson(ex.getResponseBodyAsString(), BroadcastDirectResponse.class))
 					: Mono.error(ex));
 
-		BroadcastResponse responseBody = response.block();
+		BroadcastDirectResponse responseBody = response.block();
 		if (responseBody != null) {
 			if ("success".equals(responseBody.getStatus())) {
 				successCount.incrementAndGet();

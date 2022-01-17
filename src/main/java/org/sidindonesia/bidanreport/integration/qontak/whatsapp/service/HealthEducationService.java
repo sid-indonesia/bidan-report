@@ -6,6 +6,8 @@ import static org.sidindonesia.bidanreport.util.CSVUtil.PREGNA_TRIMESTER;
 import static org.sidindonesia.bidanreport.util.CSVUtil.CALC_GESTATIONAL;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
@@ -19,14 +21,13 @@ import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
 import org.sidindonesia.bidanreport.repository.projection.HealthEducationProjection;
 import org.sidindonesia.bidanreport.util.CSVUtil;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@RequiredArgsConstructor
 @Slf4j
 @Transactional
 @Service
@@ -37,6 +38,20 @@ public class HealthEducationService {
 	private final BroadcastMessageService broadcastMessageService;
 	private final ContactListService contactListService;
 	private final AutomatedMessageStatsRepository automatedMessageStatsRepository;
+	private final FileSystemResource contactListCsvFileSystemResource;
+
+	public HealthEducationService(QontakProperties qontakProperties, MotherIdentityRepository motherIdentityRepository,
+		MotherEditRepository motherEditRepository, BroadcastMessageService broadcastMessageService,
+		ContactListService contactListService, AutomatedMessageStatsRepository automatedMessageStatsRepository) {
+		this.qontakProperties = qontakProperties;
+		this.motherIdentityRepository = motherIdentityRepository;
+		this.motherEditRepository = motherEditRepository;
+		this.broadcastMessageService = broadcastMessageService;
+		this.contactListService = contactListService;
+		this.automatedMessageStatsRepository = automatedMessageStatsRepository;
+		this.contactListCsvFileSystemResource = new FileSystemResource(FileSystems.getDefault()
+			.getPath(qontakProperties.getWhatsApp().getHealthEducationContactListCsvAbsoluteFileName()));
+	}
 
 	@Scheduled(cron = "${scheduling.health-education.cron}", zone = "${scheduling.health-education.zone}")
 	public void sendHealthEducationsToEnrolledMothers() throws IOException {
@@ -74,12 +89,14 @@ public class HealthEducationService {
 			CSVUtil.createContactListCSVFile(filteredPregnantWomen,
 				qontakProperties.getWhatsApp().getHealthEducationContactListCsvAbsoluteFileName());
 
+			String campaignName = LocalDate.now() + " Health Education";
 			// Hit API post contact list, get contact_list_id
-			String contactListId = contactListService.sendCreateContactListRequestToQontakAPI(new ContactListRequest());
+			String contactListId = contactListService
+				.sendCreateContactListRequestToQontakAPI(createContactListRequest(campaignName));
 
 			// Broadcast to contact_list
 			boolean isSuccess = broadcastHealthEducationMessageViaWhatsApp(
-				qontakProperties.getWhatsApp().getHealthEducationMessageTemplateId(), contactListId);
+				qontakProperties.getWhatsApp().getHealthEducationMessageTemplateId(), contactListId, campaignName);
 
 			log.info("\"Send Health Education via WhatsApp\" for enrolled pregnant women completed.");
 
@@ -98,13 +115,23 @@ public class HealthEducationService {
 		}
 	}
 
-	private boolean broadcastHealthEducationMessageViaWhatsApp(String messageTemplateId, String contactListId) {
-		BroadcastRequest requestBody = createHealthEducationMessageRequestBody(messageTemplateId, contactListId);
+	private ContactListRequest createContactListRequest(String campaignName) {
+		ContactListRequest requestBody = new ContactListRequest();
+		requestBody.setName(campaignName);
+		requestBody.setFile(contactListCsvFileSystemResource);
+		return requestBody;
+	}
+
+	private boolean broadcastHealthEducationMessageViaWhatsApp(String messageTemplateId, String contactListId,
+		String campaignName) {
+		BroadcastRequest requestBody = createHealthEducationMessageRequestBody(messageTemplateId, contactListId,
+			campaignName);
 		return broadcastMessageService.sendBroadcastRequestToQontakAPI(requestBody);
 	}
 
-	private BroadcastRequest createHealthEducationMessageRequestBody(String messageTemplateId, String contactListId) {
-		BroadcastRequest requestBody = broadcastMessageService.createBroadcastRequestBody("Weekly Health Education",
+	private BroadcastRequest createHealthEducationMessageRequestBody(String messageTemplateId, String contactListId,
+		String campaignName) {
+		BroadcastRequest requestBody = broadcastMessageService.createBroadcastRequestBody(campaignName,
 			messageTemplateId, contactListId);
 
 		setParametersForHealthEducationMessage(requestBody);

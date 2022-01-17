@@ -5,6 +5,7 @@ import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.ContactL
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.response.CreateContactListResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
@@ -25,7 +26,9 @@ public class ContactListService {
 
 	public String sendCreateContactListRequestToQontakAPI(ContactListRequest requestBody) {
 		Mono<CreateContactListResponse> response = webClient.post().uri(qontakProperties.getApiPathContactListAsync())
-			.bodyValue(requestBody).header("Authorization", "Bearer " + qontakProperties.getAccessToken()).retrieve()
+			.body(BodyInserters.fromMultipartData("file", requestBody.getFile()).with("name", requestBody.getName())
+				.with("source_type", requestBody.getSource_type()))
+			.header("Authorization", "Bearer " + qontakProperties.getAccessToken()).retrieve()
 			.bodyToMono(CreateContactListResponse.class).onErrorResume(WebClientResponseException.class,
 				ex -> ex.getRawStatusCode() == 422 || ex.getRawStatusCode() == 401
 					? Mono.just(gson.fromJson(ex.getResponseBodyAsString(), CreateContactListResponse.class))

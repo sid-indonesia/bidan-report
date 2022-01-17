@@ -5,7 +5,7 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class BroadcastResponse {
+public class BroadcastDirectResponse {
 	private String status;
 	private DataObj data;
 	private ErrorObj error;
@@ -15,16 +15,6 @@ public class BroadcastResponse {
 		private String id;
 		private String send_at;
 		private String created_at;
-		private MessageStatusCount message_status_count;
-
-		@Data
-		public static class MessageStatusCount {
-			private Integer failed;
-			private Integer delivered;
-			private Integer read;
-			private Integer pending;
-			private Integer sent;
-		}
 	}
 
 	@Data
