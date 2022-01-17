@@ -10,7 +10,7 @@ import com.google.gson.Gson;
 @Configuration
 public class WebClientConfig {
 	@Bean
-	public WebClient qontakWhatsAppWebClient(@Value("${qontak.whats-app.base-url}") String baseUrl) {
+	public WebClient qontakWhatsAppWebClient(@Value("${qontak.base-url}") String baseUrl) {
 		return WebClient.create(baseUrl);
 	}
 

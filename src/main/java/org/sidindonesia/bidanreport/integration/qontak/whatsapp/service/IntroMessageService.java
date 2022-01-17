@@ -7,8 +7,8 @@ import java.util.function.Consumer;
 import org.sidindonesia.bidanreport.config.property.LastIdProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.repository.AutomatedMessageStatsRepository;
-import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
-import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest.Parameters;
+import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastDirectRequest;
+import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.Parameters;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.BroadcastMessageService;
 import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
@@ -136,14 +136,14 @@ public class IntroMessageService {
 	private Consumer<MotherIdentityWhatsAppProjection> broadcastIntroMessageViaWhatsApp(AtomicLong successCount,
 		String messageTemplateId) {
 		return motherIdentity -> {
-			BroadcastRequest requestBody = createIntroMessageRequestBody(motherIdentity, messageTemplateId);
-			broadcastMessageService.sendBroadcastRequestToQontakAPI(successCount, motherIdentity, requestBody);
+			BroadcastDirectRequest requestBody = createIntroMessageRequestBody(motherIdentity, messageTemplateId);
+			broadcastMessageService.sendBroadcastDirectRequestToQontakAPI(successCount, motherIdentity, requestBody);
 		};
 	}
 
-	private BroadcastRequest createIntroMessageRequestBody(MotherIdentityWhatsAppProjection motherIdentity,
+	private BroadcastDirectRequest createIntroMessageRequestBody(MotherIdentityWhatsAppProjection motherIdentity,
 		String messageTemplateId) {
-		BroadcastRequest requestBody = broadcastMessageService.createBroadcastRequestBody(motherIdentity,
+		BroadcastDirectRequest requestBody = broadcastMessageService.createBroadcastDirectRequestBody(motherIdentity,
 			messageTemplateId);
 
 		setParametersForIntroMessage(motherIdentity, requestBody);
@@ -151,7 +151,7 @@ public class IntroMessageService {
 	}
 
 	private void setParametersForIntroMessage(MotherIdentityWhatsAppProjection motherIdentity,
-		BroadcastRequest requestBody) {
+		BroadcastDirectRequest requestBody) {
 		Parameters parameters = new Parameters();
 		parameters.addBodyWithValues("1", "full_name", motherIdentity.getFullName());
 		parameters.addBodyWithValues("2", "dho", qontakProperties.getWhatsApp().getDistrictHealthOfficeName());

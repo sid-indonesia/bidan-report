@@ -7,8 +7,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.repository.AutomatedMessageStatsRepository;
-import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
-import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest.Parameters;
+import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastDirectRequest;
+import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.Parameters;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.BroadcastMessageService;
 import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
@@ -61,7 +61,7 @@ public class VisitReminderService {
 		List<AncVisitReminderProjection> allPregnantWomenToBeRemindedForTheNextANCVisit) {
 		if (!allPregnantWomenToBeRemindedForTheNextANCVisit.isEmpty()) {
 			AtomicLong visitReminderSuccessCount = new AtomicLong();
-			List<Pair<AncVisitReminderProjection, BroadcastRequest>> pairs = allPregnantWomenToBeRemindedForTheNextANCVisit
+			List<Pair<AncVisitReminderProjection, BroadcastDirectRequest>> pairs = allPregnantWomenToBeRemindedForTheNextANCVisit
 				.parallelStream()
 				.filter(ancVisitReminderProjection -> ancVisitReminderProjection.getLatestAncVisitNumber() != null)
 				.map(ancVisitReminderProjection -> createANCVisitReminderMessageRequestBody(ancVisitReminderProjection,
@@ -69,7 +69,7 @@ public class VisitReminderService {
 				.collect(toList());
 
 			pairs.parallelStream().forEach(pair -> broadcastMessageService
-				.sendBroadcastRequestToQontakAPI(visitReminderSuccessCount, pair.getFirst(), pair.getSecond()));
+				.sendBroadcastDirectRequestToQontakAPI(visitReminderSuccessCount, pair.getFirst(), pair.getSecond()));
 
 			log.info("\"Send ANC Visit Reminder via WhatsApp\" for enrolled pregnant women completed.");
 			log.info(
@@ -82,9 +82,9 @@ public class VisitReminderService {
 		}
 	}
 
-	private Pair<AncVisitReminderProjection, BroadcastRequest> createANCVisitReminderMessageRequestBody(
+	private Pair<AncVisitReminderProjection, BroadcastDirectRequest> createANCVisitReminderMessageRequestBody(
 		AncVisitReminderProjection ancVisitReminderProjection, String messageTemplateId) {
-		BroadcastRequest requestBody = broadcastMessageService.createBroadcastRequestBody(ancVisitReminderProjection,
+		BroadcastDirectRequest requestBody = broadcastMessageService.createBroadcastDirectRequestBody(ancVisitReminderProjection,
 			messageTemplateId);
 
 		setParametersForANCVisitReminderMessage(ancVisitReminderProjection, requestBody);
@@ -92,7 +92,7 @@ public class VisitReminderService {
 	}
 
 	private void setParametersForANCVisitReminderMessage(AncVisitReminderProjection ancVisitReminderProjection,
-		BroadcastRequest requestBody) {
+		BroadcastDirectRequest requestBody) {
 		Parameters parameters = new Parameters();
 		parameters.addBodyWithValues("1", "full_name", ancVisitReminderProjection.getFullName());
 		parameters.addBodyWithValues("2", "visit_number",

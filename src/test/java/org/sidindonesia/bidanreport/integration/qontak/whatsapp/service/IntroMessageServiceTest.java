@@ -34,25 +34,23 @@ class IntroMessageServiceTest {
 	void assertThatQontakWhatsAppConfigPropertiesAreCorrect() {
 		// client-id and client-secret retrieved from
 		// https://docs.qontak.com/docs/omnichannel-hub/ZG9jOjE1MzEwMzc4-authentication#how-to-get-token
-		assertThat(qontakProperties.getWhatsApp().getClientId())
-			.isEqualTo("RRrn6uIxalR_QaHFlcKOqbjHMG63elEdPTair9B9YdY");
-		assertThat(qontakProperties.getWhatsApp().getClientSecret())
-			.isEqualTo("Sa8IGIh_HpVK1ZLAF0iFf7jU760osaUNV659pBIZR00");
+		assertThat(qontakProperties.getClientId()).isEqualTo("RRrn6uIxalR_QaHFlcKOqbjHMG63elEdPTair9B9YdY");
+		assertThat(qontakProperties.getClientSecret()).isEqualTo("Sa8IGIh_HpVK1ZLAF0iFf7jU760osaUNV659pBIZR00");
 
-		assertThat(qontakProperties.getWhatsApp().getUsername()).isEqualTo("test");
-		assertThat(qontakProperties.getWhatsApp().getPassword()).isEqualTo("password");
+		assertThat(qontakProperties.getUsername()).isEqualTo("test");
+		assertThat(qontakProperties.getPassword()).isEqualTo("password");
 	}
 
 	@Test
 	void testAuthenticationAtMockServer() {
 		AuthRequest requestBody = new AuthRequest();
-		requestBody.setClient_id(qontakProperties.getWhatsApp().getClientId());
-		requestBody.setClient_secret(qontakProperties.getWhatsApp().getClientSecret());
+		requestBody.setClient_id(qontakProperties.getClientId());
+		requestBody.setClient_secret(qontakProperties.getClientSecret());
 		requestBody.setGrant_type("password");
-		requestBody.setUsername(qontakProperties.getWhatsApp().getUsername());
-		requestBody.setPassword(qontakProperties.getWhatsApp().getPassword());
-		Mono<AuthResponse> response = webClient.post().uri("/17521989/oauth/token").bodyValue(requestBody)
-			.retrieve().bodyToMono(AuthResponse.class);
+		requestBody.setUsername(qontakProperties.getUsername());
+		requestBody.setPassword(qontakProperties.getPassword());
+		Mono<AuthResponse> response = webClient.post().uri("/17521989/oauth/token").bodyValue(requestBody).retrieve()
+			.bodyToMono(AuthResponse.class);
 
 		AuthResponse responseBody = response.block();
 		assertThat(responseBody.getAccess_token()).isNotBlank();
