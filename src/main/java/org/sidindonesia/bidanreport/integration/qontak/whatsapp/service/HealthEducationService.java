@@ -94,23 +94,28 @@ public class HealthEducationService {
 			String contactListId = contactListService
 				.sendCreateContactListRequestToQontakAPI(createContactListRequest(campaignName));
 
-			// Broadcast to contact_list
-			boolean isSuccess = broadcastHealthEducationMessageViaWhatsApp(
-				qontakProperties.getWhatsApp().getHealthEducationMessageTemplateId(), contactListId, campaignName);
+			if (contactListId != null) {
+				// Broadcast to contact_list
+				boolean isSuccess = broadcastHealthEducationMessageViaWhatsApp(
+					qontakProperties.getWhatsApp().getHealthEducationMessageTemplateId(), contactListId, campaignName);
 
-			log.info("\"Send Health Education via WhatsApp\" for enrolled pregnant women completed.");
+				log.info("\"Send Health Education via WhatsApp\" for enrolled pregnant women completed.");
 
-			if (isSuccess) {
-				log.info(
-					"{} enrolled pregnant women have been given health education via WhatsApp successfully as bulk broadcast request.",
-					filteredPregnantWomen.size());
-				automatedMessageStatsRepository.upsert(
-					qontakProperties.getWhatsApp().getHealthEducationMessageTemplateId(), "health_education",
-					filteredPregnantWomen.size(), 0);
+				if (isSuccess) {
+					log.info(
+						"{} enrolled pregnant women have been given health education via WhatsApp successfully as bulk broadcast request.",
+						filteredPregnantWomen.size());
+					automatedMessageStatsRepository.upsert(
+						qontakProperties.getWhatsApp().getHealthEducationMessageTemplateId(), "health_education",
+						filteredPregnantWomen.size(), 0);
+				} else {
+					automatedMessageStatsRepository.upsert(
+						qontakProperties.getWhatsApp().getHealthEducationMessageTemplateId(), "health_education", 0,
+						filteredPregnantWomen.size());
+				}
 			} else {
-				automatedMessageStatsRepository.upsert(
-					qontakProperties.getWhatsApp().getHealthEducationMessageTemplateId(), "health_education", 0,
-					filteredPregnantWomen.size());
+				log.error(
+					"\"Send Health Education via WhatsApp\" for enrolled pregnant women failed due to error when POST contact list.");
 			}
 		}
 	}
