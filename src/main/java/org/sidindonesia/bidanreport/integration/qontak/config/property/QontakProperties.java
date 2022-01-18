@@ -19,6 +19,8 @@ public class QontakProperties {
 	private String tokenType;
 	private String apiPathAuthentication;
 	private String apiPathBroadcastDirect;
+	private String apiPathBroadcast;
+	private String apiPathContactListAsync;
 	private String apiPathUploadFile;
 	private WhatsApp whatsApp;
 
@@ -33,5 +35,6 @@ public class QontakProperties {
 		private String healthEducationMessageTemplateId;
 		private String channelIntegrationId;
 		private String districtHealthOfficeName;
+		private String healthEducationContactListCsvAbsoluteFileName;
 	}
 }

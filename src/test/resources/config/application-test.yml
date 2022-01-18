@@ -22,9 +22,11 @@ spring:
       hibernate.cache.use_second_level_cache: false
       hibernate.cache.use_query_cache: false
       hibernate.generate_statistics: false
-      hibernate.hbm2ddl.auto: create-drop
+      hibernate.hbm2ddl.auto: create
       hibernate.jdbc.time_zone: UTC
       hibernate.query.fail_on_pagination_over_collection_fetch: true
+  #liquibase:
+  #  default-schema: test
 
 # client-id and client-secret retrieved from
 # https://docs.qontak.com/docs/omnichannel-hub/ZG9jOjE1MzEwMzc4-authentication#how-to-get-token
@@ -36,6 +38,8 @@ qontak:
   password: password
   api-path-authentication: /17521989/oauth/token
   api-path-broadcast-direct: /15212622/v1/broadcasts/whatsapp/direct
+  api-path-broadcast: /15212622/v1/broadcasts/whatsapp
+  api-path-contact-list-async: /15212622/v1/contacts/contact_lists # no path /async in mock server
   api-path-upload-file: /15212622/v1/file_uploader
   whats-app:
     pregnant-woman-message-template-id: 8ce51d59-f848-4137-960a-49b3e9b9415b

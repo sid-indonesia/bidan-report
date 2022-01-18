@@ -46,6 +46,10 @@ qontak:
   client-secret: Sa8IGIh_HpVK1ZLAF0iFf7jU760osaUNV659pBIZR00
   api-path-authentication: /oauth/token
   api-path-broadcast-direct: /api/open/v1/broadcasts/whatsapp/direct
+  api-path-broadcast: /api/open/v1/broadcasts/whatsapp
+  api-path-contact-list-async: /api/open/v1/contacts/contact_lists/async
+  whats-app:
+    health-education-contact-list-csv-absolute-file-name: /tmp/contacts_health-education.csv
 
 scheduling:
   enabled: true

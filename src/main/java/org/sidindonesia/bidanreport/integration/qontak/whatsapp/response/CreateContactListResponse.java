@@ -1,11 +1,12 @@
 package org.sidindonesia.bidanreport.integration.qontak.whatsapp.response;
 
 import java.util.List;
+import java.util.Set;
 
 import lombok.Data;
 
 @Data
-public class BroadcastResponse {
+public class CreateContactListResponse {
 	private String status;
 	private DataObj data;
 	private ErrorObj error;
@@ -13,18 +14,9 @@ public class BroadcastResponse {
 	@Data
 	public static class DataObj {
 		private String id;
+		private Set<String> contact_variables;
 		private String send_at;
 		private String created_at;
-		private MessageStatusCount message_status_count;
-
-		@Data
-		public static class MessageStatusCount {
-			private Integer failed;
-			private Integer delivered;
-			private Integer read;
-			private Integer pending;
-			private Integer sent;
-		}
 	}
 
 	@Data
