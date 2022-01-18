@@ -1,9 +1,9 @@
 package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service;
 
 import static java.util.stream.Collectors.toList;
+import static org.sidindonesia.bidanreport.util.CSVUtil.CALC_GESTATIONAL;
 import static org.sidindonesia.bidanreport.util.CSVUtil.FULL_NAME;
 import static org.sidindonesia.bidanreport.util.CSVUtil.PREGNA_TRIMESTER;
-import static org.sidindonesia.bidanreport.util.CSVUtil.CALC_GESTATIONAL;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -67,29 +67,31 @@ public class HealthEducationService {
 		List<HealthEducationProjection> allPregnantWomenToBeGivenHealthEducationMessage = motherIdentityRepository
 			.findAllPregnantWomenToBeGivenEducationOfTheirHealth();
 
-		broadcastHealthEducationMessageTo(allPregnantWomenToBeGivenHealthEducationMessage);
+		broadcastHealthEducationMessageTo(allPregnantWomenToBeGivenHealthEducationMessage, "mother_identity");
 	}
 
 	private void processRowsFromMotherEdit() throws IOException {
 		List<HealthEducationProjection> allPregnantWomenToBeGivenHealthEducationMessage = motherEditRepository
 			.findAllPregnantWomenToBeGivenEducationOfTheirHealth();
 
-		broadcastHealthEducationMessageTo(allPregnantWomenToBeGivenHealthEducationMessage);
+		broadcastHealthEducationMessageTo(allPregnantWomenToBeGivenHealthEducationMessage, "mother_edit");
 	}
 
 	private void broadcastHealthEducationMessageTo(
-		List<HealthEducationProjection> allPregnantWomenToBeGivenHealthEducationMessage) throws IOException {
+		List<HealthEducationProjection> allPregnantWomenToBeGivenHealthEducationMessage, String fromTable)
+		throws IOException {
 		if (!allPregnantWomenToBeGivenHealthEducationMessage.isEmpty()) {
 			List<HealthEducationProjection> filteredPregnantWomen = allPregnantWomenToBeGivenHealthEducationMessage
 				.parallelStream()
 				.filter(healthEducationProjection -> healthEducationProjection.getCalculatedGestationalAge() != null
 					&& healthEducationProjection.getPregnancyTrimester() != null)
 				.collect(toList());
+
 			// Create contact list CSV
 			CSVUtil.createContactListCSVFile(filteredPregnantWomen,
 				qontakProperties.getWhatsApp().getHealthEducationContactListCsvAbsoluteFileName());
 
-			String campaignName = LocalDate.now() + " Health Education";
+			String campaignName = LocalDate.now() + " Health Education (" + fromTable + ")";
 			// Hit API post contact list, get contact_list_id
 			String contactListId = contactListService
 				.sendCreateContactListRequestToQontakAPI(createContactListRequest(campaignName));
