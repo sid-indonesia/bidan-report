@@ -27,7 +27,7 @@ class HealthEducationServiceTest {
 	}
 
 	@Test
-	void testSendHealthEducationMessageToEnrolledPregnantWomen_withHappyFlow() {
+	void testSendHealthEducationMessageToEnrolledPregnantWomen_withHappyFlow() throws Exception {
 		// given
 		insertDummyDataForHealthEducation();
 		// when
@@ -37,7 +37,7 @@ class HealthEducationServiceTest {
 	}
 
 	@Test
-	void testSendHealthEducationMessageToEnrolledPregnantWomen_withNoDataExisted() {
+	void testSendHealthEducationMessageToEnrolledPregnantWomen_withNoDataExisted() throws Exception {
 		// when
 		healthEducationService.sendHealthEducationsToEnrolledMothers();
 		// then

@@ -9,18 +9,22 @@ import lombok.Data;
 @Configuration
 @ConfigurationProperties(prefix = "qontak")
 public class QontakProperties {
-	private WhatsApp whatsApp;
+	private String baseUrl;
+	private String clientId;
+	private String clientSecret;
+	private String username;
+	private String password;
 	private String accessToken;
 	private String refreshToken;
 	private String tokenType;
+	private String apiPathAuthentication;
+	private String apiPathBroadcastDirect;
+	private String apiPathBroadcast;
+	private String apiPathContactListAsync;
+	private WhatsApp whatsApp;
 
 	@Data
 	public static class WhatsApp {
-		private String baseUrl;
-		private String clientId;
-		private String clientSecret;
-		private String username;
-		private String password;
 		private String pregnantWomanMessageTemplateId;
 		private String nonPregnantWomanMessageTemplateId;
 		private String visitReminderMessageTemplateId;
@@ -30,7 +34,6 @@ public class QontakProperties {
 		private String healthEducationMessageTemplateId;
 		private String channelIntegrationId;
 		private String districtHealthOfficeName;
-		private String apiPathBroadcastDirect;
-		private String apiPathAuthentication;
+		private String healthEducationContactListCsvAbsoluteFileName;
 	}
 }

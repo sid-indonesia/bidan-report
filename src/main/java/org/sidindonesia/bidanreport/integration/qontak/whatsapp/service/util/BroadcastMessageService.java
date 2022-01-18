@@ -3,7 +3,9 @@ package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
+import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastDirectRequest;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
+import org.sidindonesia.bidanreport.integration.qontak.whatsapp.response.BroadcastDirectResponse;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.response.BroadcastResponse;
 import org.sidindonesia.bidanreport.repository.projection.MotherIdentityWhatsAppProjection;
 import org.sidindonesia.bidanreport.util.IndonesiaPhoneNumberUtil;
@@ -27,17 +29,16 @@ public class BroadcastMessageService {
 	private final WebClient webClient;
 	private final Gson gson;
 
-	public void sendBroadcastRequestToQontakAPI(AtomicLong successCount,
-		MotherIdentityWhatsAppProjection motherIdentity, BroadcastRequest requestBody) {
-		Mono<BroadcastResponse> response = webClient.post()
-			.uri(qontakProperties.getWhatsApp().getApiPathBroadcastDirect()).bodyValue(requestBody)
-			.header("Authorization", "Bearer " + qontakProperties.getAccessToken()).retrieve()
-			.bodyToMono(BroadcastResponse.class).onErrorResume(WebClientResponseException.class,
+	public void sendBroadcastDirectRequestToQontakAPI(AtomicLong successCount,
+		MotherIdentityWhatsAppProjection motherIdentity, BroadcastDirectRequest requestBody) {
+		Mono<BroadcastDirectResponse> response = webClient.post().uri(qontakProperties.getApiPathBroadcastDirect())
+			.bodyValue(requestBody).header("Authorization", "Bearer " + qontakProperties.getAccessToken()).retrieve()
+			.bodyToMono(BroadcastDirectResponse.class).onErrorResume(WebClientResponseException.class,
 				ex -> ex.getRawStatusCode() == 422 || ex.getRawStatusCode() == 401
-					? Mono.just(gson.fromJson(ex.getResponseBodyAsString(), BroadcastResponse.class))
+					? Mono.just(gson.fromJson(ex.getResponseBodyAsString(), BroadcastDirectResponse.class))
 					: Mono.error(ex));
 
-		BroadcastResponse responseBody = response.block();
+		BroadcastDirectResponse responseBody = response.block();
 		if (responseBody != null) {
 			if ("success".equals(responseBody.getStatus())) {
 				successCount.incrementAndGet();
@@ -52,13 +53,45 @@ public class BroadcastMessageService {
 		}
 	}
 
-	public BroadcastRequest createBroadcastRequestBody(MotherIdentityWhatsAppProjection motherIdentity,
+	public boolean sendBroadcastRequestToQontakAPI(BroadcastRequest requestBody) {
+		Mono<BroadcastResponse> response = webClient.post().uri(qontakProperties.getApiPathBroadcast())
+			.bodyValue(requestBody).header("Authorization", "Bearer " + qontakProperties.getAccessToken()).retrieve()
+			.bodyToMono(BroadcastResponse.class).onErrorResume(WebClientResponseException.class,
+				ex -> ex.getRawStatusCode() == 422 || ex.getRawStatusCode() == 401
+					? Mono.just(gson.fromJson(ex.getResponseBodyAsString(), BroadcastResponse.class))
+					: Mono.error(ex));
+
+		BroadcastResponse responseBody = response.block();
+		if (responseBody != null) {
+			if ("success".equals(responseBody.getStatus())) {
+				return true;
+			} else {
+				log.error("Request broadcast message failed for Contact List with ID: {}, with error details: {}",
+					requestBody.getContact_list_id(), responseBody.getError());
+			}
+		} else {
+			log.error("Request broadcast message failed with no content for Contact List with ID: {}",
+				requestBody.getContact_list_id());
+		}
+		return false;
+	}
+
+	public BroadcastDirectRequest createBroadcastDirectRequestBody(MotherIdentityWhatsAppProjection motherIdentity,
 		String messageTemplateId) {
-		BroadcastRequest requestBody = new BroadcastRequest();
+		BroadcastDirectRequest requestBody = new BroadcastDirectRequest();
 		requestBody.setChannel_integration_id(qontakProperties.getWhatsApp().getChannelIntegrationId());
 		requestBody.setMessage_template_id(messageTemplateId);
 		requestBody.setTo_name(motherIdentity.getFullName());
 		requestBody.setTo_number(IndonesiaPhoneNumberUtil.sanitize(motherIdentity.getMobilePhoneNumber()));
+		return requestBody;
+	}
+
+	public BroadcastRequest createBroadcastRequestBody(String name, String messageTemplateId, String contactListId) {
+		BroadcastRequest requestBody = new BroadcastRequest();
+		requestBody.setName(name);
+		requestBody.setMessage_template_id(messageTemplateId);
+		requestBody.setContact_list_id(contactListId);
+		requestBody.setChannel_integration_id(qontakProperties.getWhatsApp().getChannelIntegrationId());
 		return requestBody;
 	}
 }

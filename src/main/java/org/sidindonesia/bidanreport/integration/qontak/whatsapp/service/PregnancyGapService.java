@@ -9,8 +9,8 @@ import java.util.stream.Stream;
 import org.sidindonesia.bidanreport.config.property.LastIdProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.repository.AutomatedMessageStatsRepository;
-import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
-import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest.Parameters;
+import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastDirectRequest;
+import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.Parameters;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.BroadcastMessageService;
 import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
@@ -65,14 +65,14 @@ public class PregnancyGapService {
 		List<PregnancyGapProjection> allPregnantWomenToBeInformedOfGapInTheirPregnancy) {
 		if (!allPregnantWomenToBeInformedOfGapInTheirPregnancy.isEmpty()) {
 			AtomicLong pregnantGapSuccessCount = new AtomicLong();
-			List<Pair<PregnancyGapProjection, BroadcastRequest>> pairs = allPregnantWomenToBeInformedOfGapInTheirPregnancy
+			List<Pair<PregnancyGapProjection, BroadcastDirectRequest>> pairs = allPregnantWomenToBeInformedOfGapInTheirPregnancy
 				.parallelStream().filter(motherIdentity -> motherIdentity.getPregnancyGapCommaSeparatedValues() != null)
 				.map(motherIdentity -> createPregnancyGapMessageRequestBody(motherIdentity,
 					qontakProperties.getWhatsApp().getPregnancyGapMessageTemplateId()))
 				.collect(toList());
 
 			pairs.parallelStream().forEach(pair -> broadcastMessageService
-				.sendBroadcastRequestToQontakAPI(pregnantGapSuccessCount, pair.getFirst(), pair.getSecond()));
+				.sendBroadcastDirectRequestToQontakAPI(pregnantGapSuccessCount, pair.getFirst(), pair.getSecond()));
 
 			log.info("\"Inform Pregnancy Gap via WhatsApp\" for enrolled pregnant women completed.");
 			log.info(
@@ -85,9 +85,9 @@ public class PregnancyGapService {
 		}
 	}
 
-	private Pair<PregnancyGapProjection, BroadcastRequest> createPregnancyGapMessageRequestBody(
+	private Pair<PregnancyGapProjection, BroadcastDirectRequest> createPregnancyGapMessageRequestBody(
 		PregnancyGapProjection motherIdentity, String messageTemplateId) {
-		BroadcastRequest requestBody = broadcastMessageService.createBroadcastRequestBody(motherIdentity,
+		BroadcastDirectRequest requestBody = broadcastMessageService.createBroadcastDirectRequestBody(motherIdentity,
 			messageTemplateId);
 
 		setParametersForPregnancyGapMessage(motherIdentity, requestBody);
@@ -95,7 +95,7 @@ public class PregnancyGapService {
 	}
 
 	private void setParametersForPregnancyGapMessage(PregnancyGapProjection motherIdentity,
-		BroadcastRequest requestBody) {
+		BroadcastDirectRequest requestBody) {
 		Parameters parameters = new Parameters();
 		parameters.addBodyWithValues("1", "full_name", motherIdentity.getFullName());
 
