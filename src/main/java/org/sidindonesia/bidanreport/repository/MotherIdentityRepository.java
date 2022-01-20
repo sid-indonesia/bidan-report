@@ -15,7 +15,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MotherIdentityRepository extends BaseRepository<MotherIdentity, Long> {
 	@Query(nativeQuery = true, value = QueryConstants.MOTHER_IDENTITY_NATIVE_QUERY_FIND_NEW_ONES
-		+ " AND mi_id_only.mother_base_entity_id IN (SELECT ar.mother_base_entity_id FROM {h-schema}anc_register ar)) "
+		+ " AND mi_id_only.mother_base_entity_id IN (SELECT ar.mother_base_entity_id FROM {h-schema}anc_register ar "
+		+ "  WHERE " + "   ar.is_consented_whatsapp IS NULL " + "   OR ar.is_consented_whatsapp != 'Tidak' " + "  )) "
 		+ "ORDER BY mi.event_id")
 	List<MotherIdentityWhatsAppProjection> findAllPregnantWomenByEventIdGreaterThanAndHasMobilePhoneNumberOrderByEventId(
 		Long lastEventId);
