@@ -38,8 +38,6 @@ public class IntroMessageService {
 
 		processNewPregnantWomen();
 		processEditedPregnantWomen();
-		processNewNonPregnantWomen();
-		processEditedNonPregnantWomen();
 	}
 
 	private void processNewPregnantWomen() {
@@ -83,53 +81,6 @@ public class IntroMessageService {
 			automatedMessageStatsRepository.upsert(qontakProperties.getWhatsApp().getPregnantWomanMessageTemplateId(),
 				"intro_pregnant_woman", editedPregnantWomenSuccessCount.get(),
 				editedPregnantWomenIds.size() - editedPregnantWomenSuccessCount.get());
-		}
-	}
-
-	private void processNewNonPregnantWomen() {
-		List<MotherIdentityWhatsAppProjection> newNonPregnantWomenIdentities = motherIdentityRepository
-			.findAllNonPregnantWomenByEventIdGreaterThanAndHasMobilePhoneNumberOrderByEventId(
-				lastIdProperties.getMotherIdentity().getNonPregnantMotherLastId());
-
-		AtomicLong newEnrolledNonPregnantWomenSuccessCount = new AtomicLong();
-		newNonPregnantWomenIdentities.parallelStream()
-			.forEach(broadcastIntroMessageViaWhatsApp(newEnrolledNonPregnantWomenSuccessCount,
-				qontakProperties.getWhatsApp().getNonPregnantWomanMessageTemplateId()));
-
-		if (!newNonPregnantWomenIdentities.isEmpty()) {
-			lastIdProperties.getMotherIdentity().setNonPregnantMotherLastId(
-				newNonPregnantWomenIdentities.get(newNonPregnantWomenIdentities.size() - 1).getEventId());
-			log.info("\"Send Join Notification via WhatsApp\" for new enrolled non-pregnant women completed.");
-			log.info("{} out of {} new enrolled non-pregnant women have been notified via WhatsApp successfully.",
-				newEnrolledNonPregnantWomenSuccessCount, newNonPregnantWomenIdentities.size());
-
-			automatedMessageStatsRepository.upsert(
-				qontakProperties.getWhatsApp().getNonPregnantWomanMessageTemplateId(), "intro_non_pregnant_woman",
-				newEnrolledNonPregnantWomenSuccessCount.get(),
-				newNonPregnantWomenIdentities.size() - newEnrolledNonPregnantWomenSuccessCount.get());
-		}
-	}
-
-	private void processEditedNonPregnantWomen() {
-		List<MotherIdentityWhatsAppProjection> editedNonPregnantWomenIds = motherEditRepository
-			.findAllNonPregnantWomenByLastEditAndPreviouslyInMotherIdentityNoMobilePhoneNumberOrderByEventId(
-				lastIdProperties.getMotherEdit().getNonPregnantMotherLastId());
-
-		AtomicLong editedNonPregnantWomenSuccessCount = new AtomicLong();
-		editedNonPregnantWomenIds.parallelStream().forEach(broadcastIntroMessageViaWhatsApp(
-			editedNonPregnantWomenSuccessCount, qontakProperties.getWhatsApp().getNonPregnantWomanMessageTemplateId()));
-
-		if (!editedNonPregnantWomenIds.isEmpty()) {
-			lastIdProperties.getMotherEdit().setNonPregnantMotherLastId(
-				editedNonPregnantWomenIds.get(editedNonPregnantWomenIds.size() - 1).getEventId());
-			log.info("\"Send Join Notification via WhatsApp\" for edited non-pregnant women completed.");
-			log.info("{} out of {} edited non-pregnant women have been notified via WhatsApp successfully.",
-				editedNonPregnantWomenSuccessCount, editedNonPregnantWomenIds.size());
-
-			automatedMessageStatsRepository.upsert(
-				qontakProperties.getWhatsApp().getNonPregnantWomanMessageTemplateId(), "intro_non_pregnant_woman",
-				editedNonPregnantWomenSuccessCount.get(),
-				editedNonPregnantWomenIds.size() - editedNonPregnantWomenSuccessCount.get());
 		}
 	}
 

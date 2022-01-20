@@ -72,9 +72,8 @@ keycloak:
 
 qontak:
   base-url: https://chat-service.qontak.com
-  api-path-authentication: /oauth/token
-  api-path-broadcast-direct: /api/open/v1/broadcasts/whatsapp/direct
-  api-path-upload-file: /api/open/v1/file_uploader
+  whats-app:
+    health-education-contact-list-csv-absolute-file-name: /opt/bidan-report/csv/contacts_health-education.csv
 
 qr-code:
   directory-path: /opt/bidan-report/images/
