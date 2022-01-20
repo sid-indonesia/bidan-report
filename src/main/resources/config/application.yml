@@ -48,6 +48,7 @@ qontak:
   api-path-broadcast-direct: /api/open/v1/broadcasts/whatsapp/direct
   api-path-broadcast: /api/open/v1/broadcasts/whatsapp
   api-path-contact-list-async: /api/open/v1/contacts/contact_lists/async
+  api-path-upload-file: /api/open/v1/file_uploader
   whats-app:
     health-education-contact-list-csv-absolute-file-name: /tmp/contacts_health-education.csv
 

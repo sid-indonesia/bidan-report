@@ -2,10 +2,14 @@ package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service;
 
 import static java.util.stream.Collectors.toList;
 
+import java.sql.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
+import org.hl7.fhir.r4.model.ContactPoint.ContactPointSystem;
+import org.hl7.fhir.r4.model.ContactPoint.ContactPointUse;
+import org.hl7.fhir.r4.model.Patient;
 import org.sidindonesia.bidanreport.config.property.LastIdProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.repository.AutomatedMessageStatsRepository;
@@ -28,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.gson.Gson;
 
+import ca.uhn.fhir.context.FhirContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,6 +53,7 @@ public class PregnancyGapService {
 	@Autowired
 	@Qualifier("prettyGson")
 	private Gson gson;
+	private final FhirContext fhirContext;
 
 	@Scheduled(fixedRateString = "${scheduling.pregnancy-gap.fixed-rate-in-ms}", initialDelayString = "${scheduling.pregnancy-gap.initial-delay-in-ms}")
 	public void sendPregnancyGapMessageToEnrolledMothers() {
@@ -142,7 +148,10 @@ public class PregnancyGapService {
 	private void fillHeaderWithQRCodeImage(PregnancyGapProjection motherIdentity, List<String> values,
 		ParametersWithHeader parameters) {
 
-		String prettyJson = createJsonStringOfGapCareObject(values);
+//		String prettyJson = createJsonStringOfGapCareObject(values);
+		// FHIR Resource
+		String prettyJson = createJsonStringOfFHIRPatientResource(motherIdentity, values);
+
 		FileUploadResponse responseBody = qrCodeService.createQRCodeImageThenUploadToQontak(prettyJson);
 		if (responseBody != null) {
 			if ("success".equals(responseBody.getStatus())) {
@@ -164,6 +173,15 @@ public class PregnancyGapService {
 			values.get(5), values.get(6), values.get(7), values.get(8), values.get(9), values.get(10), values.get(11),
 			values.get(12), values.get(13), values.get(14), values.get(15), values.get(16), values.get(17),
 			values.get(18), values.get(19)));
+	}
 
+	public String createJsonStringOfFHIRPatientResource(PregnancyGapProjection motherIdentity, List<String> values) {
+		Patient patient = new Patient();
+		String[] namesSplittedIntoTwo = motherIdentity.getFullName().split(" ", 2);
+		patient.addName().addGiven(namesSplittedIntoTwo[0]).setFamily(namesSplittedIntoTwo[1]);
+		patient.setBirthDate(Date.valueOf(values.get(0)));
+		patient.addTelecom().setSystem(ContactPointSystem.PHONE).setValue(motherIdentity.getMobilePhoneNumber())
+			.setUse(ContactPointUse.MOBILE).setRank(1);
+		return fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(patient);
 	}
 }
