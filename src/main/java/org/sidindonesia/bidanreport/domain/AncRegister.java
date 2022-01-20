@@ -113,4 +113,6 @@ public class AncRegister implements Serializable {
 	private LocalDate maternalAndChildHealthBookReceivingDate;
 	@Column(name = "high_risk_ectopic_pregnancy")
 	private String highRiskEctopicPregnancy;
+	@Column(name = "is_consented_whatsapp")
+	private String isConsentedWhatsapp;
 }

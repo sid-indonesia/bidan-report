@@ -15,7 +15,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MotherEditRepository extends BaseRepository<MotherEdit, Long> {
 	@Query(nativeQuery = true, value = QueryConstants.MOTHER_EDIT_NATIVE_QUERY_FIND_LAST_EDIT_AND_IN_MOTHER_IDENTITY_NO_MOBILE_PHONE_NUMBER
-		+ " AND me_id_only.mother_base_entity_id IN (SELECT ar.mother_base_entity_id FROM {h-schema}anc_register ar)"
+		+ " AND me_id_only.mother_base_entity_id IN (SELECT ar.mother_base_entity_id FROM {h-schema}anc_register ar "
+		+ "  WHERE ar.is_consented_whatsapp IS NULL " + "   OR ar.is_consented_whatsapp != 'Tidak' " + ")"
 		+ ") ORDER BY me.event_id")
 	List<MotherIdentityWhatsAppProjection> findAllPregnantWomenByLastEditAndPreviouslyInMotherIdentityNoMobilePhoneNumberOrderByEventId(
 		Long motherEditLastId);
