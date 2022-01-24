@@ -26,8 +26,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+@RequiredArgsConstructor
 @Slf4j
 @Transactional
 @Service
@@ -38,23 +40,9 @@ public class HealthEducationService {
 	private final BroadcastMessageService broadcastMessageService;
 	private final ContactListService contactListService;
 	private final AutomatedMessageStatsRepository automatedMessageStatsRepository;
-	private final FileSystemResource contactListCsvFileSystemResource;
-
-	public HealthEducationService(QontakProperties qontakProperties, MotherIdentityRepository motherIdentityRepository,
-		MotherEditRepository motherEditRepository, BroadcastMessageService broadcastMessageService,
-		ContactListService contactListService, AutomatedMessageStatsRepository automatedMessageStatsRepository) {
-		this.qontakProperties = qontakProperties;
-		this.motherIdentityRepository = motherIdentityRepository;
-		this.motherEditRepository = motherEditRepository;
-		this.broadcastMessageService = broadcastMessageService;
-		this.contactListService = contactListService;
-		this.automatedMessageStatsRepository = automatedMessageStatsRepository;
-		this.contactListCsvFileSystemResource = new FileSystemResource(FileSystems.getDefault()
-			.getPath(qontakProperties.getWhatsApp().getHealthEducationContactListCsvAbsoluteFileName()));
-	}
 
 	@Scheduled(cron = "${scheduling.health-education.cron}", zone = "${scheduling.health-education.zone}")
-	public void sendHealthEducationsToEnrolledMothers() throws IOException {
+	public void sendHealthEducationsToEnrolledMothers() throws IOException, InterruptedException {
 		log.debug("Executing scheduled \"Send Health Education via WhatsApp\"...");
 		log.debug("Send scheduled health education messages to all pregnant mothers "
 			+ "with current_date between last_menstrual_period_date and expected_delivery_date "
@@ -63,14 +51,14 @@ public class HealthEducationService {
 		processRowsFromMotherEdit();
 	}
 
-	private void processRowsFromMotherIdentity() throws IOException {
+	private void processRowsFromMotherIdentity() throws IOException, InterruptedException {
 		List<HealthEducationProjection> allPregnantWomenToBeGivenHealthEducationMessage = motherIdentityRepository
 			.findAllPregnantWomenToBeGivenEducationOfTheirHealth();
 
 		broadcastHealthEducationMessageTo(allPregnantWomenToBeGivenHealthEducationMessage, "mother_identity");
 	}
 
-	private void processRowsFromMotherEdit() throws IOException {
+	private void processRowsFromMotherEdit() throws IOException, InterruptedException {
 		List<HealthEducationProjection> allPregnantWomenToBeGivenHealthEducationMessage = motherEditRepository
 			.findAllPregnantWomenToBeGivenEducationOfTheirHealth();
 
@@ -79,29 +67,36 @@ public class HealthEducationService {
 
 	private void broadcastHealthEducationMessageTo(
 		List<HealthEducationProjection> allPregnantWomenToBeGivenHealthEducationMessage, String fromTable)
-		throws IOException {
-		if (!allPregnantWomenToBeGivenHealthEducationMessage.isEmpty()) {
-			List<HealthEducationProjection> filteredPregnantWomen = allPregnantWomenToBeGivenHealthEducationMessage
-				.parallelStream()
-				.filter(healthEducationProjection -> healthEducationProjection.getCalculatedGestationalAge() != null
-					&& healthEducationProjection.getPregnancyTrimester() != null)
-				.collect(toList());
+		throws IOException, InterruptedException {
+
+		List<HealthEducationProjection> filteredPregnantWomen = allPregnantWomenToBeGivenHealthEducationMessage
+			.parallelStream()
+			.filter(healthEducationProjection -> healthEducationProjection.getCalculatedGestationalAge() != null
+				&& healthEducationProjection.getPregnancyTrimester() != null)
+			.collect(toList());
+		if (!filteredPregnantWomen.isEmpty()) {
 
 			// Create contact list CSV
-			CSVUtil.createContactListCSVFile(filteredPregnantWomen,
-				qontakProperties.getWhatsApp().getHealthEducationContactListCsvAbsoluteFileName());
+			String contactsCsvFileName = qontakProperties.getWhatsApp()
+				.getHealthEducationContactListCsvAbsoluteFileName().replace(".csv", "_" + fromTable + ".csv");
+			CSVUtil.createContactListCSVFile(filteredPregnantWomen, contactsCsvFileName);
 
-			String campaignName = LocalDate.now() + " Health Education (" + fromTable + ")";
+			String campaignName = LocalDate.now() + " " + qontakProperties.getWhatsApp().getDistrictHealthOfficeName()
+				+ ", " + fromTable + " (Health Education)";
 			// Hit API post contact list, get contact_list_id
 			String contactListId = contactListService
-				.sendCreateContactListRequestToQontakAPI(createContactListRequest(campaignName));
+				.sendCreateContactListRequestToQontakAPI(createContactListRequest(campaignName, contactsCsvFileName));
 
 			if (contactListId != null) {
+				// Give Qontak some time to process the contact list
+				Thread.sleep(300000); // 5 minutes
+
 				// Broadcast to contact_list
 				boolean isSuccess = broadcastHealthEducationMessageViaWhatsApp(
 					qontakProperties.getWhatsApp().getHealthEducationMessageTemplateId(), contactListId, campaignName);
 
-				log.info("\"Send Health Education via WhatsApp\" for enrolled pregnant women completed.");
+				log.info("\"Send Health Education via WhatsApp\" for enrolled pregnant women completed. (" + fromTable
+					+ ")");
 
 				if (isSuccess) {
 					log.info(
@@ -117,15 +112,16 @@ public class HealthEducationService {
 				}
 			} else {
 				log.error(
-					"\"Send Health Education via WhatsApp\" for enrolled pregnant women failed due to error when POST contact list.");
+					"\"Send Health Education via WhatsApp\" for enrolled pregnant women failed due to error when POST contact list. ("
+						+ fromTable + ")");
 			}
 		}
 	}
 
-	private ContactListRequest createContactListRequest(String campaignName) {
+	private ContactListRequest createContactListRequest(String campaignName, String fileName) {
 		ContactListRequest requestBody = new ContactListRequest();
 		requestBody.setName(campaignName);
-		requestBody.setFile(contactListCsvFileSystemResource);
+		requestBody.setFile(new FileSystemResource(FileSystems.getDefault().getPath(fileName)));
 		return requestBody;
 	}
 
