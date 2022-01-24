@@ -7,9 +7,20 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
+import org.hl7.fhir.r4.model.Bundle.BundleType;
+import org.hl7.fhir.r4.model.CodeableConcept;
+import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.ContactPoint.ContactPointSystem;
 import org.hl7.fhir.r4.model.ContactPoint.ContactPointUse;
+import org.hl7.fhir.r4.model.DateTimeType;
+import org.hl7.fhir.r4.model.HumanName;
+import org.hl7.fhir.r4.model.Observation;
+import org.hl7.fhir.r4.model.Observation.ObservationStatus;
 import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.Quantity;
+import org.hl7.fhir.r4.model.Type;
 import org.sidindonesia.bidanreport.config.property.LastIdProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.repository.AutomatedMessageStatsRepository;
@@ -23,6 +34,7 @@ import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
 import org.sidindonesia.bidanreport.repository.projection.GapCare;
 import org.sidindonesia.bidanreport.repository.projection.PregnancyGapProjection;
 import org.sidindonesia.bidanreport.service.LastIdService;
+import org.sidindonesia.bidanreport.util.IndonesiaPhoneNumberUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.util.Pair;
@@ -41,7 +53,8 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 @Service
 public class PregnancyGapService {
-	public static final String QR_CODE_GAP_CARE_PNG = "QR_Code-gap_care.png";
+	private static final String HTTP_LOINC_ORG = "http://loinc.org";
+	public static final String QR_CODE_GAP_CARE_PNG = "QR_Code-gap_care-FHIR.png";
 	private final QontakProperties qontakProperties;
 	private final MotherIdentityRepository motherIdentityRepository;
 	private final MotherEditRepository motherEditRepository;
@@ -148,7 +161,6 @@ public class PregnancyGapService {
 	private void fillHeaderWithQRCodeImage(PregnancyGapProjection motherIdentity, List<String> values,
 		ParametersWithHeader parameters) {
 
-//		String prettyJson = createJsonStringOfGapCareObject(values);
 		// FHIR Resource
 		String prettyJson = createJsonStringOfFHIRPatientResource(motherIdentity, values);
 
@@ -176,12 +188,45 @@ public class PregnancyGapService {
 	}
 
 	public String createJsonStringOfFHIRPatientResource(PregnancyGapProjection motherIdentity, List<String> values) {
+
 		Patient patient = new Patient();
 		String[] namesSplittedIntoTwo = motherIdentity.getFullName().split(" ", 2);
-		patient.addName().addGiven(namesSplittedIntoTwo[0]).setFamily(namesSplittedIntoTwo[1]);
-		patient.setBirthDate(Date.valueOf(values.get(0)));
-		patient.addTelecom().setSystem(ContactPointSystem.PHONE).setValue(motherIdentity.getMobilePhoneNumber())
+		if (namesSplittedIntoTwo.length > 1) {
+			patient.addName().addGiven(namesSplittedIntoTwo[0]).setFamily(namesSplittedIntoTwo[1]);
+		} else {
+			patient.addName(new HumanName().addGiven(motherIdentity.getFullName()));
+		}
+
+		patient.addTelecom().setSystem(ContactPointSystem.PHONE)
+			.setValue(IndonesiaPhoneNumberUtil.sanitize(motherIdentity.getMobilePhoneNumber()))
 			.setUse(ContactPointUse.MOBILE).setRank(1);
-		return fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(patient);
+
+		Bundle bundle = new Bundle().setType(BundleType.HISTORY)
+			.addEntry(new BundleEntryComponent().setResource(patient));
+
+		addObservation(bundle, values.get(0), patient, new Quantity(Double.valueOf(values.get(2))),
+			new CodeableConcept(
+				new Coding("https://sid-indonesia.org/devices/clinical-codes", "body-height", "Body Height"))
+					.addCoding(new Coding(HTTP_LOINC_ORG, "8302-2", "Body height")));
+
+		addObservation(bundle, values.get(0), patient, new Quantity(Double.valueOf(values.get(3))),
+			new CodeableConcept(
+				new Coding("https://sid-indonesia.org/devices/clinical-codes", "body-weight", "Body Weight"))
+					.addCoding(new Coding(HTTP_LOINC_ORG, "29463-7", "Body Weight"))
+					.addCoding(new Coding(HTTP_LOINC_ORG, "3141-9", "Body weight Measured")));
+
+		return fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(bundle);
+	}
+
+	private void addObservation(Bundle bundle, String ancDate, Patient patient, Type value, CodeableConcept code) {
+		Observation observation = new Observation();
+		observation.setEffective(new DateTimeType().setValue(Date.valueOf(ancDate)));
+		observation.setSubjectTarget(patient);
+		observation.setStatus(ObservationStatus.FINAL);
+
+		observation.setValue(value);
+		observation.setCode(code);
+
+		bundle.addEntry().setResource(observation);
 	}
 }

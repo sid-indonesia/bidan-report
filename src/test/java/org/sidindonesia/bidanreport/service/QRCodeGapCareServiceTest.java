@@ -18,7 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 @Disabled
 @IntegrationTest
 @SpringBootTest(properties = { "spring.datasource.url=jdbc:postgresql://localhost:5432/opensrp_test_lotim",
-		"spring.jpa.properties.hibernate.default_schema=sid_bidan_test",
+		"spring.jpa.properties.hibernate.default_schema=sid_bidan",
 		"spring.jpa.properties.hibernate.hbm2ddl.auto=none" })
 class QRCodeGapCareServiceTest {
 
@@ -42,7 +42,7 @@ class QRCodeGapCareServiceTest {
 		String csv = lastElement.getPregnancyGapCommaSeparatedValues();
 		List<String> values = Stream.of(csv.split(",")).map(String::trim).collect(toList());
 
-		String jsonOfGapCareObject = pregnancyGapService.createJsonStringOfGapCareObject(values);
+		String jsonOfGapCareObject = pregnancyGapService.createJsonStringOfFHIRPatientResource(lastElement, values);
 
 		qrCodeService.createQRCodeImage(jsonOfGapCareObject);
 	}
