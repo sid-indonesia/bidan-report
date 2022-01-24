@@ -42,7 +42,7 @@ public class HealthEducationService {
 	private final AutomatedMessageStatsRepository automatedMessageStatsRepository;
 
 	@Scheduled(cron = "${scheduling.health-education.cron}", zone = "${scheduling.health-education.zone}")
-	public void sendHealthEducationsToEnrolledMothers() throws IOException {
+	public void sendHealthEducationsToEnrolledMothers() throws IOException, InterruptedException {
 		log.debug("Executing scheduled \"Send Health Education via WhatsApp\"...");
 		log.debug("Send scheduled health education messages to all pregnant mothers "
 			+ "with current_date between last_menstrual_period_date and expected_delivery_date "
@@ -51,14 +51,14 @@ public class HealthEducationService {
 		processRowsFromMotherEdit();
 	}
 
-	private void processRowsFromMotherIdentity() throws IOException {
+	private void processRowsFromMotherIdentity() throws IOException, InterruptedException {
 		List<HealthEducationProjection> allPregnantWomenToBeGivenHealthEducationMessage = motherIdentityRepository
 			.findAllPregnantWomenToBeGivenEducationOfTheirHealth();
 
 		broadcastHealthEducationMessageTo(allPregnantWomenToBeGivenHealthEducationMessage, "mother_identity");
 	}
 
-	private void processRowsFromMotherEdit() throws IOException {
+	private void processRowsFromMotherEdit() throws IOException, InterruptedException {
 		List<HealthEducationProjection> allPregnantWomenToBeGivenHealthEducationMessage = motherEditRepository
 			.findAllPregnantWomenToBeGivenEducationOfTheirHealth();
 
@@ -67,7 +67,7 @@ public class HealthEducationService {
 
 	private void broadcastHealthEducationMessageTo(
 		List<HealthEducationProjection> allPregnantWomenToBeGivenHealthEducationMessage, String fromTable)
-		throws IOException {
+		throws IOException, InterruptedException {
 
 		List<HealthEducationProjection> filteredPregnantWomen = allPregnantWomenToBeGivenHealthEducationMessage
 			.parallelStream()
@@ -88,6 +88,9 @@ public class HealthEducationService {
 				.sendCreateContactListRequestToQontakAPI(createContactListRequest(campaignName, contactsCsvFileName));
 
 			if (contactListId != null) {
+				// Give Qontak some time to process the contact list
+				Thread.sleep(300000); // 5 minutes
+
 				// Broadcast to contact_list
 				boolean isSuccess = broadcastHealthEducationMessageViaWhatsApp(
 					qontakProperties.getWhatsApp().getHealthEducationMessageTemplateId(), contactListId, campaignName);
