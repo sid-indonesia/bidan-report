@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.sql.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
@@ -15,11 +16,11 @@ import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.ContactPoint.ContactPointSystem;
 import org.hl7.fhir.r4.model.ContactPoint.ContactPointUse;
 import org.hl7.fhir.r4.model.DateTimeType;
-import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Observation.ObservationStatus;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Quantity;
+import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Type;
 import org.sidindonesia.bidanreport.config.property.LastIdProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
@@ -194,39 +195,45 @@ public class PregnancyGapService {
 		if (namesSplittedIntoTwo.length > 1) {
 			patient.addName().addGiven(namesSplittedIntoTwo[0]).setFamily(namesSplittedIntoTwo[1]);
 		} else {
-			patient.addName(new HumanName().addGiven(motherIdentity.getFullName()));
+			patient.addName().addGiven(motherIdentity.getFullName());
 		}
 
 		patient.addTelecom().setSystem(ContactPointSystem.PHONE)
 			.setValue(IndonesiaPhoneNumberUtil.sanitize(motherIdentity.getMobilePhoneNumber()))
 			.setUse(ContactPointUse.MOBILE).setRank(1);
 
+		String patientUUID = "urn:uuid:" + UUID.randomUUID();
 		Bundle bundle = new Bundle().setType(BundleType.HISTORY)
-			.addEntry(new BundleEntryComponent().setResource(patient));
+			.addEntry(new BundleEntryComponent().setResource(patient).setFullUrl(patientUUID));
+		Reference referencePatient = new Reference().setReference(patientUUID);
+		Type ancEffectiveDateTime = new DateTimeType().setValue(Date.valueOf(values.get(0)));
 
-		addObservation(bundle, values.get(0), patient, new Quantity(Double.valueOf(values.get(2))),
-			new CodeableConcept(
-				new Coding("https://sid-indonesia.org/devices/clinical-codes", "body-height", "Body Height"))
-					.addCoding(new Coding(HTTP_LOINC_ORG, "8302-2", "Body height")));
+		bundle.addEntry()
+			.setResource(createObservation(ancEffectiveDateTime, referencePatient,
+				new Quantity(Double.valueOf(values.get(2))).setUnit("cm"),
+				new CodeableConcept(
+					new Coding("https://sid-indonesia.org/devices/clinical-codes", "body-height", "Body Height"))
+						.addCoding(new Coding(HTTP_LOINC_ORG, "8302-2", "Body height"))));
 
-		addObservation(bundle, values.get(0), patient, new Quantity(Double.valueOf(values.get(3))),
-			new CodeableConcept(
-				new Coding("https://sid-indonesia.org/devices/clinical-codes", "body-weight", "Body Weight"))
-					.addCoding(new Coding(HTTP_LOINC_ORG, "29463-7", "Body Weight"))
-					.addCoding(new Coding(HTTP_LOINC_ORG, "3141-9", "Body weight Measured")));
+		bundle.addEntry()
+			.setResource(createObservation(ancEffectiveDateTime, referencePatient,
+				new Quantity(Double.valueOf(values.get(3))).setUnit("kg"),
+				new CodeableConcept(
+					new Coding("https://sid-indonesia.org/devices/clinical-codes", "body-weight", "Body Weight"))
+						.addCoding(new Coding(HTTP_LOINC_ORG, "29463-7", "Body Weight"))
+						.addCoding(new Coding(HTTP_LOINC_ORG, "3141-9", "Body weight Measured"))));
 
 		return fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(bundle);
 	}
 
-	private void addObservation(Bundle bundle, String ancDate, Patient patient, Type value, CodeableConcept code) {
+	private Observation createObservation(Type effective, Reference referencePatient, Type value,
+		CodeableConcept code) {
 		Observation observation = new Observation();
-		observation.setEffective(new DateTimeType().setValue(Date.valueOf(ancDate)));
-		observation.setSubjectTarget(patient);
 		observation.setStatus(ObservationStatus.FINAL);
-
-		observation.setValue(value);
 		observation.setCode(code);
-
-		bundle.addEntry().setResource(observation);
+		observation.setEffective(effective);
+		observation.setSubject(referencePatient);
+		observation.setValue(value);
+		return observation;
 	}
 }
