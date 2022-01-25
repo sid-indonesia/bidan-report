@@ -42,7 +42,7 @@ class QRCodeGapCareServiceTest {
 		String csv = lastElement.getPregnancyGapCommaSeparatedValues();
 		List<String> values = Stream.of(csv.split(",")).map(String::trim).collect(toList());
 
-		String jsonOfGapCareObject = pregnancyGapService.createJsonStringOfFHIRPatientResource(lastElement, values);
+		String jsonOfGapCareObject = pregnancyGapService.createJsonStringOfFHIRResource(lastElement, values);
 
 		qrCodeService.createQRCodeImage(jsonOfGapCareObject);
 	}
