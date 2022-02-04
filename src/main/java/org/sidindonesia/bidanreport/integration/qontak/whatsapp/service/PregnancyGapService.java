@@ -212,6 +212,24 @@ public class PregnancyGapService {
 		return fhirContext.newJsonParser().encodeResourceToString(bundle);
 	}
 
+	private Patient createPatientResource(PregnancyGapProjection motherIdentity) {
+		Patient patient = new Patient();
+
+		HumanName name = patient.addName();
+		name.setText(motherIdentity.getFullName());
+		String[] namesSplittedIntoTwo = motherIdentity.getFullName().split(" ", 2);
+		if (namesSplittedIntoTwo.length > 1) {
+			name.addGiven(namesSplittedIntoTwo[0]).setFamily(namesSplittedIntoTwo[1]);
+		} else {
+			name.addGiven(motherIdentity.getFullName());
+		}
+
+		patient.addTelecom().setSystem(ContactPointSystem.PHONE)
+			.setValue(IndonesiaPhoneNumberUtil.sanitize(motherIdentity.getMobilePhoneNumber()))
+			.setUse(ContactPointUse.MOBILE).setRank(1);
+		return patient;
+	}
+
 	private void fillBundleWithObservationResources(List<String> values, Bundle bundle, Reference referencePatient,
 		Type ancEffectiveDateTime) {
 		if (!values.get(2).equalsIgnoreCase("-")) {
@@ -363,24 +381,6 @@ public class PregnancyGapService {
 					new BooleanType(values.get(19).equalsIgnoreCase(POSITIF)), new CodeableConcept()
 						.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "has-hiv", "Has HIV"))));
 		}
-	}
-
-	private Patient createPatientResource(PregnancyGapProjection motherIdentity) {
-		Patient patient = new Patient();
-
-		HumanName name = patient.addName();
-		name.setText(motherIdentity.getFullName());
-		String[] namesSplittedIntoTwo = motherIdentity.getFullName().split(" ", 2);
-		if (namesSplittedIntoTwo.length > 1) {
-			name.addGiven(namesSplittedIntoTwo[0]).setFamily(namesSplittedIntoTwo[1]);
-		} else {
-			name.addGiven(motherIdentity.getFullName());
-		}
-
-		patient.addTelecom().setSystem(ContactPointSystem.PHONE)
-			.setValue(IndonesiaPhoneNumberUtil.sanitize(motherIdentity.getMobilePhoneNumber()))
-			.setUse(ContactPointUse.MOBILE).setRank(1);
-		return patient;
 	}
 
 	private Observation createObservation(Type effective, Reference referencePatient, Type value,
