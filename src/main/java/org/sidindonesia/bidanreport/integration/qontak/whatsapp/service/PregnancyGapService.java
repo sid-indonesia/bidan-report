@@ -3,6 +3,7 @@ package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service;
 import static java.util.stream.Collectors.toList;
 
 import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
@@ -16,6 +17,7 @@ import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.ContactPoint.ContactPointSystem;
 import org.hl7.fhir.r4.model.ContactPoint.ContactPointUse;
 import org.hl7.fhir.r4.model.DateTimeType;
+import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Observation.ObservationStatus;
 import org.hl7.fhir.r4.model.Patient;
@@ -193,11 +195,14 @@ public class PregnancyGapService {
 	public String createJsonStringOfFHIRResource(PregnancyGapProjection motherIdentity, List<String> values) {
 
 		Patient patient = new Patient();
+
+		HumanName name = patient.addName();
+		name.setText(motherIdentity.getFullName());
 		String[] namesSplittedIntoTwo = motherIdentity.getFullName().split(" ", 2);
 		if (namesSplittedIntoTwo.length > 1) {
-			patient.addName().addGiven(namesSplittedIntoTwo[0]).setFamily(namesSplittedIntoTwo[1]);
+			name.addGiven(namesSplittedIntoTwo[0]).setFamily(namesSplittedIntoTwo[1]);
 		} else {
-			patient.addName().addGiven(motherIdentity.getFullName());
+			name.addGiven(motherIdentity.getFullName());
 		}
 
 		patient.addTelecom().setSystem(ContactPointSystem.PHONE)
@@ -205,59 +210,75 @@ public class PregnancyGapService {
 			.setUse(ContactPointUse.MOBILE).setRank(1);
 
 		String patientUUID = "urn:uuid:" + UUID.randomUUID();
-		Bundle bundle = new Bundle().setType(BundleType.HISTORY)
+		Bundle bundle = new Bundle().setType(BundleType.TRANSACTION)
 			.addEntry(new BundleEntryComponent().setResource(patient).setFullUrl(patientUUID));
 		Reference referencePatient = new Reference().setReference(patientUUID);
-		Type ancEffectiveDateTime = new DateTimeType().setValue(Date.valueOf(values.get(0)));
+		Type ancEffectiveDateTime = new DateTimeType()
+			.setValue(Date.valueOf(values.get(0).equalsIgnoreCase("N/A") ? LocalDate.EPOCH.toString() : values.get(0)));
 
-		bundle.addEntry()
-			.setResource(createObservation(ancEffectiveDateTime, referencePatient,
-				new Quantity(Double.valueOf(values.get(2))).setUnit("cm"),
-				new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "8302-2", "Body height"))
-					.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "body-height", "Body Height"))));
+		if (!values.get(2).equalsIgnoreCase("-")) {
+			bundle.addEntry()
+				.setResource(createObservation(ancEffectiveDateTime, referencePatient,
+					new Quantity(Double.valueOf(values.get(2))).setUnit("cm"),
+					new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "8302-2", "Body height"))
+						.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "body-height", "Body Height"))));
+		}
 
-		bundle.addEntry()
-			.setResource(createObservation(ancEffectiveDateTime, referencePatient,
-				new Quantity(Double.valueOf(values.get(3))).setUnit("kg"),
-				new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "29463-7", "Body Weight"))
-					.addCoding(new Coding(HTTP_LOINC_ORG, "3141-9", "Body weight Measured"))
-					.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "body-weight", "Body Weight"))));
+		if (!values.get(3).equalsIgnoreCase("-")) {
+			bundle.addEntry()
+				.setResource(createObservation(ancEffectiveDateTime, referencePatient,
+					new Quantity(Double.valueOf(values.get(3))).setUnit("kg"),
+					new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "29463-7", "Body Weight"))
+						.addCoding(new Coding(HTTP_LOINC_ORG, "3141-9", "Body weight Measured"))
+						.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "body-weight", "Body Weight"))));
+		}
 
-		bundle.addEntry()
-			.setResource(createObservation(ancEffectiveDateTime, referencePatient,
-				new Quantity(Double.valueOf(values.get(4))).setUnit("cm"),
-				new CodeableConcept()
-					.addCoding(new Coding(HTTP_LOINC_ORG, "56072-2", "Circumference Mid upper arm - right"))
-					.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "mid-upper-arm-circumference",
-						"Mid upper arm circumference"))));
+		if (!values.get(4).equalsIgnoreCase("-")) {
+			bundle.addEntry()
+				.setResource(createObservation(ancEffectiveDateTime, referencePatient,
+					new Quantity(Double.valueOf(values.get(4))).setUnit("cm"),
+					new CodeableConcept()
+						.addCoding(new Coding(HTTP_LOINC_ORG, "56072-2", "Circumference Mid upper arm - right"))
+						.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "mid-upper-arm-circumference",
+							"Mid upper arm circumference"))));
+		}
 
-		bundle.addEntry()
-			.setResource(createObservation(ancEffectiveDateTime, referencePatient,
-				new Quantity(Double.valueOf(values.get(5))).setUnit("mmHg"),
-				new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "8480-6", "Systolic blood pressure"))
-					.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "systolic-blood-pressure",
-						"Systolic blood pressure"))));
+		if (!values.get(5).equalsIgnoreCase("-")) {
+			bundle.addEntry()
+				.setResource(createObservation(ancEffectiveDateTime, referencePatient,
+					new Quantity(Double.valueOf(values.get(5))).setUnit("mmHg"),
+					new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "8480-6", "Systolic blood pressure"))
+						.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "systolic-blood-pressure",
+							"Systolic blood pressure"))));
+		}
 
-		bundle.addEntry()
-			.setResource(createObservation(ancEffectiveDateTime, referencePatient,
-				new Quantity(Double.valueOf(values.get(6))).setUnit("mmHg"),
-				new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "8462-4", "Diastolic blood pressure"))
-					.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "diastolic-blood-pressure",
-						"Diastolic blood pressure"))));
+		if (!values.get(6).equalsIgnoreCase("-")) {
+			bundle.addEntry()
+				.setResource(createObservation(ancEffectiveDateTime, referencePatient,
+					new Quantity(Double.valueOf(values.get(6))).setUnit("mmHg"),
+					new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "8462-4", "Diastolic blood pressure"))
+						.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "diastolic-blood-pressure",
+							"Diastolic blood pressure"))));
+		}
 
-		// com.google.zxing.WriterException: Data too big
-		// if below codes are uncommented.
+		if (!values.get(7).equalsIgnoreCase("-") && !values.get(7).equalsIgnoreCase("Janin belum teraba")) {
+			bundle.addEntry()
+				.setResource(createObservation(ancEffectiveDateTime, referencePatient,
+					new Quantity(Double.valueOf(values.get(7).replace(" cm", ""))).setUnit("cm"),
+					new CodeableConcept()
+						.addCoding(new Coding(HTTP_LOINC_ORG, "11881-0", "Uterus Fundal height Tape measure"))
+						.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "uterine-fundal-height",
+							"Uterine Fundal height"))));
+		}
 
-//		bundle.addEntry().setResource(createObservation(ancEffectiveDateTime, referencePatient,
-//			new Quantity(Double.valueOf(values.get(7).replace(" cm", ""))).setUnit("cm"),
-//			new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "11881-0", "Uterus Fundal height Tape measure"))
-//				.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "uterine-fundal-height",
-//					"Uterine Fundal height"))));
-
-//		bundle.addEntry().setResource(createObservation(ancEffectiveDateTime, referencePatient,
-//			new StringType(values.get(8)),
-//			new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "11877-8", "Fetal presentation US")).addCoding(
-//				new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "fetal-presentation", "Fetal presentation"))));
+		if (!values.get(8).equalsIgnoreCase("-")
+			&& !values.get(8).equalsIgnoreCase("Detak jantung janin belum terdengar")) {
+			bundle.addEntry()
+				.setResource(createObservation(ancEffectiveDateTime, referencePatient, new StringType(values.get(8)),
+					new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "11877-8", "Fetal presentation US"))
+						.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "fetal-presentation",
+							"Fetal presentation"))));
+		}
 
 		return fhirContext.newJsonParser().encodeResourceToString(bundle);
 	}
