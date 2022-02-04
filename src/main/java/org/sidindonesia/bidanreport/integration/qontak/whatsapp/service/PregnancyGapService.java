@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
+import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r4.model.Bundle.BundleType;
@@ -57,6 +58,7 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 @Service
 public class PregnancyGapService {
+	private static final String POSITIF = "positif";
 	private static final String HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES = "https://sid-indonesia.org/clinical-codes";
 	private static final String HTTP_LOINC_ORG = "http://loinc.org";
 	public static final String QR_CODE_GAP_CARE_PNG = "QR_Code-gap_care-FHIR.png";
@@ -271,13 +273,99 @@ public class PregnancyGapService {
 							"Uterine Fundal height"))));
 		}
 
-		if (!values.get(8).equalsIgnoreCase("-")
-			&& !values.get(8).equalsIgnoreCase("Detak jantung janin belum terdengar")) {
+		if (!values.get(8).equalsIgnoreCase("-") && !values.get(8).equalsIgnoreCase("Janin belum teraba")) {
 			bundle.addEntry()
 				.setResource(createObservation(ancEffectiveDateTime, referencePatient, new StringType(values.get(8)),
 					new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "11877-8", "Fetal presentation US"))
 						.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "fetal-presentation",
 							"Fetal presentation"))));
+		}
+
+		if (!values.get(9).equalsIgnoreCase("-")
+			&& !values.get(9).equalsIgnoreCase("Detak jantung janin belum terdengar")) {
+			bundle.addEntry().setResource(createObservation(ancEffectiveDateTime, referencePatient,
+				new Quantity(Long.valueOf(values.get(9))).setUnit("/min"),
+				new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "55283-6", "Fetal Heart rate")).addCoding(
+					new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "fetal-heart-rate", "Fetal Heart rate"))));
+		}
+
+		if (!values.get(10).equalsIgnoreCase("-")) {
+			bundle.addEntry()
+				.setResource(createObservation(ancEffectiveDateTime, referencePatient, new StringType(values.get(10)),
+					new CodeableConcept().addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES,
+						"tetanus-toxoid-immunization-status", "Tetanus toxoid immunization status"))));
+		}
+
+		if (!values.get(11).equalsIgnoreCase("-")) {
+			bundle.addEntry()
+				.setResource(createObservation(ancEffectiveDateTime, referencePatient,
+					new BooleanType(values.get(11).equalsIgnoreCase("Ya")),
+					new CodeableConcept().addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES,
+						"is-given-tetanus-toxoid-injection", "Is given tetanus toxoid injection"))));
+		}
+
+		if (!values.get(12).equalsIgnoreCase("-")) {
+			bundle.addEntry()
+				.setResource(createObservation(ancEffectiveDateTime, referencePatient,
+					new BooleanType(values.get(12).equalsIgnoreCase("Ya")),
+					new CodeableConcept().addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES,
+						"is-given-iron-folic-acid-tablet", "Is given iron folic acid tablet"))));
+		}
+
+		if (!values.get(13).equalsIgnoreCase("-")) {
+			bundle.addEntry()
+				.setResource(createObservation(ancEffectiveDateTime, referencePatient,
+					new BooleanType(values.get(13).equalsIgnoreCase(POSITIF)), new CodeableConcept().addCoding(
+						new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "has-proteinuria", "Has proteinuria"))));
+		}
+
+		if (!values.get(14).equalsIgnoreCase("-")) {
+			bundle.addEntry()
+				.setResource(createObservation(ancEffectiveDateTime, referencePatient,
+					new Quantity(Double.valueOf(values.get(14))).setUnit("g/dL"),
+					new CodeableConcept()
+						.addCoding(new Coding(HTTP_LOINC_ORG, "718-7", "Hemoglobin [Mass/volume] in Blood"))
+						.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "hb-level-lab-test-result",
+							"Hb level lab test result"))));
+		}
+
+		if (!values.get(15).equalsIgnoreCase("-")) {
+			bundle.addEntry()
+				.setResource(createObservation(ancEffectiveDateTime, referencePatient,
+					new BooleanType(values.get(15).equalsIgnoreCase("\u003e_140_mg_dl")),
+					new CodeableConcept().addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES,
+						"is-glucose-blood-more-than-140-mg-dl", "Is glucose blood more than 140 mg/dL"))));
+		}
+
+		if (!values.get(16).equalsIgnoreCase("-")) {
+			bundle.addEntry()
+				.setResource(createObservation(ancEffectiveDateTime, referencePatient,
+					new BooleanType(values.get(16).equalsIgnoreCase(POSITIF)), new CodeableConcept().addCoding(
+						new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "has-thalasemia", "Has thalasemia"))));
+		}
+
+		if (!values.get(17).equalsIgnoreCase("-")) {
+			bundle.addEntry()
+				.setResource(createObservation(ancEffectiveDateTime, referencePatient,
+					new BooleanType(values.get(17).equalsIgnoreCase(POSITIF)), new CodeableConcept().addCoding(
+						new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "has-syphilis", "Has syphilis"))));
+		}
+
+		if (!values.get(18).equalsIgnoreCase("-")) {
+			bundle.addEntry()
+				.setResource(createObservation(ancEffectiveDateTime, referencePatient,
+					new BooleanType(values.get(18).equalsIgnoreCase(POSITIF)),
+					new CodeableConcept()
+						.addCoding(new Coding(HTTP_LOINC_ORG, "75410-1",
+							"Hepatitis B virus surface Ag [Presence] in Serum, Plasma or Blood by Rapid immunoassay"))
+						.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "has-hbsag", "Has HBsAg"))));
+		}
+
+		if (!values.get(19).equalsIgnoreCase("-")) {
+			bundle.addEntry()
+				.setResource(createObservation(ancEffectiveDateTime, referencePatient,
+					new BooleanType(values.get(19).equalsIgnoreCase(POSITIF)), new CodeableConcept()
+						.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "has-hiv", "Has HIV"))));
 		}
 
 		return fhirContext.newJsonParser().encodeResourceToString(bundle);
