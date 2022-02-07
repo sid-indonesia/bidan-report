@@ -27,6 +27,16 @@ spring:
       hibernate.query.fail_on_pagination_over_collection_fetch: true
   #liquibase:
   #  default-schema: test
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: oauth-client
+            client-secret: "changethis"
+        provider:
+          keycloak:
+            token-uri: https://keycloak.dev.sid-indonesia.org/auth/realms/${hapi-fhir-server.keycloak.realm}/protocol/openid-connect/token
 
 # client-id and client-secret retrieved from
 # https://docs.qontak.com/docs/omnichannel-hub/ZG9jOjE1MzEwMzc4-authentication#how-to-get-token
@@ -57,3 +67,8 @@ scheduling:
 
 qr-code:
   directory-path: /tmp/
+
+hapi-fhir-server:
+  base-url: http://localhost:8080/fhir
+  keycloak:
+    realm: hapi-fhir

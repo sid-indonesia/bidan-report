@@ -11,6 +11,7 @@ import com.google.gson.GsonBuilder;
 
 @Configuration
 public class WebClientConfig {
+	@Primary
 	@Bean
 	public WebClient qontakWhatsAppWebClient(@Value("${qontak.base-url}") String baseUrl) {
 		return WebClient.create(baseUrl);

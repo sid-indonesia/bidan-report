@@ -34,6 +34,12 @@ spring:
     enabled: true
     change-log: classpath:/config/liquibase/master.yaml
     default-schema: ${spring.jpa.properties.hibernate.default_schema}
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            authorization-grant-type: client_credentials
 
 server:
   port: 8081
