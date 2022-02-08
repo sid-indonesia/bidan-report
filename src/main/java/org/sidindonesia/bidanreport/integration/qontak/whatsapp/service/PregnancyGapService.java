@@ -38,7 +38,6 @@ import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.Bro
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.QRCodeService;
 import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
-import org.sidindonesia.bidanreport.repository.projection.GapCare;
 import org.sidindonesia.bidanreport.repository.projection.PregnancyGapProjection;
 import org.sidindonesia.bidanreport.service.LastIdService;
 import org.sidindonesia.bidanreport.util.IndonesiaPhoneNumberUtil;
@@ -51,8 +50,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import com.google.gson.Gson;
 
 import ca.uhn.fhir.context.FhirContext;
 import lombok.RequiredArgsConstructor;
@@ -76,9 +73,6 @@ public class PregnancyGapService {
 	private final LastIdService lastIdService;
 	private final AutomatedMessageStatsRepository automatedMessageStatsRepository;
 	private final QRCodeService qrCodeService;
-	@Autowired
-	@Qualifier("prettyGson")
-	private Gson gson;
 	private final FhirContext fhirContext;
 	@Autowired
 	@Qualifier("webClientHapiFhirServer")
@@ -197,13 +191,6 @@ public class PregnancyGapService {
 			log.error("Upload QR Code Gap Care PNG file failed with no content for: {}, at phone number: {}",
 				motherIdentity.getFullName(), motherIdentity.getMobilePhoneNumber());
 		}
-	}
-
-	public String createJsonStringOfGapCareObject(List<String> values) {
-		return gson.toJson(new GapCare(values.get(0), values.get(1), values.get(2), values.get(3), values.get(4),
-			values.get(5), values.get(6), values.get(7), values.get(8), values.get(9), values.get(10), values.get(11),
-			values.get(12), values.get(13), values.get(14), values.get(15), values.get(16), values.get(17),
-			values.get(18), values.get(19)));
 	}
 
 	public String postTransactionBundleToFHIRServerThenReturnURLPatientOperationEverything(

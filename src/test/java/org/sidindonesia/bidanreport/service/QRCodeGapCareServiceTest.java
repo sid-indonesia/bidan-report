@@ -1,6 +1,7 @@
 package org.sidindonesia.bidanreport.service;
 
 import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -46,5 +47,7 @@ class QRCodeGapCareServiceTest {
 			.postTransactionBundleToFHIRServerThenReturnURLPatientOperationEverything(lastElement, values);
 
 		qrCodeService.createQRCodeImage(jsonOfGapCareObject);
+
+		assertThat(qrCodeService).isNotNull();
 	}
 }
