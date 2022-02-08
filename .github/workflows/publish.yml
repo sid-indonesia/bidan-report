@@ -54,8 +54,8 @@ jobs:
 
       - name: Build WAR
         run: ./mvnw -B \
-          -Dspring.security.oauth2.client.registration.keycloak.client-secret=${{ secrets.OAUTH_CLIENT_SECRET }} \
-          package
+          package \
+          -Dspring.security.oauth2.client.registration.keycloak.client-secret=${{ secrets.OAUTH_CLIENT_SECRET }}
 
       - name: Upload WAR
         uses: actions/upload-artifact@v2

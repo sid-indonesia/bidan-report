@@ -55,5 +55,6 @@ jobs:
 
       - name: Build with Maven + Code Analysis with SonarQube
         run: ./mvnw -B \
-          -Dspring.security.oauth2.client.registration.keycloak.client-secret=${{ secrets.OAUTH_CLIENT_SECRET }} \
-          clean package sonar:sonar -Dsonar.host.url=${{ secrets.SONAR_URL }} -Dsonar.login=${{ secrets.SONAR_LOGIN }}
+          clean package sonar:sonar \
+          -Dsonar.host.url=${{ secrets.SONAR_URL }} -Dsonar.login=${{ secrets.SONAR_LOGIN }} \
+          -Dspring.security.oauth2.client.registration.keycloak.client-secret=${{ secrets.OAUTH_CLIENT_SECRET }}
