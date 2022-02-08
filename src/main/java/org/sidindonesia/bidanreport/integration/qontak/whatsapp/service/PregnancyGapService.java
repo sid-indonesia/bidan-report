@@ -180,7 +180,8 @@ public class PregnancyGapService {
 		ParametersWithHeader parameters) {
 
 		// FHIR Resource
-		String prettyJson = createJsonStringOfFHIRResource(motherIdentity, values);
+		String prettyJson = postTransactionBundleToFHIRServerThenReturnURLPatientOperationEverything(motherIdentity,
+			values);
 
 		FileUploadResponse responseBody = qrCodeService.createQRCodeImageThenUploadToQontak(prettyJson);
 		if (responseBody != null) {
@@ -205,7 +206,8 @@ public class PregnancyGapService {
 			values.get(18), values.get(19)));
 	}
 
-	public String createJsonStringOfFHIRResource(PregnancyGapProjection motherIdentity, List<String> values) {
+	public String postTransactionBundleToFHIRServerThenReturnURLPatientOperationEverything(
+		PregnancyGapProjection motherIdentity, List<String> values) {
 
 		Patient patient = createPatientResource(motherIdentity);
 
@@ -239,11 +241,14 @@ public class PregnancyGapService {
 
 		HumanName name = patient.addName();
 		name.setText(motherIdentity.getFullName());
-		String[] namesSplittedIntoTwo = motherIdentity.getFullName().split(" ", 2);
-		if (namesSplittedIntoTwo.length > 1) {
-			name.addGiven(namesSplittedIntoTwo[0]).setFamily(namesSplittedIntoTwo[1]);
-		} else {
-			name.addGiven(motherIdentity.getFullName());
+
+		if (motherIdentity.getFullName() != null) {
+			String[] namesSplittedIntoTwo = motherIdentity.getFullName().split(" ", 2);
+			if (namesSplittedIntoTwo.length > 1) {
+				name.addGiven(namesSplittedIntoTwo[0]).setFamily(namesSplittedIntoTwo[1]);
+			} else {
+				name.addGiven(motherIdentity.getFullName());
+			}
 		}
 
 		patient.addTelecom().setSystem(ContactPointSystem.PHONE)

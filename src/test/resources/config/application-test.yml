@@ -69,6 +69,7 @@ qr-code:
   directory-path: /tmp/
 
 hapi-fhir-server:
-  base-url: http://localhost:8080/fhir
+  base-url: https://hapi-fhir.dev.sid-indonesia.org/fhir
+#  base-url: http://localhost:8080/fhir
   keycloak:
     realm: hapi-fhir
