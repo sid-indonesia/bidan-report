@@ -53,9 +53,10 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Build WAR
-        run: ./mvnw -B \
-          package \
+        run: >
+          ./mvnw -B
           -Dspring.security.oauth2.client.registration.keycloak.client-secret=${{ secrets.OAUTH_CLIENT_SECRET }}
+          package
 
       - name: Upload WAR
         uses: actions/upload-artifact@v2

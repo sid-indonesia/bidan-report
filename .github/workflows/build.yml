@@ -54,7 +54,8 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Build with Maven + Code Analysis with SonarQube
-        run: ./mvnw -B \
-          clean package sonar:sonar \
-          -Dsonar.host.url=${{ secrets.SONAR_URL }} -Dsonar.login=${{ secrets.SONAR_LOGIN }} \
+        run: >
+          ./mvnw -B
           -Dspring.security.oauth2.client.registration.keycloak.client-secret=${{ secrets.OAUTH_CLIENT_SECRET }}
+          -Dsonar.host.url=${{ secrets.SONAR_URL }} -Dsonar.login=${{ secrets.SONAR_LOGIN }}
+          clean package sonar:sonar
