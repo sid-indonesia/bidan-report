@@ -1,6 +1,6 @@
 package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util;
 
-import static org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.PregnancyGapService.QR_CODE_GAP_CARE_PNG;
+import static org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.FhirResourceService.QR_CODE_GAP_CARE_PNG;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;

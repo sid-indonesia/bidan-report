@@ -45,10 +45,10 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @Service
 public class FhirResourceService {
+	public static final String QR_CODE_GAP_CARE_PNG = "QR_Code-gap_care-FHIR.png";
 	private static final String POSITIF = "positif";
 	private static final String HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES = "https://sid-indonesia.org/clinical-codes";
 	private static final String HTTP_LOINC_ORG = "http://loinc.org";
-	public static final String QR_CODE_GAP_CARE_PNG = "QR_Code-gap_care-FHIR.png";
 	private final QRCodeService qrCodeService;
 	private final FhirContext fhirContext;
 	@Autowired

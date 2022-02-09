@@ -29,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 @Service
 public class PregnancyGapService {
-	public static final String QR_CODE_GAP_CARE_PNG = "QR_Code-gap_care-FHIR.png";
 	private final QontakProperties qontakProperties;
 	private final MotherIdentityRepository motherIdentityRepository;
 	private final MotherEditRepository motherEditRepository;
