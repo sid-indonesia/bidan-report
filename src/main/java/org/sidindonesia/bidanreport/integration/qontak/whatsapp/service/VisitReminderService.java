@@ -97,7 +97,7 @@ public class VisitReminderService {
 		}
 	}
 
-	private BroadcastDirectRequest createANCVisitReminderMessageRequestBody(
+	public BroadcastDirectRequest createANCVisitReminderMessageRequestBody(
 		AncVisitReminderProjection ancVisitReminderProjection, String messageTemplateId, boolean useQRCodeAsHeader) {
 		BroadcastDirectRequest requestBody = broadcastMessageService
 			.createBroadcastDirectRequestBody(ancVisitReminderProjection, messageTemplateId);
