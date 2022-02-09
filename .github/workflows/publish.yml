@@ -52,11 +52,11 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Run tests
-        run: ./mvnw -B test
-
       - name: Build WAR
-        run: ./mvnw -B package
+        run: >
+          ./mvnw -B
+          -Dspring.security.oauth2.client.registration.keycloak.client-secret=${{ secrets.OAUTH_CLIENT_SECRET }}
+          package
 
       - name: Upload WAR
         uses: actions/upload-artifact@v2

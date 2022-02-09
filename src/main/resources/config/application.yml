@@ -34,6 +34,12 @@ spring:
     enabled: true
     change-log: classpath:/config/liquibase/master.yaml
     default-schema: ${spring.jpa.properties.hibernate.default_schema}
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            authorization-grant-type: client_credentials
 
 server:
   port: 8081
@@ -48,6 +54,7 @@ qontak:
   api-path-broadcast-direct: /api/open/v1/broadcasts/whatsapp/direct
   api-path-broadcast: /api/open/v1/broadcasts/whatsapp
   api-path-contact-list-async: /api/open/v1/contacts/contact_lists/async
+  api-path-upload-file: /api/open/v1/file_uploader
   whats-app:
     health-education-contact-list-csv-absolute-file-name: /tmp/contacts_health-education.csv
 
@@ -65,3 +72,8 @@ scheduling:
   health-education:
     cron: "0 55 12 * * Mon" # At 01:00 PM, only on Monday
     zone: Asia/Jakarta
+
+qr-code:
+  width: 700
+  height: 700
+  directory-path: /tmp/

@@ -96,11 +96,12 @@ public class PregnancyGapService {
 
 	private void setParametersForPregnancyGapMessage(PregnancyGapProjection motherIdentity,
 		BroadcastDirectRequest requestBody) {
-		Parameters parameters = new Parameters();
-		parameters.addBodyWithValues("1", "full_name", motherIdentity.getFullName());
-
 		String csv = motherIdentity.getPregnancyGapCommaSeparatedValues();
 		List<String> values = Stream.of(csv.split(",")).map(String::trim).collect(toList());
+
+		Parameters parameters = new Parameters();
+
+		parameters.addBodyWithValues("1", "full_name", motherIdentity.getFullName());
 		parameters.addBodyWithValues("2", "anc_date", values.get(0));
 		parameters.addBodyWithValues("3", "gestational_age", values.get(1));
 		parameters.addBodyWithValues("4", "height_in_cm", values.get(2));

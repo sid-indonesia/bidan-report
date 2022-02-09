@@ -4,11 +4,13 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Stream;
 
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.repository.AutomatedMessageStatsRepository;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastDirectRequest;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.Parameters;
+import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.ParametersWithHeader;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.BroadcastMessageService;
 import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
@@ -31,6 +33,7 @@ public class VisitReminderService {
 	private final MotherEditRepository motherEditRepository;
 	private final BroadcastMessageService broadcastMessageService;
 	private final AutomatedMessageStatsRepository automatedMessageStatsRepository;
+	private final FhirResourceService fhirResourceService;
 
 	@Scheduled(cron = "${scheduling.visit-reminder.cron}", zone = "${scheduling.visit-reminder.zone}")
 	public void sendVisitRemindersToEnrolledMothers() {
@@ -63,13 +66,25 @@ public class VisitReminderService {
 			AtomicLong visitReminderSuccessCount = new AtomicLong();
 			List<Pair<AncVisitReminderProjection, BroadcastDirectRequest>> pairs = allPregnantWomenToBeRemindedForTheNextANCVisit
 				.parallelStream()
-				.filter(ancVisitReminderProjection -> ancVisitReminderProjection.getLatestAncVisitNumber() != null)
-				.map(ancVisitReminderProjection -> createANCVisitReminderMessageRequestBody(ancVisitReminderProjection,
-					qontakProperties.getWhatsApp().getVisitReminderMessageTemplateId()))
+				.filter(ancVisitReminderProjection -> ancVisitReminderProjection.getLatestAncVisitNumber() != null
+					&& ancVisitReminderProjection.getPregnancyGapCommaSeparatedValues() == null)
+				.map(
+					ancVisitReminderProjection -> Pair.of(ancVisitReminderProjection,
+						createANCVisitReminderMessageRequestBody(ancVisitReminderProjection,
+							qontakProperties.getWhatsApp().getVisitReminderMessageTemplateId(), false)))
 				.collect(toList());
 
 			pairs.parallelStream().forEach(pair -> broadcastMessageService
 				.sendBroadcastDirectRequestToQontakAPI(visitReminderSuccessCount, pair.getFirst(), pair.getSecond()));
+
+			// cannot do parallel because QR code file generation
+			allPregnantWomenToBeRemindedForTheNextANCVisit.stream()
+				.filter(ancVisitReminderProjection -> ancVisitReminderProjection.getLatestAncVisitNumber() != null
+					&& ancVisitReminderProjection.getPregnancyGapCommaSeparatedValues() != null)
+				.forEach(ancVisitReminderProjection -> broadcastMessageService.sendBroadcastDirectRequestToQontakAPI(
+					visitReminderSuccessCount, ancVisitReminderProjection,
+					createANCVisitReminderMessageRequestBody(ancVisitReminderProjection,
+						qontakProperties.getWhatsApp().getVisitReminderMessageTemplateId(), true)));
 
 			log.info("\"Send ANC Visit Reminder via WhatsApp\" for enrolled pregnant women completed.");
 			log.info(
@@ -82,18 +97,34 @@ public class VisitReminderService {
 		}
 	}
 
-	private Pair<AncVisitReminderProjection, BroadcastDirectRequest> createANCVisitReminderMessageRequestBody(
-		AncVisitReminderProjection ancVisitReminderProjection, String messageTemplateId) {
-		BroadcastDirectRequest requestBody = broadcastMessageService.createBroadcastDirectRequestBody(ancVisitReminderProjection,
-			messageTemplateId);
+	public BroadcastDirectRequest createANCVisitReminderMessageRequestBody(
+		AncVisitReminderProjection ancVisitReminderProjection, String messageTemplateId, boolean useQRCodeAsHeader) {
+		BroadcastDirectRequest requestBody = broadcastMessageService
+			.createBroadcastDirectRequestBody(ancVisitReminderProjection, messageTemplateId);
 
-		setParametersForANCVisitReminderMessage(ancVisitReminderProjection, requestBody);
-		return Pair.of(ancVisitReminderProjection, requestBody);
+		setParametersForANCVisitReminderMessage(ancVisitReminderProjection, requestBody, useQRCodeAsHeader);
+		return requestBody;
 	}
 
 	private void setParametersForANCVisitReminderMessage(AncVisitReminderProjection ancVisitReminderProjection,
-		BroadcastDirectRequest requestBody) {
-		Parameters parameters = new Parameters();
+		BroadcastDirectRequest requestBody, boolean useQRCodeAsHeader) {
+		Parameters parameters;
+		if (useQRCodeAsHeader) {
+			parameters = new ParametersWithHeader();
+			fhirResourceService.fillHeaderWithQRCodeImage(ancVisitReminderProjection,
+				Stream.of(ancVisitReminderProjection.getPregnancyGapCommaSeparatedValues().split(",")).map(String::trim)
+					.collect(toList()),
+				(ParametersWithHeader) parameters);
+			requestBody.setMessage_template_id(
+				qontakProperties.getWhatsApp().getVisitReminderWithHeaderImageMessageTemplateId());
+		} else {
+			parameters = new Parameters();
+		}
+		fillParameters(ancVisitReminderProjection, requestBody, parameters);
+	}
+
+	private void fillParameters(AncVisitReminderProjection ancVisitReminderProjection,
+		BroadcastDirectRequest requestBody, Parameters parameters) {
 		parameters.addBodyWithValues("1", "full_name", ancVisitReminderProjection.getFullName());
 		parameters.addBodyWithValues("2", "visit_number",
 			String.valueOf(ancVisitReminderProjection.getLatestAncVisitNumber() + 1));

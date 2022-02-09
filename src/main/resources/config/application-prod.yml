@@ -29,6 +29,16 @@ spring:
     hikari:
       poolName: Hikari
       auto-commit: false
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: oauth-client
+            client-secret: "changethis"
+        provider:
+          keycloak:
+            token-uri: https://keycloak.sid-indonesia.org/auth/realms/${hapi-fhir-server.keycloak.realm}/protocol/openid-connect/token
 
 # ===================================================================
 # To enable TLS in production, generate a certificate using:
@@ -74,3 +84,11 @@ qontak:
   base-url: https://chat-service.qontak.com
   whats-app:
     health-education-contact-list-csv-absolute-file-name: /opt/bidan-report/csv/contacts_health-education.csv
+
+qr-code:
+  directory-path: /opt/bidan-report/images/
+
+hapi-fhir-server:
+  base-url: http://hapi-fhir.sid-indonesia.org/fhir
+  keycloak:
+    realm: hapi-fhir

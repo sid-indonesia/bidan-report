@@ -27,23 +27,33 @@ spring:
       hibernate.query.fail_on_pagination_over_collection_fetch: true
   #liquibase:
   #  default-schema: test
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: oauth-client
+            client-secret: "changethis"
+        provider:
+          keycloak:
+            token-uri: https://keycloak.dev.sid-indonesia.org/auth/realms/${hapi-fhir-server.keycloak.realm}/protocol/openid-connect/token
 
 # client-id and client-secret retrieved from
 # https://docs.qontak.com/docs/omnichannel-hub/ZG9jOjE1MzEwMzc4-authentication#how-to-get-token
 qontak:
   base-url: https://stoplight.io/mocks/qontak/omnichannel-hub
-  client-id: RRrn6uIxalR_QaHFlcKOqbjHMG63elEdPTair9B9YdY
-  client-secret: Sa8IGIh_HpVK1ZLAF0iFf7jU760osaUNV659pBIZR00
   username: test
   password: password
   api-path-authentication: /17521989/oauth/token
   api-path-broadcast-direct: /15212622/v1/broadcasts/whatsapp/direct
   api-path-broadcast: /15212622/v1/broadcasts/whatsapp
   api-path-contact-list-async: /15212622/v1/contacts/contact_lists # no path /async in mock server
+  api-path-upload-file: /15212622/v1/file_uploader
   whats-app:
     pregnant-woman-message-template-id: 8ce51d59-f848-4137-960a-49b3e9b9415b
     non-pregnant-woman-message-template-id: 8ce51d59-f848-4137-960a-49b3e9b9415c
     visit-reminder-message-template-id: 8ce51d59-f848-4137-960a-49b3e9b9415d
+    visit-reminder-with-header-image-message-template-id: 8ce51d59-f848-4137-960a-49b3e9b9415a
     visit-reminder-interval-in-days: 1
     visit-interval-in-days: 30
     pregnancy-gap-message-template-id: 8ce51d59-f848-4137-960a-49b3e9b9415e
@@ -53,3 +63,12 @@ qontak:
 
 scheduling:
   enabled: false
+
+qr-code:
+  directory-path: /tmp/
+
+hapi-fhir-server:
+  base-url: https://hapi-fhir.dev.sid-indonesia.org/fhir
+#  base-url: http://localhost:8080/fhir
+  keycloak:
+    realm: hapi-fhir

@@ -21,6 +21,7 @@ public class QontakProperties {
 	private String apiPathBroadcastDirect;
 	private String apiPathBroadcast;
 	private String apiPathContactListAsync;
+	private String apiPathUploadFile;
 	private WhatsApp whatsApp;
 
 	@Data
@@ -28,6 +29,7 @@ public class QontakProperties {
 		private String pregnantWomanMessageTemplateId;
 		private String nonPregnantWomanMessageTemplateId;
 		private String visitReminderMessageTemplateId;
+		private String visitReminderWithHeaderImageMessageTemplateId;
 		private Integer visitReminderIntervalInDays;
 		private Integer visitIntervalInDays;
 		private String pregnancyGapMessageTemplateId;
