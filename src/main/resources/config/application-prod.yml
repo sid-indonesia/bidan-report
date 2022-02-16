@@ -89,6 +89,6 @@ qr-code:
   directory-path: /opt/bidan-report/images/
 
 hapi-fhir-server:
-  base-url: http://hapi-fhir.sid-indonesia.org/fhir
+  base-url: https://hapi-fhir.sid-indonesia.org/fhir
   keycloak:
     realm: hapi-fhir
