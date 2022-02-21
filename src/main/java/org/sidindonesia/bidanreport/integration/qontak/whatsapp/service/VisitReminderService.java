@@ -125,7 +125,8 @@ public class VisitReminderService {
 
 	private void fillParameters(AncVisitReminderProjection ancVisitReminderProjection,
 		BroadcastDirectRequest requestBody, Parameters parameters) {
-		parameters.addBodyWithValues("1", "full_name", ancVisitReminderProjection.getFullName());
+		parameters.addBodyWithValues("1", "full_name",
+			ancVisitReminderProjection.getFullName() == null ? "-" : ancVisitReminderProjection.getFullName());
 		parameters.addBodyWithValues("2", "visit_number",
 			String.valueOf(ancVisitReminderProjection.getLatestAncVisitNumber() + 1));
 		requestBody.setParameters(parameters);

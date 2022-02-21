@@ -101,7 +101,8 @@ public class PregnancyGapService {
 
 		Parameters parameters = new Parameters();
 
-		parameters.addBodyWithValues("1", "full_name", motherIdentity.getFullName());
+		parameters.addBodyWithValues("1", "full_name",
+			motherIdentity.getFullName() == null ? "-" : motherIdentity.getFullName());
 		parameters.addBodyWithValues("2", "anc_date", values.get(0));
 		parameters.addBodyWithValues("3", "gestational_age", values.get(1));
 		parameters.addBodyWithValues("4", "height_in_cm", values.get(2));

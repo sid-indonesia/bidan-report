@@ -91,17 +91,17 @@ class FhirResourceServiceTest {
 
 	@Disabled("test for using real Qontak API, not mock")
 	@Test
-	void testSendVisitReminderWithHeaderImage() throws Exception {
+	void testSendVisitReminderWithHeaderImageIsQRCodeOfFHIRResources() throws Exception {
 		AncVisitReminderProjection ancVisitReminderProjection = new AncVisitReminderProjection() {
 
 			@Override
 			public String getMobilePhoneNumber() {
-				return "083812345678";
+				return "081234567890"; // change this to preferred WA account to be given WA message
 			}
 
 			@Override
 			public String getFullName() {
-				return "Levi";
+				return "Test Name"; // change this
 			}
 
 			@Override
@@ -117,14 +117,15 @@ class FhirResourceServiceTest {
 
 			@Override
 			public Integer getLatestAncVisitNumber() {
-				return 2;
+				return 1;
 			}
 		};
 
-		broadcastMessageService.sendBroadcastDirectRequestToQontakAPI(new AtomicLong(), ancVisitReminderProjection,
+		AtomicLong successCount = new AtomicLong();
+		broadcastMessageService.sendBroadcastDirectRequestToQontakAPI(successCount, ancVisitReminderProjection,
 			visitReminderService.createANCVisitReminderMessageRequestBody(ancVisitReminderProjection,
 				qontakProperties.getWhatsApp().getVisitReminderWithHeaderImageMessageTemplateId(), true));
 
-		assertThat(broadcastMessageService).isNotNull();
+		assertThat(successCount.get()).isEqualTo(1);
 	}
 }

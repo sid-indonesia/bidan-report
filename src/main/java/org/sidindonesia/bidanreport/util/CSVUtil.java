@@ -30,8 +30,9 @@ public class CSVUtil {
 		try (CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT.builder().setHeader(HEADERS).build())) {
 			healthEducationProjections.forEach(projection -> {
 				try {
-					printer.printRecord(IndonesiaPhoneNumberUtil.sanitize(projection.getMobilePhoneNumber()),
-						projection.getFullName(), projection.getFullName(), COMPANY, projection.getPregnancyTrimester(),
+					String fullName = projection.getFullName() == null ? "-" : projection.getFullName();
+					printer.printRecord(IndonesiaPhoneNumberUtil.sanitize(projection.getMobilePhoneNumber()), fullName,
+						fullName, COMPANY, projection.getPregnancyTrimester(),
 						projection.getCalculatedGestationalAge());
 				} catch (IOException e) {
 					log.error("Error writing CSV file: {} with error message: {}, error object: {}", csvFileName,
