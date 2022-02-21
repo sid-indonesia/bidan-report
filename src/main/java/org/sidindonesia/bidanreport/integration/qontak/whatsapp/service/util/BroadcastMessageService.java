@@ -81,7 +81,8 @@ public class BroadcastMessageService {
 		BroadcastDirectRequest requestBody = new BroadcastDirectRequest();
 		requestBody.setChannel_integration_id(qontakProperties.getWhatsApp().getChannelIntegrationId());
 		requestBody.setMessage_template_id(messageTemplateId);
-		requestBody.setTo_name(motherIdentity.getFullName());
+		requestBody.setTo_name(motherIdentity.getFullName() == null ? motherIdentity.getMobilePhoneNumber()
+			: motherIdentity.getFullName());
 		requestBody.setTo_number(IndonesiaPhoneNumberUtil.sanitize(motherIdentity.getMobilePhoneNumber()));
 		return requestBody;
 	}

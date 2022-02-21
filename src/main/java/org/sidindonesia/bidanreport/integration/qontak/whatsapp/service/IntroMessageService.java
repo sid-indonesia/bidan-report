@@ -104,7 +104,8 @@ public class IntroMessageService {
 	private void setParametersForIntroMessage(MotherIdentityWhatsAppProjection motherIdentity,
 		BroadcastDirectRequest requestBody) {
 		Parameters parameters = new Parameters();
-		parameters.addBodyWithValues("1", "full_name", motherIdentity.getFullName());
+		parameters.addBodyWithValues("1", "full_name",
+			motherIdentity.getFullName() == null ? "-" : motherIdentity.getFullName());
 		parameters.addBodyWithValues("2", "dho", qontakProperties.getWhatsApp().getDistrictHealthOfficeName());
 		requestBody.setParameters(parameters);
 	}
