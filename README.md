@@ -74,6 +74,7 @@ Current version of the `bidan-report` is a standalone restful web application th
     health-education:
       cron: "0 0 13 * * Mon" # At 01:00 PM, only on Monday
       zone: Asia/Jakarta
+
   hapi-fhir-server:
     base-url: https://hapi-fhir.example.org/fhir
   ```
