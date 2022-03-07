@@ -43,23 +43,23 @@ Current version of the `bidan-report` is a standalone restful web application th
               client-secret: "b77be48f-33b4-4d5b-9326-8fc54f44dd74"
 
   qontak:
-  base-url: https://chat-service.qontak.com
-  client-id: service_accounts_enabled_client_id
-  client-secret: hard-to-crack-client-secret
-  username: supervisor_user
-  password: hard-to-crack-user-password
-  whats-app:
-    pregnant-woman-message-template-id: 89ede237-16f0-40d1-8a37-7f59446895ca
-    non-pregnant-woman-message-template-id: 89ede237-16f0-40d1-8a37-7f59446895cb
-    visit-reminder-message-template-id: 89ede237-16f0-40d1-8a37-7f59446895cc
-    visit-reminder-with-header-image-message-template-id: 89ede237-16f0-40d1-8a37-7f59446895cd
-    visit-reminder-interval-in-days: 1
-    visit-interval-in-days: 30
-    pregnancy-gap-message-template-id: 89ede237-16f0-40d1-8a37-7f59446895ce
-    health-education-message-template-id: 89ede237-16f0-40d1-8a37-7f59446895cf
-    channel-integration-id: 89ede237-16f0-40d1-8a37-7f59446895c1
-    district-health-office-name: Jakarta Pusat
-    health-education-contact-list-csv-absolute-file-name: /tmp/bidan-report/csv/contacts_health-education.csv
+    base-url: https://chat-service.qontak.com
+    client-id: service_accounts_enabled_client_id
+    client-secret: hard-to-crack-client-secret
+    username: supervisor_user
+    password: hard-to-crack-user-password
+    whats-app:
+      pregnant-woman-message-template-id: 89ede237-16f0-40d1-8a37-7f59446895ca
+      non-pregnant-woman-message-template-id: 89ede237-16f0-40d1-8a37-7f59446895cb
+      visit-reminder-message-template-id: 89ede237-16f0-40d1-8a37-7f59446895cc
+      visit-reminder-with-header-image-message-template-id: 89ede237-16f0-40d1-8a37-7f59446895cd
+      visit-reminder-interval-in-days: 1
+      visit-interval-in-days: 30
+      pregnancy-gap-message-template-id: 89ede237-16f0-40d1-8a37-7f59446895ce
+      health-education-message-template-id: 89ede237-16f0-40d1-8a37-7f59446895cf
+      channel-integration-id: 89ede237-16f0-40d1-8a37-7f59446895c1
+      district-health-office-name: Jakarta Pusat
+      health-education-contact-list-csv-absolute-file-name: /tmp/bidan-report/csv/contacts_health-education.csv
 
   scheduling:
     intro-message:
