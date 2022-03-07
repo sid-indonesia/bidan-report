@@ -19,7 +19,7 @@ https://docs.spring.io/spring-boot/docs/2.4.6/reference/html/deployment.html#dep
 
 ### Development
 
-Maven is used as the software project mananagement tool.
+Maven is used as the software project management tool.
 
 ### Building
 
