@@ -31,6 +31,16 @@ spring:
     hikari:
       poolName: Hikari
       auto-commit: false
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: oauth-client
+            client-secret: "changethis"
+        provider:
+          keycloak:
+            token-uri: https://keycloak.dev.sid-indonesia.org/auth/realms/${hapi-fhir-server.keycloak.realm}/protocol/openid-connect/token
 
 server:
   port: 8081
@@ -50,3 +60,8 @@ keycloak:
 
 qontak:
   base-url: https://chat-service.qontak.com
+
+hapi-fhir-server:
+  base-url: https://hapi-fhir.dev.sid-indonesia.org/fhir
+  keycloak:
+    realm: hapi-fhir
