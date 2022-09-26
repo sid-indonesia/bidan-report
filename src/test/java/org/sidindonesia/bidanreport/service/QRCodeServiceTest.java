@@ -9,14 +9,12 @@ import org.junit.jupiter.api.Test;
 import org.sidindonesia.bidanreport.IntegrationTest;
 import org.sidindonesia.bidanreport.config.property.QRCodeProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
-import org.sidindonesia.bidanreport.integration.qontak.web.response.FileUploadResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import com.google.gson.Gson;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
@@ -32,9 +30,6 @@ class QRCodeServiceTest {
 
 	@Autowired
 	private WebClient webClient;
-
-	@Autowired
-	private Gson gson;
 
 	@Autowired
 	private QontakProperties qontakProperties;
@@ -61,14 +56,12 @@ class QRCodeServiceTest {
 
 		MatrixToImageWriter.writeToPath(bitMatrix, "PNG", path);
 
-		Mono<FileUploadResponse> response = webClient.post().uri(qontakProperties.getApiPathUploadFile())
+		Mono<HttpStatus> response = webClient.post().uri(qontakProperties.getApiPathUploadFile())
 			.body(BodyInserters.fromMultipartData("file", fileSystemResource))
-			.header("Authorization", "Bearer " + qontakProperties.getAccessToken()).retrieve()
-			.bodyToMono(FileUploadResponse.class).onErrorResume(WebClientResponseException.class,
-				ex -> ex.getRawStatusCode() == 422 || ex.getRawStatusCode() == 401
-					? Mono.just(gson.fromJson(ex.getResponseBodyAsString(), FileUploadResponse.class))
-					: Mono.error(ex));
+			.header("Authorization", "Bearer " + qontakProperties.getAccessToken()).exchangeToMono(response2 -> {
+				return Mono.just(response2.statusCode());
+			});
 
-		assertThat(response.block().getStatus()).isNotEqualToIgnoringCase("error");
+		assertThat(response.block()).isEqualTo(HttpStatus.CREATED);
 	}
 }

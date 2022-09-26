@@ -44,8 +44,8 @@ class IntroMessageServiceTest {
 		requestBody.setGrant_type("password");
 		requestBody.setUsername(qontakProperties.getUsername());
 		requestBody.setPassword(qontakProperties.getPassword());
-		Mono<AuthResponse> response = webClient.post().uri("/17521989/oauth/token").bodyValue(requestBody).retrieve()
-			.bodyToMono(AuthResponse.class);
+		Mono<AuthResponse> response = webClient.post().uri(qontakProperties.getApiPathAuthentication())
+			.bodyValue(requestBody).retrieve().bodyToMono(AuthResponse.class);
 
 		AuthResponse responseBody = response.block();
 		assertThat(responseBody.getAccess_token()).isNotBlank();
