@@ -32,11 +32,6 @@ class IntroMessageServiceTest {
 
 	@Test
 	void assertThatQontakWhatsAppConfigPropertiesAreCorrect() {
-		// client-id and client-secret retrieved from
-		// https://docs.qontak.com/docs/omnichannel-hub/ZG9jOjE1MzEwMzc4-authentication#how-to-get-token
-		assertThat(qontakProperties.getClientId()).isEqualTo("RRrn6uIxalR_QaHFlcKOqbjHMG63elEdPTair9B9YdY");
-		assertThat(qontakProperties.getClientSecret()).isEqualTo("Sa8IGIh_HpVK1ZLAF0iFf7jU760osaUNV659pBIZR00");
-
 		assertThat(qontakProperties.getUsername()).isEqualTo("test");
 		assertThat(qontakProperties.getPassword()).isEqualTo("password");
 	}

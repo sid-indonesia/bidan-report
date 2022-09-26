@@ -38,8 +38,6 @@ spring:
           keycloak:
             token-uri: https://keycloak.dev.sid-indonesia.org/auth/realms/${hapi-fhir-server.keycloak.realm}/protocol/openid-connect/token
 
-# client-id and client-secret retrieved from
-# https://docs.qontak.com/docs/omnichannel-hub/ZG9jOjE1MzEwMzc4-authentication#how-to-get-token
 qontak:
   base-url: https://stoplight.io/mocks/qontak/omnichannel-hub
   client-id: client-id
