@@ -21,6 +21,7 @@ import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
 import org.sidindonesia.bidanreport.repository.projection.HealthEducationProjection;
 import org.sidindonesia.bidanreport.util.CSVUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -40,6 +41,8 @@ public class HealthEducationService {
 	private final BroadcastMessageService broadcastMessageService;
 	private final ContactListService contactListService;
 	private final AutomatedMessageStatsRepository automatedMessageStatsRepository;
+	@Value("${scheduling.contact-list.delay-in-ms:300000}")
+	private Long contactListDelayInMs;
 
 	@Scheduled(cron = "${scheduling.health-education.cron}", zone = "${scheduling.health-education.zone}")
 	public void sendHealthEducationsToEnrolledMothers() throws IOException, InterruptedException {
@@ -89,7 +92,9 @@ public class HealthEducationService {
 
 			if (contactListId != null) {
 				// Give Qontak some time to process the contact list
-				Thread.sleep(300000); // 5 minutes
+				// (because the API is asynchronous and currently
+				// there is no "synchronously Create Contact List API")
+				Thread.sleep(contactListDelayInMs);
 
 				// Broadcast to contact_list
 				boolean isSuccess = broadcastHealthEducationMessageViaWhatsApp(

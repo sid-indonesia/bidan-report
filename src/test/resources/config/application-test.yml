@@ -42,13 +42,15 @@ spring:
 # https://docs.qontak.com/docs/omnichannel-hub/ZG9jOjE1MzEwMzc4-authentication#how-to-get-token
 qontak:
   base-url: https://stoplight.io/mocks/qontak/omnichannel-hub
+  client-id: client-id
+  client-secret: client-secret
   username: test
   password: password
-  api-path-authentication: /17521989/oauth/token
-  api-path-broadcast-direct: /15212622/v1/broadcasts/whatsapp/direct
-  api-path-broadcast: /15212622/v1/broadcasts/whatsapp
-  api-path-contact-list-async: /15212622/v1/contacts/contact_lists # no path /async in mock server
-  api-path-upload-file: /15212622/v1/file_uploader
+  api-path-authentication: /73901530/v1/oauth/token
+  api-path-broadcast-direct: /73901530/v1/broadcasts/whatsapp/direct
+  api-path-broadcast: /73901530/v1/broadcasts/whatsapp
+  api-path-contact-list-async: /73901530/v1/contacts/contact_lists # no path /async in mock server
+  api-path-upload-file: /73901530/v1/file_uploader
   whats-app:
     pregnant-woman-message-template-id: 8ce51d59-f848-4137-960a-49b3e9b9415b
     non-pregnant-woman-message-template-id: 8ce51d59-f848-4137-960a-49b3e9b9415c
