@@ -50,26 +50,30 @@ qontak:
   api-path-broadcast-direct: /api/open/v1/broadcasts/whatsapp/direct
   api-path-broadcast: /api/open/v1/broadcasts/whatsapp
   api-path-contact-list-async: /api/open/v1/contacts/contact_lists/async
+  api-path-contact-list: /api/open/v1/contacts/contact_lists
   api-path-upload-file: /api/open/v1/file_uploader
   whats-app:
     health-education-contact-list-csv-absolute-file-name: /tmp/contacts_health-education.csv
+    intro-message-contact-list-csv-absolute-file-name: /tmp/contacts_intro-message.csv
 
 scheduling:
   enabled: true
   intro-message:
-    fixed-rate-in-ms: 300000 # 5 minutes
+    fixed-rate-in-ms: 1800000 # 30 minutes
     initial-delay-in-ms: 60000 # 1 minute
   visit-reminder:
     cron: "0 30 18 * * ?" # At 06:30 PM
     zone: Asia/Jakarta
   pregnancy-gap:
-    fixed-rate-in-ms: 300000 # 5 minutes
+    fixed-rate-in-ms: 3600000 # 1 hour
     initial-delay-in-ms: 60000 # 1 minute
   health-education:
-    cron: "0 55 12 * * Mon" # At 01:00 PM, only on Monday
+    cron: "0 0 13 * * Mon" # At 01:00 PM, only on Monday
     zone: Asia/Jakarta
   contact-list:
-    delay-in-ms: 600000 # 10 minutes
+    delay-in-ms: 60000 # 1 minute
+    initial-delay-in-ms: 5000 # 5 seconds
+    max-number-of-retries: 10
 
 qr-code:
   width: 700

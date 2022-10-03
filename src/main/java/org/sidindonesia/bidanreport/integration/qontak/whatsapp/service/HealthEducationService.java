@@ -1,19 +1,20 @@
 package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service;
 
 import static java.util.stream.Collectors.toList;
+import static org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.ContactListUtil.*;
 import static org.sidindonesia.bidanreport.util.CSVUtil.CALC_GESTATIONAL;
 import static org.sidindonesia.bidanreport.util.CSVUtil.FULL_NAME;
 import static org.sidindonesia.bidanreport.util.CSVUtil.PREGNA_TRIMESTER;
 
 import java.io.IOException;
-import java.nio.file.FileSystems;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.sidindonesia.bidanreport.config.property.SchedulingProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.repository.AutomatedMessageStatsRepository;
+import org.sidindonesia.bidanreport.integration.qontak.web.response.RetrieveContactListResponse;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
-import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.ContactListRequest;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.Parameters;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.BroadcastMessageService;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.ContactListService;
@@ -21,8 +22,6 @@ import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
 import org.sidindonesia.bidanreport.repository.projection.HealthEducationProjection;
 import org.sidindonesia.bidanreport.util.CSVUtil;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,8 +40,7 @@ public class HealthEducationService {
 	private final BroadcastMessageService broadcastMessageService;
 	private final ContactListService contactListService;
 	private final AutomatedMessageStatsRepository automatedMessageStatsRepository;
-	@Value("${scheduling.contact-list.delay-in-ms:300000}")
-	private Long contactListDelayInMs;
+	private final SchedulingProperties schedulingProperties;
 
 	@Scheduled(cron = "${scheduling.health-education.cron}", zone = "${scheduling.health-education.zone}")
 	public void sendHealthEducationsToEnrolledMothers() throws IOException, InterruptedException {
@@ -82,7 +80,7 @@ public class HealthEducationService {
 			// Create contact list CSV
 			String contactsCsvFileName = qontakProperties.getWhatsApp()
 				.getHealthEducationContactListCsvAbsoluteFileName().replace(".csv", "_" + fromTable + ".csv");
-			CSVUtil.createContactListCSVFile(filteredPregnantWomen, contactsCsvFileName);
+			CSVUtil.createContactListCSVFileForHealthEducation(filteredPregnantWomen, contactsCsvFileName);
 
 			String campaignName = LocalDate.now() + " " + qontakProperties.getWhatsApp().getDistrictHealthOfficeName()
 				+ ", " + fromTable + " (Health Education)";
@@ -94,27 +92,19 @@ public class HealthEducationService {
 				// Give Qontak some time to process the contact list
 				// (because the API is asynchronous and currently
 				// there is no "synchronously Create Contact List API")
-				Thread.sleep(contactListDelayInMs);
+				Thread.sleep(schedulingProperties.getContactList().getInitialDelayInMs()); // give initial 5 seconds
+				for (int i = 0; i < schedulingProperties.getContactList().getMaxNumberOfRetries(); i++) {
+					RetrieveContactListResponse response = contactListService
+						.retrieveContactListRequestToQontakAPI(contactListId);
 
-				// Broadcast to contact_list
-				boolean isSuccess = broadcastHealthEducationMessageViaWhatsApp(
-					qontakProperties.getWhatsApp().getHealthEducationMessageTemplateId(), contactListId, campaignName);
+					if ("success".equalsIgnoreCase(response.getData().getProgress())) {
+						broadcastBulk(fromTable, filteredPregnantWomen, campaignName, contactListId);
+						break;
+					}
 
-				log.info("\"Send Health Education via WhatsApp\" for enrolled pregnant women completed. (" + fromTable
-					+ ")");
-
-				if (isSuccess) {
-					log.info(
-						"{} enrolled pregnant women have been given health education via WhatsApp successfully as bulk broadcast request.",
-						filteredPregnantWomen.size());
-					automatedMessageStatsRepository.upsert(
-						qontakProperties.getWhatsApp().getHealthEducationMessageTemplateId(), "health_education",
-						filteredPregnantWomen.size(), 0);
-				} else {
-					automatedMessageStatsRepository.upsert(
-						qontakProperties.getWhatsApp().getHealthEducationMessageTemplateId(), "health_education", 0,
-						filteredPregnantWomen.size());
+					Thread.sleep(schedulingProperties.getContactList().getDelayInMs());
 				}
+
 			} else {
 				log.error(
 					"\"Send Health Education via WhatsApp\" for enrolled pregnant women failed due to error when POST contact list. ("
@@ -123,14 +113,27 @@ public class HealthEducationService {
 		}
 	}
 
-	private ContactListRequest createContactListRequest(String campaignName, String fileName) {
-		ContactListRequest requestBody = new ContactListRequest();
-		requestBody.setName(campaignName);
-		requestBody.setFile(new FileSystemResource(FileSystems.getDefault().getPath(fileName)));
-		return requestBody;
+	private void broadcastBulk(String fromTable, List<HealthEducationProjection> filteredPregnantWomen,
+		String campaignName, String contactListId) {
+		// Broadcast to contact_list
+		boolean isSuccess = broadcastBulkMessageViaWhatsApp(
+			qontakProperties.getWhatsApp().getHealthEducationMessageTemplateId(), contactListId, campaignName);
+
+		log.info("\"Send Health Education via WhatsApp\" for enrolled pregnant women completed. (" + fromTable + ")");
+
+		if (isSuccess) {
+			log.info(
+				"{} enrolled pregnant women have been given health education via WhatsApp successfully as bulk broadcast request.",
+				filteredPregnantWomen.size());
+			automatedMessageStatsRepository.upsert(qontakProperties.getWhatsApp().getHealthEducationMessageTemplateId(),
+				"health_education", filteredPregnantWomen.size(), 0);
+		} else {
+			automatedMessageStatsRepository.upsert(qontakProperties.getWhatsApp().getHealthEducationMessageTemplateId(),
+				"health_education", 0, filteredPregnantWomen.size());
+		}
 	}
 
-	private boolean broadcastHealthEducationMessageViaWhatsApp(String messageTemplateId, String contactListId,
+	private boolean broadcastBulkMessageViaWhatsApp(String messageTemplateId, String contactListId,
 		String campaignName) {
 		BroadcastRequest requestBody = createHealthEducationMessageRequestBody(messageTemplateId, contactListId,
 			campaignName);
