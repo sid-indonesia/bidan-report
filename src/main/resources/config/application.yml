@@ -55,6 +55,7 @@ qontak:
   whats-app:
     health-education-contact-list-csv-absolute-file-name: /tmp/contacts_health-education.csv
     intro-message-contact-list-csv-absolute-file-name: /tmp/contacts_intro-message.csv
+    pregnancy-gap-contact-list-csv-absolute-file-name: /tmp/contacts_pregnancy-gap.csv
 
 scheduling:
   enabled: true

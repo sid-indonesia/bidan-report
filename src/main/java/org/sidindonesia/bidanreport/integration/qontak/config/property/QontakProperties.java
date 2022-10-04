@@ -39,5 +39,6 @@ public class QontakProperties {
 		private String districtHealthOfficeName;
 		private String healthEducationContactListCsvAbsoluteFileName;
 		private String introMessageContactListCsvAbsoluteFileName;
+		private String pregnancyGapContactListCsvAbsoluteFileName;
 	}
 }

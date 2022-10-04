@@ -5,12 +5,13 @@ import static org.sidindonesia.bidanreport.util.CSVUtil.DHO;
 import static org.sidindonesia.bidanreport.util.CSVUtil.FULL_NAME;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import org.sidindonesia.bidanreport.config.property.LastIdProperties;
 import org.sidindonesia.bidanreport.config.property.SchedulingProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
+import org.sidindonesia.bidanreport.integration.qontak.repository.AutomatedMessageStatsRepository;
 import org.sidindonesia.bidanreport.integration.qontak.web.response.RetrieveContactListResponse;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.Parameters;
@@ -38,6 +39,7 @@ public class IntroMessageService {
 	private final QontakProperties qontakProperties;
 	private final BroadcastMessageService broadcastMessageService;
 	private final ContactListService contactListService;
+	private final AutomatedMessageStatsRepository automatedMessageStatsRepository;
 	private final SchedulingProperties schedulingProperties;
 
 	@Scheduled(fixedRateString = "${scheduling.intro-message.fixed-rate-in-ms}", initialDelayString = "${scheduling.intro-message.initial-delay-in-ms}")
@@ -53,9 +55,9 @@ public class IntroMessageService {
 			.findAllPregnantWomenByEventIdGreaterThanAndHasMobilePhoneNumberOrderByEventId(
 				lastIdProperties.getMotherIdentity().getPregnantMotherLastId());
 
-		broadcastPregnantWomenIntroMessageTo(newPregnantWomenIdentities, "mother_identity");
-
 		if (!newPregnantWomenIdentities.isEmpty()) {
+			broadcastPregnantWomenIntroMessageTo(newPregnantWomenIdentities, "mother_identity");
+
 			lastIdProperties.getMotherIdentity().setPregnantMotherLastId(
 				newPregnantWomenIdentities.get(newPregnantWomenIdentities.size() - 1).getEventId());
 			log.info("Scheduled \"Send Join Notification via WhatsApp\" for new enrolled pregnant women completed.");
@@ -67,9 +69,9 @@ public class IntroMessageService {
 			.findAllPregnantWomenByLastEditAndPreviouslyInMotherIdentityNoMobilePhoneNumberOrderByEventId(
 				lastIdProperties.getMotherEdit().getPregnantMotherLastId());
 
-		broadcastPregnantWomenIntroMessageTo(editedPregnantWomenIds, "mother_edit");
-
 		if (!editedPregnantWomenIds.isEmpty()) {
+			broadcastPregnantWomenIntroMessageTo(editedPregnantWomenIds, "mother_edit");
+
 			lastIdProperties.getMotherEdit()
 				.setPregnantMotherLastId(editedPregnantWomenIds.get(editedPregnantWomenIds.size() - 1).getEventId());
 			log.info("Scheduled \"Send Join Notification via WhatsApp\" for edited pregnant women completed.");
@@ -85,7 +87,7 @@ public class IntroMessageService {
 		CSVUtil.createContactListCSVFileForIntroMessage(pregnantWomenIdentities, contactsCsvFileName,
 			qontakProperties.getWhatsApp().getDistrictHealthOfficeName());
 
-		String campaignName = LocalDateTime.now() + " " + qontakProperties.getWhatsApp().getDistrictHealthOfficeName()
+		String campaignName = ZonedDateTime.now() + " " + qontakProperties.getWhatsApp().getDistrictHealthOfficeName()
 			+ ", " + fromTable + " (Intro Message)";
 		// Hit API post contact list, get contact_list_id
 		String contactListId = contactListService
@@ -102,11 +104,15 @@ public class IntroMessageService {
 
 				if ("success".equalsIgnoreCase(response.getData().getProgress())) {
 					broadcastBulk(fromTable, pregnantWomenIdentities, campaignName, contactListId);
-					break;
+					return;
 				}
 
 				Thread.sleep(schedulingProperties.getContactList().getDelayInMs());
 			}
+			log.error(
+				"\"Send Intro Message via WhatsApp\" failed due to Contact List not available after {} retries with interval {}ms",
+				schedulingProperties.getContactList().getMaxNumberOfRetries(),
+				schedulingProperties.getContactList().getDelayInMs());
 
 		} else {
 			log.error(
@@ -127,6 +133,11 @@ public class IntroMessageService {
 			log.info(
 				"{} enrolled pregnant women have been given intro message via WhatsApp successfully as bulk broadcast request.",
 				pregnantWomenIdentities.size());
+			automatedMessageStatsRepository.upsert(qontakProperties.getWhatsApp().getPregnantWomanMessageTemplateId(),
+				"intro_pregnant_woman", pregnantWomenIdentities.size(), 0);
+		} else {
+			automatedMessageStatsRepository.upsert(qontakProperties.getWhatsApp().getPregnantWomanMessageTemplateId(),
+				"intro_pregnant_woman", 0, pregnantWomenIdentities.size());
 		}
 	}
 

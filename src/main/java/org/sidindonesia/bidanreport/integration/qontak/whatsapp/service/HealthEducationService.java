@@ -99,11 +99,15 @@ public class HealthEducationService {
 
 					if ("success".equalsIgnoreCase(response.getData().getProgress())) {
 						broadcastBulk(fromTable, filteredPregnantWomen, campaignName, contactListId);
-						break;
+						return;
 					}
 
 					Thread.sleep(schedulingProperties.getContactList().getDelayInMs());
 				}
+				log.error(
+					"\"Send Health Education via WhatsApp\" failed due to Contact List not available after {} retries with interval {}ms",
+					schedulingProperties.getContactList().getMaxNumberOfRetries(),
+					schedulingProperties.getContactList().getDelayInMs());
 
 			} else {
 				log.error(
