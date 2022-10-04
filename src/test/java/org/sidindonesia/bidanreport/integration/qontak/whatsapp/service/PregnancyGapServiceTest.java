@@ -27,7 +27,7 @@ class PregnancyGapServiceTest {
 	}
 
 	@Test
-	void testSendPregnancyGapMessageToEnrolledPregnantWomen_withHappyFlow() {
+	void testSendPregnancyGapMessageToEnrolledPregnantWomen_withHappyFlow() throws Exception {
 		// given
 		insertDummyDataForPregnancyGap();
 		// when
@@ -37,7 +37,7 @@ class PregnancyGapServiceTest {
 	}
 
 	@Test
-	void testSendPregnancyGapMessageToEnrolledPregnantWomen_withNoDataExisted() {
+	void testSendPregnancyGapMessageToEnrolledPregnantWomen_withNoDataExisted() throws Exception {
 		// when
 		pregnancyGapService.sendPregnancyGapMessageToEnrolledMothers();
 		// then

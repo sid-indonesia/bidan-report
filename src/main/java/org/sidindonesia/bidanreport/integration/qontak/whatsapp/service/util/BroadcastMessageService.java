@@ -2,6 +2,7 @@ package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.sidindonesia.bidanreport.config.property.SchedulingProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastDirectRequest;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
@@ -28,6 +29,7 @@ public class BroadcastMessageService {
 	private final QontakProperties qontakProperties;
 	private final WebClient webClient;
 	private final Gson gson;
+	private final SchedulingProperties schedulingProperties;
 
 	public void sendBroadcastDirectRequestToQontakAPI(AtomicLong successCount,
 		MotherIdentityWhatsAppProjection motherIdentity, BroadcastDirectRequest requestBody) {
@@ -53,27 +55,42 @@ public class BroadcastMessageService {
 		}
 	}
 
-	public boolean sendBroadcastRequestToQontakAPI(BroadcastRequest requestBody) {
-		Mono<BroadcastResponse> response = webClient.post().uri(qontakProperties.getApiPathBroadcast())
-			.bodyValue(requestBody).header("Authorization", "Bearer " + qontakProperties.getAccessToken()).retrieve()
-			.bodyToMono(BroadcastResponse.class).onErrorResume(WebClientResponseException.class,
-				ex -> ex.getRawStatusCode() == 422 || ex.getRawStatusCode() == 401
-					? Mono.just(gson.fromJson(ex.getResponseBodyAsString(), BroadcastResponse.class))
-					: Mono.error(ex));
-
-		BroadcastResponse responseBody = response.block();
-		if (responseBody != null) {
-			if ("success".equals(responseBody.getStatus())) {
-				return true;
+	public boolean sendBroadcastRequestToQontakAPI(BroadcastRequest requestBody) throws InterruptedException {
+		for (int i = 0; i < schedulingProperties.getBroadcastBulk().getMaxNumberOfRetries(); i++) {
+			BroadcastResponse responseBody = broadcastBulk(requestBody).block();
+			if (responseBody != null) {
+				if ("429".equalsIgnoreCase(responseBody.getStatus())) {
+					Thread.sleep(schedulingProperties.getBroadcastBulk().getDelayInMs());
+					log.debug("Retrying broadcast bulk: {}", requestBody);
+				} else if ("success".equals(responseBody.getStatus())) {
+					return true;
+				} else {
+					log.error("Request broadcast message failed for Contact List with ID: {}, with error details: {}",
+						requestBody.getContact_list_id(), responseBody.getError());
+					return false;
+				}
 			} else {
-				log.error("Request broadcast message failed for Contact List with ID: {}, with error details: {}",
-					requestBody.getContact_list_id(), responseBody.getError());
+				log.error("Request broadcast message failed with no content for Contact List with ID: {}",
+					requestBody.getContact_list_id());
+				return false;
 			}
-		} else {
-			log.error("Request broadcast message failed with no content for Contact List with ID: {}",
-				requestBody.getContact_list_id());
+
 		}
 		return false;
+
+	}
+
+	private Mono<BroadcastResponse> broadcastBulk(BroadcastRequest requestBody) {
+		return webClient.post().uri(qontakProperties.getApiPathBroadcast()).bodyValue(requestBody)
+			.header("Authorization", "Bearer " + qontakProperties.getAccessToken()).retrieve()
+			.bodyToMono(BroadcastResponse.class).onErrorResume(WebClientResponseException.class, ex -> {
+				if (ex.getRawStatusCode() == 429) {
+					return Mono.just(new BroadcastResponse().withStatus(ex.getRawStatusCode()));
+				}
+				return ex.getRawStatusCode() == 422 || ex.getRawStatusCode() == 401
+					? Mono.just(gson.fromJson(ex.getResponseBodyAsString(), BroadcastResponse.class))
+					: Mono.error(ex);
+			});
 	}
 
 	public BroadcastDirectRequest createBroadcastDirectRequestBody(MotherIdentityWhatsAppProjection motherIdentity,

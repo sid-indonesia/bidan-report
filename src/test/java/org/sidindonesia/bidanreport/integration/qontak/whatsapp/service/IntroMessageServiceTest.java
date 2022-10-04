@@ -52,7 +52,7 @@ class IntroMessageServiceTest {
 	}
 
 	@Test
-	void testSendWhatsAppMessageToNewMothers_withHappyFlow() {
+	void testSendWhatsAppMessageToNewMothers_withHappyFlow() throws Exception {
 		// given
 		dummyDataService.insertDummyData();
 		// when
@@ -62,7 +62,7 @@ class IntroMessageServiceTest {
 	}
 
 	@Test
-	void testSendWhatsAppMessageToNewMothers_withNoNewMothers() {
+	void testSendWhatsAppMessageToNewMothers_withNoNewMothers() throws Exception {
 		assertThat(whatsAppMessageService).isNotNull();
 		whatsAppMessageService.sendIntroMessageToNewMothersViaWhatsApp();
 	}

@@ -1,6 +1,8 @@
 package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util;
 
+import org.sidindonesia.bidanreport.config.property.SchedulingProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
+import org.sidindonesia.bidanreport.integration.qontak.web.response.RetrieveContactListResponse;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.ContactListRequest;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.response.CreateContactListResponse;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ public class ContactListService {
 	private final QontakProperties qontakProperties;
 	private final WebClient webClient;
 	private final Gson gson;
+	private final SchedulingProperties schedulingProperties;
 
 	public String sendCreateContactListRequestToQontakAPI(ContactListRequest requestBody) {
 		Mono<CreateContactListResponse> response = webClient.post().uri(qontakProperties.getApiPathContactListAsync())
@@ -45,5 +48,48 @@ public class ContactListService {
 			log.error("Request create contact list failed with no content.");
 		}
 		return null;
+	}
+
+	public RetrieveContactListResponse retrieveContactListRequestToQontakAPI(String contactListId) {
+		Mono<RetrieveContactListResponse> response = webClient.post()
+			.uri(qontakProperties.getApiPathContactList() + "/" + contactListId)
+			.header("Authorization", "Bearer " + qontakProperties.getAccessToken()).retrieve()
+			.bodyToMono(RetrieveContactListResponse.class).onErrorResume(WebClientResponseException.class,
+				ex -> ex.getRawStatusCode() == 422 || ex.getRawStatusCode() == 401
+					? Mono.just(gson.fromJson(ex.getResponseBodyAsString(), RetrieveContactListResponse.class))
+					: Mono.error(ex));
+
+		RetrieveContactListResponse responseBody = response.block();
+		if (responseBody != null) {
+			if ("success".equals(responseBody.getStatus())) {
+				return responseBody;
+			} else {
+				log.error("Request retrieve contact list failed with error details: {}", responseBody.getError());
+			}
+		} else {
+			log.error("Request retrieve contact list failed with no content.");
+		}
+		return null;
+	}
+
+	public boolean tryRetrieveContactListByIdMultipleTimes(String contactListId) throws InterruptedException {
+		// Give Qontak some time to process the contact list (because the API is
+		// asynchronous and currently there is no "Create contact list synchronously")
+		Thread.sleep(schedulingProperties.getContactList().getInitialDelayInMs()); // give initial 5 seconds
+		for (int i = 0; i < schedulingProperties.getContactList().getMaxNumberOfRetries(); i++) {
+			RetrieveContactListResponse response = retrieveContactListRequestToQontakAPI(contactListId);
+
+			if (response != null && response.getData() != null
+				&& "success".equalsIgnoreCase(response.getData().getProgress())) {
+				return true;
+			}
+
+			Thread.sleep(schedulingProperties.getContactList().getDelayInMs());
+		}
+		log.error(
+			"Bulk broadcast request failed due to Contact List not available after {} retries with interval {}ms",
+			schedulingProperties.getContactList().getMaxNumberOfRetries(),
+			schedulingProperties.getContactList().getDelayInMs());
+		return false;
 	}
 }

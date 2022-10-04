@@ -47,7 +47,8 @@ qontak:
   api-path-authentication: /73901530/v1/oauth/token
   api-path-broadcast-direct: /73901530/v1/broadcasts/whatsapp/direct
   api-path-broadcast: /73901530/v1/broadcasts/whatsapp
-  api-path-contact-list-async: /73901530/v1/contacts/contact_lists # no path /async in mock server
+  api-path-contact-list-async: /73901530/v1/contacts/contact_lists/async
+  api-path-contact-list: /73901530/v1/contacts/contact_lists
   api-path-upload-file: /73901530/v1/file_uploader
   whats-app:
     pregnant-woman-message-template-id: 8ce51d59-f848-4137-960a-49b3e9b9415b

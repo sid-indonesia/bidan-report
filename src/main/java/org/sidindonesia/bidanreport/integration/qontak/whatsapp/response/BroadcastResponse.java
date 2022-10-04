@@ -32,4 +32,9 @@ public class BroadcastResponse {
 		private Integer code;
 		private List<Object> messages;
 	}
+
+	public BroadcastResponse withStatus(int rawStatusCode) {
+		this.status = String.valueOf(rawStatusCode);
+		return this;
+	}
 }

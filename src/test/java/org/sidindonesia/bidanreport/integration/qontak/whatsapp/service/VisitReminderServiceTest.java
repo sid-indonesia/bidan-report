@@ -27,7 +27,7 @@ class VisitReminderServiceTest {
 	}
 
 	@Test
-	void testSendVisitReminderMessageToEnrolledPregnantWomen_withHappyFlow() {
+	void testSendVisitReminderMessageToEnrolledPregnantWomen_withHappyFlow() throws Exception {
 		// given
 		insertDummyDataForANCVisitReminder();
 		// when
@@ -37,7 +37,7 @@ class VisitReminderServiceTest {
 	}
 
 	@Test
-	void testSendVisitReminderMessageToEnrolledPregnantWomen_withNoDataExisted() {
+	void testSendVisitReminderMessageToEnrolledPregnantWomen_withNoDataExisted() throws Exception {
 		// when
 		visitReminderService.sendVisitRemindersToEnrolledMothers();
 		// then

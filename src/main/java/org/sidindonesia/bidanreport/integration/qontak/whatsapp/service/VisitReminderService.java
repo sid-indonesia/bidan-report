@@ -1,7 +1,12 @@
 package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service;
 
 import static java.util.stream.Collectors.toList;
+import static org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.ContactListUtil.createContactListRequest;
+import static org.sidindonesia.bidanreport.util.CSVUtil.FULL_NAME;
+import static org.sidindonesia.bidanreport.util.CSVUtil.VISIT_NUMBER;
 
+import java.io.IOException;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
@@ -9,12 +14,15 @@ import java.util.stream.Stream;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.repository.AutomatedMessageStatsRepository;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastDirectRequest;
+import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.Parameters;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.ParametersWithHeader;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.BroadcastMessageService;
+import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.ContactListService;
 import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
 import org.sidindonesia.bidanreport.repository.projection.AncVisitReminderProjection;
+import org.sidindonesia.bidanreport.util.CSVUtil;
 import org.springframework.data.util.Pair;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -28,15 +36,17 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 @Service
 public class VisitReminderService {
+	private static final String MESSAGE_TEMPLATE_NAME = "anc_visit_reminder";
 	private final QontakProperties qontakProperties;
 	private final MotherIdentityRepository motherIdentityRepository;
 	private final MotherEditRepository motherEditRepository;
 	private final BroadcastMessageService broadcastMessageService;
 	private final AutomatedMessageStatsRepository automatedMessageStatsRepository;
 	private final FhirResourceService fhirResourceService;
+	private final ContactListService contactListService;
 
 	@Scheduled(cron = "${scheduling.visit-reminder.cron}", zone = "${scheduling.visit-reminder.zone}")
-	public void sendVisitRemindersToEnrolledMothers() {
+	public void sendVisitRemindersToEnrolledMothers() throws IOException, InterruptedException {
 		log.debug("Executing scheduled \"Send ANC Visit Reminder via WhatsApp\"...");
 		log.debug("Send ANC visit reminder to all mothers with -"
 			+ qontakProperties.getWhatsApp().getVisitReminderIntervalInDays() + " day(s) for the next ANC visit date");
@@ -44,22 +54,99 @@ public class VisitReminderService {
 		processRowsFromMotherEdit();
 	}
 
-	private void processRowsFromMotherIdentity() {
+	private void processRowsFromMotherIdentity() throws IOException, InterruptedException {
 		List<AncVisitReminderProjection> allPregnantWomenToBeRemindedForTheNextANCVisit = motherIdentityRepository
 			.findAllPregnantWomenToBeRemindedForTheNextANCVisit(qontakProperties.getWhatsApp().getVisitIntervalInDays(),
-				qontakProperties.getWhatsApp().getVisitReminderIntervalInDays());
+				qontakProperties.getWhatsApp().getVisitReminderIntervalInDays())
+			.parallelStream()
+			.filter(ancVisitReminderProjection -> ancVisitReminderProjection.getLatestAncVisitNumber() != null)
+			.collect(toList());
 
-		broadcastANCVisitReminderMessageTo(allPregnantWomenToBeRemindedForTheNextANCVisit);
+		if (!allPregnantWomenToBeRemindedForTheNextANCVisit.isEmpty()) {
+			broadcastANCVisitReminderMessageTo(allPregnantWomenToBeRemindedForTheNextANCVisit, "mother_identity");
+		}
 	}
 
-	private void processRowsFromMotherEdit() {
+	private void processRowsFromMotherEdit() throws IOException, InterruptedException {
 		List<AncVisitReminderProjection> allPregnantWomenToBeRemindedForTheNextANCVisit = motherEditRepository
 			.findAllPregnantWomenToBeRemindedForTheNextANCVisit(qontakProperties.getWhatsApp().getVisitIntervalInDays(),
-				qontakProperties.getWhatsApp().getVisitReminderIntervalInDays());
+				qontakProperties.getWhatsApp().getVisitReminderIntervalInDays())
+			.parallelStream()
+			.filter(ancVisitReminderProjection -> ancVisitReminderProjection.getLatestAncVisitNumber() != null)
+			.collect(toList());
 
-		broadcastANCVisitReminderMessageTo(allPregnantWomenToBeRemindedForTheNextANCVisit);
+		broadcastANCVisitReminderMessageTo(allPregnantWomenToBeRemindedForTheNextANCVisit, "mother_edit");
 	}
 
+	private void broadcastANCVisitReminderMessageTo(
+		List<AncVisitReminderProjection> allPregnantWomenToBeRemindedForTheNextANCVisit, String fromTable)
+		throws IOException, InterruptedException {
+
+		// Create contact list CSV
+		String contactsCsvFileName = qontakProperties.getWhatsApp().getAncVisitReminderContactListCsvAbsoluteFileName()
+			.replace(".csv", "_" + fromTable + ".csv");
+		CSVUtil.createContactListCSVFileForANCVisitReminderMessage(allPregnantWomenToBeRemindedForTheNextANCVisit,
+			contactsCsvFileName);
+
+		String campaignName = ZonedDateTime.now() + " " + qontakProperties.getWhatsApp().getDistrictHealthOfficeName()
+			+ ", " + fromTable + " (ANC Visit Reminder)";
+		// Hit API post contact list, get contact_list_id
+		String contactListId = contactListService
+			.sendCreateContactListRequestToQontakAPI(createContactListRequest(campaignName, contactsCsvFileName));
+
+		if (contactListId != null) {
+
+			if (contactListService.tryRetrieveContactListByIdMultipleTimes(contactListId)) {
+				broadcastBulk(fromTable, allPregnantWomenToBeRemindedForTheNextANCVisit, campaignName, contactListId);
+			}
+
+		} else {
+			log.error(
+				"\"Send ANC Visit Reminder via WhatsApp\" for enrolled pregnant women failed due to error when POST contact list. ("
+					+ fromTable + ")");
+		}
+	}
+
+	private void broadcastBulk(String fromTable,
+		List<AncVisitReminderProjection> allPregnantWomenToBeRemindedForTheNextANCVisit, String campaignName,
+		String contactListId) throws InterruptedException {
+		// Broadcast to contact_list
+		boolean isSuccess = broadcastBulkMessageViaWhatsApp(
+			qontakProperties.getWhatsApp().getVisitReminderMessageTemplateId(), contactListId, campaignName);
+
+		log.info("\"Send ANC Visit Reminder via WhatsApp\" for enrolled pregnant women completed. (" + fromTable + ")");
+
+		if (isSuccess) {
+			log.info(
+				"{} enrolled pregnant women have been reminded of the next ANC visit via WhatsApp successfully as bulk broadcast request.",
+				allPregnantWomenToBeRemindedForTheNextANCVisit.size());
+		}
+	}
+
+	private boolean broadcastBulkMessageViaWhatsApp(String messageTemplateId, String contactListId, String campaignName)
+		throws InterruptedException {
+		BroadcastRequest requestBody = createANCVisitReminderMessageRequestBody(messageTemplateId, contactListId,
+			campaignName);
+		return broadcastMessageService.sendBroadcastRequestToQontakAPI(requestBody);
+	}
+
+	private BroadcastRequest createANCVisitReminderMessageRequestBody(String messageTemplateId, String contactListId,
+		String campaignName) {
+		BroadcastRequest requestBody = broadcastMessageService.createBroadcastRequestBody(campaignName,
+			messageTemplateId, contactListId);
+
+		setParametersForANCVisitReminderMessage(requestBody);
+		return requestBody;
+	}
+
+	private void setParametersForANCVisitReminderMessage(BroadcastRequest requestBody) {
+		Parameters parameters = new Parameters();
+		parameters.addBodyWithValues("1", FULL_NAME);
+		parameters.addBodyWithValues("2", VISIT_NUMBER);
+		requestBody.setParameters(parameters);
+	}
+
+	@SuppressWarnings("unused") // not deleted because the FHIR QR code still not refactored into broadcast bulk
 	private void broadcastANCVisitReminderMessageTo(
 		List<AncVisitReminderProjection> allPregnantWomenToBeRemindedForTheNextANCVisit) {
 		if (!allPregnantWomenToBeRemindedForTheNextANCVisit.isEmpty()) {
@@ -92,7 +179,7 @@ public class VisitReminderService {
 				visitReminderSuccessCount, allPregnantWomenToBeRemindedForTheNextANCVisit.size());
 
 			automatedMessageStatsRepository.upsert(qontakProperties.getWhatsApp().getVisitReminderMessageTemplateId(),
-				"anc_visit_reminder", visitReminderSuccessCount.get(),
+				MESSAGE_TEMPLATE_NAME, visitReminderSuccessCount.get(),
 				allPregnantWomenToBeRemindedForTheNextANCVisit.size() - visitReminderSuccessCount.get());
 		}
 	}

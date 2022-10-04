@@ -28,6 +28,17 @@ public class DummyDataService {
 		IntStream.rangeClosed(7, 9).forEach(insertIntoMotherEdit());
 	}
 
+	void insertDummyDataHappyFlow() {
+		IntStream.rangeClosed(1, 3).forEach(insertIntoClientMother());
+		IntStream.rangeClosed(1, 3).forEach(insertIntoMotherIdentity());
+		IntStream.rangeClosed(1, 3).forEach(insertIntoAncRegister());
+
+		IntStream.rangeClosed(4, 6).forEach(insertIntoClientMother());
+		IntStream.rangeClosed(4, 6).forEach(insertIntoMotherIdentityWithoutMobilePhoneNumber());
+		IntStream.rangeClosed(4, 6).forEach(insertIntoAncRegister());
+		IntStream.rangeClosed(7, 9).forEach(insertIntoMotherEdit());
+	}
+
 	private IntConsumer insertIntoClientMother() {
 		return id -> {
 			jdbcOperations.execute("INSERT INTO client_mother\n"
