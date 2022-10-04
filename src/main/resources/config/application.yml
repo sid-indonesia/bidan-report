@@ -56,6 +56,7 @@ qontak:
     health-education-contact-list-csv-absolute-file-name: /tmp/contacts_health-education.csv
     intro-message-contact-list-csv-absolute-file-name: /tmp/contacts_intro-message.csv
     pregnancy-gap-contact-list-csv-absolute-file-name: /tmp/contacts_pregnancy-gap.csv
+    anc-visit-reminder-contact-list-csv-absolute-file-name: /tmp/contacts_anc-visit-reminder.csv
 
 scheduling:
   enabled: true
@@ -72,6 +73,10 @@ scheduling:
     cron: "0 0 13 * * Mon" # At 01:00 PM, only on Monday
     zone: Asia/Jakarta
   contact-list:
+    delay-in-ms: 60000 # 1 minute
+    initial-delay-in-ms: 5000 # 5 seconds
+    max-number-of-retries: 10
+  broadcast-bulk:
     delay-in-ms: 60000 # 1 minute
     initial-delay-in-ms: 5000 # 5 seconds
     max-number-of-retries: 10

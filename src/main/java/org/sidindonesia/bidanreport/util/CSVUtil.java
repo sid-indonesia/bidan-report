@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.sidindonesia.bidanreport.repository.projection.AncVisitReminderProjection;
 import org.sidindonesia.bidanreport.repository.projection.HealthEducationProjection;
 import org.sidindonesia.bidanreport.repository.projection.MotherIdentityWhatsAppProjection;
 import org.sidindonesia.bidanreport.repository.projection.PregnancyGapProjection;
@@ -51,6 +52,8 @@ public class CSVUtil {
 	public static final String HAS_HBSAG = "has_hbsag";
 	public static final String HAS_HIV = "has_hiv";
 
+	public static final String VISIT_NUMBER = "visit_number";
+
 	private static final String COMPANY_VALUE = "Pregnant Women";
 	private static final String[] HEADERS_FOR_HEALTH_EDUCATION = { PHONE_NUMBER, FULL_NAME, CUSTOMER_NAME, COMPANY_KEY,
 			PREGNA_TRIMESTER, CALC_GESTATIONAL };
@@ -59,6 +62,8 @@ public class CSVUtil {
 			ANC_DATE, GESTATIONAL_AGE, HEIGHT_IN_CM, WEIGHT_IN_KG, MUAC_IN_CM, SYSTOLIC_BP, DIASTOLIC_BP,
 			UTERINE_F_HEIGHT, FETAL_PRESENTATI, FETAL_HEART_RATE, TETANUS_T_IMM_ST, GIVEN_TT_INJECTI, GIVEN_IFA_TABLET,
 			HAS_PROTEINURIA, HB_LEVEL_RESULT, GLUCOSE_140_MGDL, HAS_THALASEMIA, HAS_SYPHILIS, HAS_HBSAG, HAS_HIV };
+	private static final String[] HEADERS_FOR_ANC_VISIT_REMINDER = { PHONE_NUMBER, FULL_NAME, CUSTOMER_NAME,
+			COMPANY_KEY, VISIT_NUMBER };
 
 	private static final String ERROR_WRITING_CSV_FILE_WITH_ERROR_MESSAGE_ERROR_OBJECT = "Error writing CSV file: {} with error message: {}, error object: {}";
 
@@ -113,6 +118,28 @@ public class CSVUtil {
 					String csv = projection.getPregnancyGapCommaSeparatedValues();
 					List<String> pregnancyGapValues = Stream.of(csv.split(",")).map(String::trim).collect(toList());
 					values.addAll(pregnancyGapValues);
+
+					printer.printRecord(values);
+				} catch (IOException e) {
+					log.error(ERROR_WRITING_CSV_FILE_WITH_ERROR_MESSAGE_ERROR_OBJECT, csvFileName, e.getMessage(), e);
+				}
+			});
+		}
+	}
+
+	public static void createContactListCSVFileForANCVisitReminderMessage(
+		List<AncVisitReminderProjection> allPregnantWomenToBeRemindedForTheNextANCVisit, String csvFileName)
+		throws IOException {
+		FileWriter out = new FileWriter(csvFileName);
+		try (CSVPrinter printer = new CSVPrinter(out,
+			CSVFormat.DEFAULT.builder().setHeader(HEADERS_FOR_ANC_VISIT_REMINDER).build())) {
+			allPregnantWomenToBeRemindedForTheNextANCVisit.forEach(projection -> {
+				try {
+					String fullName = projection.getFullName() == null ? "-" : projection.getFullName();
+					List<String> values = Stream
+						.of(IndonesiaPhoneNumberUtil.sanitize(projection.getMobilePhoneNumber()), fullName, fullName,
+							COMPANY_VALUE, String.valueOf(projection.getLatestAncVisitNumber() + 1))
+						.collect(toList());
 
 					printer.printRecord(values);
 				} catch (IOException e) {

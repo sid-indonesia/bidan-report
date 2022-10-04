@@ -9,10 +9,8 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 import org.sidindonesia.bidanreport.config.property.LastIdProperties;
-import org.sidindonesia.bidanreport.config.property.SchedulingProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.repository.AutomatedMessageStatsRepository;
-import org.sidindonesia.bidanreport.integration.qontak.web.response.RetrieveContactListResponse;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.Parameters;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.BroadcastMessageService;
@@ -40,7 +38,6 @@ public class IntroMessageService {
 	private final BroadcastMessageService broadcastMessageService;
 	private final ContactListService contactListService;
 	private final AutomatedMessageStatsRepository automatedMessageStatsRepository;
-	private final SchedulingProperties schedulingProperties;
 
 	@Scheduled(fixedRateString = "${scheduling.intro-message.fixed-rate-in-ms}", initialDelayString = "${scheduling.intro-message.initial-delay-in-ms}")
 	public void sendIntroMessageToNewMothersViaWhatsApp() throws IOException, InterruptedException {
@@ -94,25 +91,10 @@ public class IntroMessageService {
 			.sendCreateContactListRequestToQontakAPI(createContactListRequest(campaignName, contactsCsvFileName));
 
 		if (contactListId != null) {
-			// Give Qontak some time to process the contact list
-			// (because the API is asynchronous and currently
-			// there is no "synchronously Create Contact List API")
-			Thread.sleep(schedulingProperties.getContactList().getInitialDelayInMs()); // give initial 5 seconds
-			for (int i = 0; i < schedulingProperties.getContactList().getMaxNumberOfRetries(); i++) {
-				RetrieveContactListResponse response = contactListService
-					.retrieveContactListRequestToQontakAPI(contactListId);
-
-				if ("success".equalsIgnoreCase(response.getData().getProgress())) {
-					broadcastBulk(fromTable, pregnantWomenIdentities, campaignName, contactListId);
-					return;
-				}
-
-				Thread.sleep(schedulingProperties.getContactList().getDelayInMs());
+			
+			if (contactListService.tryRetrieveContactListByIdMultipleTimes(contactListId)) {
+				broadcastBulk(fromTable, pregnantWomenIdentities, campaignName, contactListId);
 			}
-			log.error(
-				"\"Send Intro Message via WhatsApp\" failed due to Contact List not available after {} retries with interval {}ms",
-				schedulingProperties.getContactList().getMaxNumberOfRetries(),
-				schedulingProperties.getContactList().getDelayInMs());
 
 		} else {
 			log.error(
@@ -122,7 +104,7 @@ public class IntroMessageService {
 	}
 
 	private void broadcastBulk(String fromTable, List<MotherIdentityWhatsAppProjection> pregnantWomenIdentities,
-		String campaignName, String contactListId) {
+		String campaignName, String contactListId) throws InterruptedException {
 		// Broadcast to contact_list
 		boolean isSuccess = broadcastBulkMessageViaWhatsApp(
 			qontakProperties.getWhatsApp().getPregnantWomanMessageTemplateId(), contactListId, campaignName);
@@ -141,8 +123,8 @@ public class IntroMessageService {
 		}
 	}
 
-	private boolean broadcastBulkMessageViaWhatsApp(String messageTemplateId, String contactListId,
-		String campaignName) {
+	private boolean broadcastBulkMessageViaWhatsApp(String messageTemplateId, String contactListId, String campaignName)
+		throws InterruptedException {
 		BroadcastRequest requestBody = createIntroMessageRequestBody(messageTemplateId, contactListId, campaignName);
 		return broadcastMessageService.sendBroadcastRequestToQontakAPI(requestBody);
 	}

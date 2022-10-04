@@ -29,10 +29,8 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 import org.sidindonesia.bidanreport.config.property.LastIdProperties;
-import org.sidindonesia.bidanreport.config.property.SchedulingProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
 import org.sidindonesia.bidanreport.integration.qontak.repository.AutomatedMessageStatsRepository;
-import org.sidindonesia.bidanreport.integration.qontak.web.response.RetrieveContactListResponse;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.Parameters;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.BroadcastMessageService;
@@ -61,7 +59,6 @@ public class PregnancyGapService {
 	private final LastIdProperties lastIdProperties;
 	private final LastIdService lastIdService;
 	private final AutomatedMessageStatsRepository automatedMessageStatsRepository;
-	private final SchedulingProperties schedulingProperties;
 	private final ContactListService contactListService;
 
 	@Scheduled(fixedRateString = "${scheduling.pregnancy-gap.fixed-rate-in-ms}", initialDelayString = "${scheduling.pregnancy-gap.initial-delay-in-ms}")
@@ -113,26 +110,11 @@ public class PregnancyGapService {
 			.sendCreateContactListRequestToQontakAPI(createContactListRequest(campaignName, contactsCsvFileName));
 
 		if (contactListId != null) {
-			// Give Qontak some time to process the contact list
-			// (because the API is asynchronous and currently
-			// there is no "synchronously Create Contact List API")
-			Thread.sleep(schedulingProperties.getContactList().getInitialDelayInMs()); // give initial 5 seconds
-			for (int i = 0; i < schedulingProperties.getContactList().getMaxNumberOfRetries(); i++) {
-				RetrieveContactListResponse response = contactListService
-					.retrieveContactListRequestToQontakAPI(contactListId);
 
-				if ("success".equalsIgnoreCase(response.getData().getProgress())) {
-					broadcastBulk(fromTable, allPregnantWomenToBeInformedOfGapInTheirPregnancy, campaignName,
-						contactListId);
-					return;
-				}
-
-				Thread.sleep(schedulingProperties.getContactList().getDelayInMs());
+			if (contactListService.tryRetrieveContactListByIdMultipleTimes(contactListId)) {
+				broadcastBulk(fromTable, allPregnantWomenToBeInformedOfGapInTheirPregnancy, campaignName,
+					contactListId);
 			}
-			log.error(
-				"\"Inform Pregnancy Gap via WhatsApp\" failed due to Contact List not available after {} retries with interval {}ms",
-				schedulingProperties.getContactList().getMaxNumberOfRetries(),
-				schedulingProperties.getContactList().getDelayInMs());
 
 		} else {
 			log.error(
@@ -143,7 +125,7 @@ public class PregnancyGapService {
 
 	private void broadcastBulk(String fromTable,
 		List<PregnancyGapProjection> allPregnantWomenToBeInformedOfGapInTheirPregnancy, String campaignName,
-		String contactListId) {
+		String contactListId) throws InterruptedException {
 		// Broadcast to contact_list
 		boolean isSuccess = broadcastBulkMessageViaWhatsApp(
 			qontakProperties.getWhatsApp().getPregnancyGapMessageTemplateId(), contactListId, campaignName);
@@ -162,8 +144,8 @@ public class PregnancyGapService {
 		}
 	}
 
-	private boolean broadcastBulkMessageViaWhatsApp(String messageTemplateId, String contactListId,
-		String campaignName) {
+	private boolean broadcastBulkMessageViaWhatsApp(String messageTemplateId, String contactListId, String campaignName)
+		throws InterruptedException {
 		BroadcastRequest requestBody = createPregnancyGapMessageRequestBody(messageTemplateId, contactListId,
 			campaignName);
 		return broadcastMessageService.sendBroadcastRequestToQontakAPI(requestBody);
