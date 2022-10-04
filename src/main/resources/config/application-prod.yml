@@ -84,6 +84,9 @@ qontak:
   base-url: https://chat-service.qontak.com
   whats-app:
     health-education-contact-list-csv-absolute-file-name: /opt/bidan-report/csv/contacts_health-education.csv
+    intro-message-contact-list-csv-absolute-file-name: /opt/bidan-report/csv/contacts_intro-message.csv
+    pregnancy-gap-contact-list-csv-absolute-file-name: /opt/bidan-report/csv/contacts_pregnancy-gap.csv
+    anc-visit-reminder-contact-list-csv-absolute-file-name: /opt/bidan-report/csv/contacts_anc-visit-reminder.csv
 
 qr-code:
   directory-path: /opt/bidan-report/images/

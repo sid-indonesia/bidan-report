@@ -51,7 +51,7 @@ public class ContactListService {
 	}
 
 	public RetrieveContactListResponse retrieveContactListRequestToQontakAPI(String contactListId) {
-		Mono<RetrieveContactListResponse> response = webClient.post()
+		Mono<RetrieveContactListResponse> response = webClient.get()
 			.uri(qontakProperties.getApiPathContactList() + "/" + contactListId)
 			.header("Authorization", "Bearer " + qontakProperties.getAccessToken()).retrieve()
 			.bodyToMono(RetrieveContactListResponse.class).onErrorResume(WebClientResponseException.class,
