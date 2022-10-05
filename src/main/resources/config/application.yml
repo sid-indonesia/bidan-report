@@ -80,6 +80,10 @@ scheduling:
     delay-in-ms: 60000 # 1 minute
     initial-delay-in-ms: 5000 # 5 seconds
     max-number-of-retries: 10
+  broadcast-direct:
+    delay-in-ms: 60000 # 1 minute
+    initial-delay-in-ms: 5000 # 5 seconds
+    max-number-of-retries: 10
 
 qr-code:
   width: 700

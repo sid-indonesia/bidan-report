@@ -32,27 +32,42 @@ public class BroadcastMessageService {
 	private final SchedulingProperties schedulingProperties;
 
 	public void sendBroadcastDirectRequestToQontakAPI(AtomicLong successCount,
-		MotherIdentityWhatsAppProjection motherIdentity, BroadcastDirectRequest requestBody) {
-		Mono<BroadcastDirectResponse> response = webClient.post().uri(qontakProperties.getApiPathBroadcastDirect())
-			.bodyValue(requestBody).header("Authorization", "Bearer " + qontakProperties.getAccessToken()).retrieve()
-			.bodyToMono(BroadcastDirectResponse.class).onErrorResume(WebClientResponseException.class,
-				ex -> ex.getRawStatusCode() == 422 || ex.getRawStatusCode() == 401
-					? Mono.just(gson.fromJson(ex.getResponseBodyAsString(), BroadcastDirectResponse.class))
-					: Mono.error(ex));
-
-		BroadcastDirectResponse responseBody = response.block();
-		if (responseBody != null) {
-			if ("success".equals(responseBody.getStatus())) {
-				successCount.incrementAndGet();
+		MotherIdentityWhatsAppProjection motherIdentity, BroadcastDirectRequest requestBody)
+		throws InterruptedException {
+		for (int i = 0; i < schedulingProperties.getBroadcastDirect().getMaxNumberOfRetries(); i++) {
+			BroadcastDirectResponse responseBody = broadcastDirect(requestBody).block();
+			if (responseBody != null) {
+				if ("429".equalsIgnoreCase(responseBody.getStatus())) {
+					Thread.sleep(schedulingProperties.getBroadcastDirect().getDelayInMs());
+					log.debug("Retrying broadcast direct: {}", requestBody);
+				} else if ("success".equals(responseBody.getStatus())) {
+					successCount.incrementAndGet();
+					return;
+				} else {
+					log.error(
+						"Request broadcast direct message failed for: {}, at phone number: {}, with error details: {}",
+						motherIdentity.getFullName(), motherIdentity.getMobilePhoneNumber(), responseBody.getError());
+					return;
+				}
 			} else {
-				log.error(
-					"Request broadcast direct message failed for: {}, at phone number: {}, with error details: {}",
-					motherIdentity.getFullName(), motherIdentity.getMobilePhoneNumber(), responseBody.getError());
+				log.error("Request broadcast direct message failed with no content for: {}, at phone number: {}",
+					motherIdentity.getFullName(), motherIdentity.getMobilePhoneNumber());
+				return;
 			}
-		} else {
-			log.error("Request broadcast direct message failed with no content for: {}, at phone number: {}",
-				motherIdentity.getFullName(), motherIdentity.getMobilePhoneNumber());
 		}
+	}
+
+	private Mono<BroadcastDirectResponse> broadcastDirect(BroadcastDirectRequest requestBody) {
+		return webClient.post().uri(qontakProperties.getApiPathBroadcastDirect()).bodyValue(requestBody)
+			.header("Authorization", "Bearer " + qontakProperties.getAccessToken()).retrieve()
+			.bodyToMono(BroadcastDirectResponse.class).onErrorResume(WebClientResponseException.class, ex -> {
+				if (ex.getRawStatusCode() == 429) {
+					return Mono.just(new BroadcastDirectResponse().withStatus(ex.getRawStatusCode()));
+				}
+				return ex.getRawStatusCode() == 422 || ex.getRawStatusCode() == 401
+					? Mono.just(gson.fromJson(ex.getResponseBodyAsString(), BroadcastDirectResponse.class))
+					: Mono.error(ex);
+			});
 	}
 
 	public boolean sendBroadcastRequestToQontakAPI(BroadcastRequest requestBody) throws InterruptedException {

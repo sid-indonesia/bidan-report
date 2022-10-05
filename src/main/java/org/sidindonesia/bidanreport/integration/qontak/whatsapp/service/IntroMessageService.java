@@ -1,23 +1,18 @@
 package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service;
 
-import static org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.ContactListUtil.createContactListRequest;
-import static org.sidindonesia.bidanreport.util.CSVUtil.DHO;
-import static org.sidindonesia.bidanreport.util.CSVUtil.FULL_NAME;
-
-import java.io.IOException;
-import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 import org.sidindonesia.bidanreport.config.property.LastIdProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
-import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
+import org.sidindonesia.bidanreport.integration.qontak.repository.AutomatedMessageStatsRepository;
+import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastDirectRequest;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.Parameters;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.BroadcastMessageService;
-import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.ContactListService;
 import org.sidindonesia.bidanreport.repository.MotherEditRepository;
 import org.sidindonesia.bidanreport.repository.MotherIdentityRepository;
 import org.sidindonesia.bidanreport.repository.projection.MotherIdentityWhatsAppProjection;
-import org.sidindonesia.bidanreport.util.CSVUtil;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,106 +30,89 @@ public class IntroMessageService {
 	private final LastIdProperties lastIdProperties;
 	private final QontakProperties qontakProperties;
 	private final BroadcastMessageService broadcastMessageService;
-	private final ContactListService contactListService;
+	private final AutomatedMessageStatsRepository automatedMessageStatsRepository;
 
 	@Scheduled(fixedRateString = "${scheduling.intro-message.fixed-rate-in-ms}", initialDelayString = "${scheduling.intro-message.initial-delay-in-ms}")
-	public void sendIntroMessageToNewMothersViaWhatsApp() throws IOException, InterruptedException {
+	public void sendIntroMessageToNewMothersViaWhatsApp() {
 		log.debug("Executing scheduled \"Send Join Notification via WhatsApp\"...");
 
-		processRowsFromMotherIdentity();
-		processRowsFromMotherEdit();
+		processNewPregnantWomen();
+		processEditedPregnantWomen();
 	}
 
-	private void processRowsFromMotherIdentity() throws IOException, InterruptedException {
+	private void processNewPregnantWomen() {
 		List<MotherIdentityWhatsAppProjection> newPregnantWomenIdentities = motherIdentityRepository
 			.findAllPregnantWomenByEventIdGreaterThanAndHasMobilePhoneNumberOrderByEventId(
 				lastIdProperties.getMotherIdentity().getPregnantMotherLastId());
 
-		if (!newPregnantWomenIdentities.isEmpty()) {
-			broadcastPregnantWomenIntroMessageTo(newPregnantWomenIdentities, "mother_identity");
+		AtomicLong newEnrolledPregnantWomenSuccessCount = new AtomicLong();
+		newPregnantWomenIdentities.parallelStream().forEach(broadcastIntroMessageViaWhatsApp(
+			newEnrolledPregnantWomenSuccessCount, qontakProperties.getWhatsApp().getPregnantWomanMessageTemplateId()));
 
+		if (!newPregnantWomenIdentities.isEmpty()) {
 			lastIdProperties.getMotherIdentity().setPregnantMotherLastId(
 				newPregnantWomenIdentities.get(newPregnantWomenIdentities.size() - 1).getEventId());
-			log.info("Scheduled \"Send Join Notification via WhatsApp\" for new enrolled pregnant women completed.");
+			log.info("\"Send Join Notification via WhatsApp\" for new enrolled pregnant women completed.");
+			log.info("{} out of {} new enrolled pregnant women have been notified via WhatsApp successfully.",
+				newEnrolledPregnantWomenSuccessCount, newPregnantWomenIdentities.size());
+
+			automatedMessageStatsRepository.upsert(qontakProperties.getWhatsApp().getPregnantWomanMessageTemplateId(),
+				"intro_pregnant_woman", newEnrolledPregnantWomenSuccessCount.get(),
+				newPregnantWomenIdentities.size() - newEnrolledPregnantWomenSuccessCount.get());
 		}
 	}
 
-	private void processRowsFromMotherEdit() throws IOException, InterruptedException {
+	private void processEditedPregnantWomen() {
 		List<MotherIdentityWhatsAppProjection> editedPregnantWomenIds = motherEditRepository
 			.findAllPregnantWomenByLastEditAndPreviouslyInMotherIdentityNoMobilePhoneNumberOrderByEventId(
 				lastIdProperties.getMotherEdit().getPregnantMotherLastId());
 
-		if (!editedPregnantWomenIds.isEmpty()) {
-			broadcastPregnantWomenIntroMessageTo(editedPregnantWomenIds, "mother_edit");
+		AtomicLong editedPregnantWomenSuccessCount = new AtomicLong();
+		editedPregnantWomenIds.parallelStream().forEach(broadcastIntroMessageViaWhatsApp(
+			editedPregnantWomenSuccessCount, qontakProperties.getWhatsApp().getPregnantWomanMessageTemplateId()));
 
+		if (!editedPregnantWomenIds.isEmpty()) {
 			lastIdProperties.getMotherEdit()
 				.setPregnantMotherLastId(editedPregnantWomenIds.get(editedPregnantWomenIds.size() - 1).getEventId());
-			log.info("Scheduled \"Send Join Notification via WhatsApp\" for edited pregnant women completed.");
+			log.info("\"Send Join Notification via WhatsApp\" for edited pregnant women completed.");
+			log.info("{} out of {} edited pregnant women have been notified via WhatsApp successfully.",
+				editedPregnantWomenSuccessCount, editedPregnantWomenIds.size());
+
+			automatedMessageStatsRepository.upsert(qontakProperties.getWhatsApp().getPregnantWomanMessageTemplateId(),
+				"intro_pregnant_woman", editedPregnantWomenSuccessCount.get(),
+				editedPregnantWomenIds.size() - editedPregnantWomenSuccessCount.get());
 		}
 	}
 
-	private void broadcastPregnantWomenIntroMessageTo(List<MotherIdentityWhatsAppProjection> pregnantWomenIdentities,
-		String fromTable) throws IOException, InterruptedException {
-
-		// Create contact list CSV
-		String contactsCsvFileName = qontakProperties.getWhatsApp().getIntroMessageContactListCsvAbsoluteFileName()
-			.replace(".csv", "_" + fromTable + ".csv");
-		CSVUtil.createContactListCSVFileForIntroMessage(pregnantWomenIdentities, contactsCsvFileName,
-			qontakProperties.getWhatsApp().getDistrictHealthOfficeName());
-
-		String campaignName = ZonedDateTime.now() + " " + qontakProperties.getWhatsApp().getDistrictHealthOfficeName()
-			+ ", " + fromTable + " (Intro Message)";
-		// Hit API post contact list, get contact_list_id
-		String contactListId = contactListService
-			.sendCreateContactListRequestToQontakAPI(createContactListRequest(campaignName, contactsCsvFileName));
-
-		if (contactListId != null) {
-
-			if (contactListService.tryRetrieveContactListByIdMultipleTimes(contactListId)) {
-				broadcastBulk(fromTable, pregnantWomenIdentities, campaignName, contactListId);
+	private Consumer<MotherIdentityWhatsAppProjection> broadcastIntroMessageViaWhatsApp(AtomicLong successCount,
+		String messageTemplateId) {
+		return motherIdentity -> {
+			BroadcastDirectRequest requestBody = createIntroMessageRequestBody(motherIdentity, messageTemplateId);
+			try {
+				broadcastMessageService.sendBroadcastDirectRequestToQontakAPI(successCount, motherIdentity,
+					requestBody);
+			} catch (InterruptedException e) {
+				log.warn("Broadcast Direct got interrupted! {}", e);
+				Thread.currentThread().interrupt();
 			}
-
-		} else {
-			log.error(
-				"\"Send Intro Message via WhatsApp\" for enrolled pregnant women failed due to error when POST contact list. ("
-					+ fromTable + ")");
-		}
+		};
 	}
 
-	private void broadcastBulk(String fromTable, List<MotherIdentityWhatsAppProjection> pregnantWomenIdentities,
-		String campaignName, String contactListId) throws InterruptedException {
-		// Broadcast to contact_list
-		boolean isSuccess = broadcastBulkMessageViaWhatsApp(
-			qontakProperties.getWhatsApp().getPregnantWomanMessageTemplateId(), contactListId, campaignName);
+	private BroadcastDirectRequest createIntroMessageRequestBody(MotherIdentityWhatsAppProjection motherIdentity,
+		String messageTemplateId) {
+		BroadcastDirectRequest requestBody = broadcastMessageService.createBroadcastDirectRequestBody(motherIdentity,
+			messageTemplateId);
 
-		log.info("\"Send Intro Message via WhatsApp\" for enrolled pregnant women completed. (" + fromTable + ")");
-
-		if (isSuccess) {
-			log.info(
-				"{} enrolled pregnant women have been given intro message via WhatsApp successfully as bulk broadcast request.",
-				pregnantWomenIdentities.size());
-		}
-	}
-
-	private boolean broadcastBulkMessageViaWhatsApp(String messageTemplateId, String contactListId, String campaignName)
-		throws InterruptedException {
-		BroadcastRequest requestBody = createIntroMessageRequestBody(messageTemplateId, contactListId, campaignName);
-		return broadcastMessageService.sendBroadcastRequestToQontakAPI(requestBody);
-	}
-
-	private BroadcastRequest createIntroMessageRequestBody(String messageTemplateId, String contactListId,
-		String campaignName) {
-		BroadcastRequest requestBody = broadcastMessageService.createBroadcastRequestBody(campaignName,
-			messageTemplateId, contactListId);
-
-		setParametersForIntroMessage(requestBody);
+		setParametersForIntroMessage(motherIdentity, requestBody);
 		return requestBody;
 	}
 
-	private void setParametersForIntroMessage(BroadcastRequest requestBody) {
+	private void setParametersForIntroMessage(MotherIdentityWhatsAppProjection motherIdentity,
+		BroadcastDirectRequest requestBody) {
 		Parameters parameters = new Parameters();
-		parameters.addBodyWithValues("1", FULL_NAME);
-		parameters.addBodyWithValues("2", DHO);
+		parameters.addBodyWithValues("1", "full_name",
+			motherIdentity.getFullName() == null ? "-" : motherIdentity.getFullName());
+		parameters.addBodyWithValues("2", "dho", qontakProperties.getWhatsApp().getDistrictHealthOfficeName());
 		requestBody.setParameters(parameters);
 	}
 }

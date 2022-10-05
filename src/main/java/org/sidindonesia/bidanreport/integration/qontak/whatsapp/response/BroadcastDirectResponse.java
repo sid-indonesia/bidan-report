@@ -22,4 +22,9 @@ public class BroadcastDirectResponse {
 		private Integer code;
 		private List<Object> messages;
 	}
+
+	public BroadcastDirectResponse withStatus(int rawStatusCode) {
+		this.status = String.valueOf(rawStatusCode);
+		return this;
+	}
 }

@@ -16,6 +16,7 @@ public class SchedulingProperties {
 	private CronSchedule healthEducation;
 	private RetrySchedule contactList;
 	private RetrySchedule broadcastBulk;
+	private RetrySchedule broadcastDirect;
 
 	@Data
 	public static class FixedRateSchedule {
