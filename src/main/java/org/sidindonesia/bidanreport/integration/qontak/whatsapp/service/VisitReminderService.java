@@ -163,17 +163,31 @@ public class VisitReminderService {
 							qontakProperties.getWhatsApp().getVisitReminderMessageTemplateId(), false)))
 				.collect(toList());
 
-			pairs.parallelStream().forEach(pair -> broadcastMessageService
-				.sendBroadcastDirectRequestToQontakAPI(visitReminderSuccessCount, pair.getFirst(), pair.getSecond()));
+			pairs.parallelStream().forEach(pair -> {
+				try {
+					broadcastMessageService.sendBroadcastDirectRequestToQontakAPI(visitReminderSuccessCount,
+						pair.getFirst(), pair.getSecond());
+				} catch (InterruptedException e) {
+					log.warn("Broadcast Direct got interrupted! {}", e);
+					Thread.currentThread().interrupt();
+				}
+			});
 
 			// cannot do parallel because QR code file generation
 			allPregnantWomenToBeRemindedForTheNextANCVisit.stream()
 				.filter(ancVisitReminderProjection -> ancVisitReminderProjection.getLatestAncVisitNumber() != null
 					&& ancVisitReminderProjection.getPregnancyGapCommaSeparatedValues() != null)
-				.forEach(ancVisitReminderProjection -> broadcastMessageService.sendBroadcastDirectRequestToQontakAPI(
-					visitReminderSuccessCount, ancVisitReminderProjection,
-					createANCVisitReminderMessageRequestBody(ancVisitReminderProjection,
-						qontakProperties.getWhatsApp().getVisitReminderMessageTemplateId(), true)));
+				.forEach(ancVisitReminderProjection -> {
+					try {
+						broadcastMessageService.sendBroadcastDirectRequestToQontakAPI(visitReminderSuccessCount,
+							ancVisitReminderProjection,
+							createANCVisitReminderMessageRequestBody(ancVisitReminderProjection,
+								qontakProperties.getWhatsApp().getVisitReminderMessageTemplateId(), true));
+					} catch (InterruptedException e) {
+						log.warn("Broadcast Direct got interrupted! {}", e);
+						Thread.currentThread().interrupt();
+					}
+				});
 
 			log.info("\"Send ANC Visit Reminder via WhatsApp\" for enrolled pregnant women completed.");
 			log.info(
