@@ -30,7 +30,6 @@ import java.util.List;
 
 import org.sidindonesia.bidanreport.config.property.LastIdProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
-import org.sidindonesia.bidanreport.integration.qontak.repository.AutomatedMessageStatsRepository;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.Parameters;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.BroadcastMessageService;
@@ -58,7 +57,6 @@ public class PregnancyGapService {
 	private final BroadcastMessageService broadcastMessageService;
 	private final LastIdProperties lastIdProperties;
 	private final LastIdService lastIdService;
-	private final AutomatedMessageStatsRepository automatedMessageStatsRepository;
 	private final ContactListService contactListService;
 
 	@Scheduled(fixedRateString = "${scheduling.pregnancy-gap.fixed-rate-in-ms}", initialDelayString = "${scheduling.pregnancy-gap.initial-delay-in-ms}")
@@ -136,11 +134,6 @@ public class PregnancyGapService {
 			log.info(
 				"{} enrolled pregnant women have been informed of the gap in their pregnancy via WhatsApp successfully as bulk broadcast request.",
 				allPregnantWomenToBeInformedOfGapInTheirPregnancy.size());
-			automatedMessageStatsRepository.upsert(qontakProperties.getWhatsApp().getPregnancyGapMessageTemplateId(),
-				"pregnancy_gap", allPregnantWomenToBeInformedOfGapInTheirPregnancy.size(), 0);
-		} else {
-			automatedMessageStatsRepository.upsert(qontakProperties.getWhatsApp().getPregnancyGapMessageTemplateId(),
-				"pregnancy_gap", 0, allPregnantWomenToBeInformedOfGapInTheirPregnancy.size());
 		}
 	}
 

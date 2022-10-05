@@ -75,7 +75,9 @@ public class VisitReminderService {
 			.filter(ancVisitReminderProjection -> ancVisitReminderProjection.getLatestAncVisitNumber() != null)
 			.collect(toList());
 
-		broadcastANCVisitReminderMessageTo(allPregnantWomenToBeRemindedForTheNextANCVisit, "mother_edit");
+		if (!allPregnantWomenToBeRemindedForTheNextANCVisit.isEmpty()) {
+			broadcastANCVisitReminderMessageTo(allPregnantWomenToBeRemindedForTheNextANCVisit, "mother_edit");
+		}
 	}
 
 	private void broadcastANCVisitReminderMessageTo(

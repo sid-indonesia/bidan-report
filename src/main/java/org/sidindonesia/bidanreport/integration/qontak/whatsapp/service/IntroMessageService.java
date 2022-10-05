@@ -10,7 +10,6 @@ import java.util.List;
 
 import org.sidindonesia.bidanreport.config.property.LastIdProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
-import org.sidindonesia.bidanreport.integration.qontak.repository.AutomatedMessageStatsRepository;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.Parameters;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.BroadcastMessageService;
@@ -37,7 +36,6 @@ public class IntroMessageService {
 	private final QontakProperties qontakProperties;
 	private final BroadcastMessageService broadcastMessageService;
 	private final ContactListService contactListService;
-	private final AutomatedMessageStatsRepository automatedMessageStatsRepository;
 
 	@Scheduled(fixedRateString = "${scheduling.intro-message.fixed-rate-in-ms}", initialDelayString = "${scheduling.intro-message.initial-delay-in-ms}")
 	public void sendIntroMessageToNewMothersViaWhatsApp() throws IOException, InterruptedException {
@@ -91,7 +89,7 @@ public class IntroMessageService {
 			.sendCreateContactListRequestToQontakAPI(createContactListRequest(campaignName, contactsCsvFileName));
 
 		if (contactListId != null) {
-			
+
 			if (contactListService.tryRetrieveContactListByIdMultipleTimes(contactListId)) {
 				broadcastBulk(fromTable, pregnantWomenIdentities, campaignName, contactListId);
 			}
@@ -115,11 +113,6 @@ public class IntroMessageService {
 			log.info(
 				"{} enrolled pregnant women have been given intro message via WhatsApp successfully as bulk broadcast request.",
 				pregnantWomenIdentities.size());
-			automatedMessageStatsRepository.upsert(qontakProperties.getWhatsApp().getPregnantWomanMessageTemplateId(),
-				"intro_pregnant_woman", pregnantWomenIdentities.size(), 0);
-		} else {
-			automatedMessageStatsRepository.upsert(qontakProperties.getWhatsApp().getPregnantWomanMessageTemplateId(),
-				"intro_pregnant_woman", 0, pregnantWomenIdentities.size());
 		}
 	}
 

@@ -11,7 +11,6 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
-import org.sidindonesia.bidanreport.integration.qontak.repository.AutomatedMessageStatsRepository;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.BroadcastRequest;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.Parameters;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.BroadcastMessageService;
@@ -37,7 +36,6 @@ public class HealthEducationService {
 	private final MotherEditRepository motherEditRepository;
 	private final BroadcastMessageService broadcastMessageService;
 	private final ContactListService contactListService;
-	private final AutomatedMessageStatsRepository automatedMessageStatsRepository;
 
 	@Scheduled(cron = "${scheduling.health-education.cron}", zone = "${scheduling.health-education.zone}")
 	public void sendHealthEducationsToEnrolledMothers() throws IOException, InterruptedException {
@@ -112,11 +110,6 @@ public class HealthEducationService {
 			log.info(
 				"{} enrolled pregnant women have been given health education via WhatsApp successfully as bulk broadcast request.",
 				filteredPregnantWomen.size());
-			automatedMessageStatsRepository.upsert(qontakProperties.getWhatsApp().getHealthEducationMessageTemplateId(),
-				"health_education", filteredPregnantWomen.size(), 0);
-		} else {
-			automatedMessageStatsRepository.upsert(qontakProperties.getWhatsApp().getHealthEducationMessageTemplateId(),
-				"health_education", 0, filteredPregnantWomen.size());
 		}
 	}
 
