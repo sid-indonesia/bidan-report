@@ -242,7 +242,7 @@ public final class QueryConstants {
 		+ "   OR ar.is_consented_whatsapp != 'Tidak' " + "  ) " + "  AND av.event_id > ?1 " + " GROUP BY "
 		+ "  me_id_only.mobile_phone_number) " + "ORDER BY " + " me.event_id";
 
-	public static final String MOTHER_IDENTITY_NATIVE_QUERY_FIND_ALL_WITH_LAST_MENSTRUAL_PERIOD_DATE_NO_EARLIER_THAN_42_WEEKS_AGO_OR_EXPECTED_DELIVERY_DATE_IS_STILL_IN_THE_FUTURE = ""
+	public static final String MOTHER_IDENTITY_NATIVE_QUERY_FIND_ALL_WITH_LAST_MENSTRUAL_PERIOD_DATE_NO_EARLIER_THAN_41_WEEKS_AGO_OR_EXPECTED_DELIVERY_DATE_IS_STILL_IN_THE_FUTURE = ""
 		+ "SELECT " + " mi.event_id AS eventId, " + " mi.mobile_phone_number AS mobilePhoneNumber, " + " ( "
 		+ " SELECT " + "  cm.full_name " + " FROM " + "  {h-schema}client_mother cm " + " WHERE "
 		+ "  cm.base_entity_id = mi.mother_base_entity_id " + " ORDER BY " + "  cm.server_version_epoch DESC "
@@ -273,12 +273,12 @@ public final class QueryConstants {
 		+ "    ac.mother_base_entity_id = ar.mother_base_entity_id " + "   ORDER BY " + "    ac.event_id DESC, "
 		+ "    ac.server_version_epoch DESC "
 		+ "   LIMIT 1) BETWEEN ar.last_menstrual_period_date AND ar.expected_delivery_date)) " + "   ELSE TRUE "
-		+ "  END) " + "  AND ((ar.last_menstrual_period_date >= (CURRENT_DATE - INTERVAL '42 weeks')) "
+		+ "  END) " + "  AND ((ar.last_menstrual_period_date >= (CURRENT_DATE - INTERVAL '41 weeks')) "
 		+ "   OR (ar.expected_delivery_date > CURRENT_DATE)) " + "  AND (ar.is_consented_whatsapp IS NULL "
 		+ "   OR ar.is_consented_whatsapp != 'Tidak') " + "  GROUP BY " + "  mi_id_only.mobile_phone_number) "
 		+ "ORDER BY " + " mi.event_id";
 
-	public static final String MOTHER_EDIT_NATIVE_QUERY_FIND_ALL_WITH_LAST_MENSTRUAL_PERIOD_DATE_NO_EARLIER_THAN_42_WEEKS_AGO_OR_EXPECTED_DELIVERY_DATE_IS_STILL_IN_THE_FUTURE = ""
+	public static final String MOTHER_EDIT_NATIVE_QUERY_FIND_ALL_WITH_LAST_MENSTRUAL_PERIOD_DATE_NO_EARLIER_THAN_41_WEEKS_AGO_OR_EXPECTED_DELIVERY_DATE_IS_STILL_IN_THE_FUTURE = ""
 		+ "SELECT " + " me.event_id AS eventId, " + " me.mobile_phone_number AS mobilePhoneNumber, " + " ( "
 		+ " SELECT " + "  cm.full_name " + " FROM " + "  {h-schema}client_mother cm " + " WHERE "
 		+ "  cm.base_entity_id = me.mother_base_entity_id " + " ORDER BY " + "  cm.server_version_epoch DESC "
@@ -311,7 +311,7 @@ public final class QueryConstants {
 		+ "    ac.mother_base_entity_id = ar.mother_base_entity_id " + "   ORDER BY " + "    ac.event_id DESC, "
 		+ "    ac.server_version_epoch DESC "
 		+ "   LIMIT 1) BETWEEN ar.last_menstrual_period_date AND ar.expected_delivery_date)) " + "   ELSE TRUE "
-		+ "  END) " + "  AND ((ar.last_menstrual_period_date >= (CURRENT_DATE - INTERVAL '42 weeks')) "
+		+ "  END) " + "  AND ((ar.last_menstrual_period_date >= (CURRENT_DATE - INTERVAL '41 weeks')) "
 		+ "   OR (ar.expected_delivery_date > CURRENT_DATE)) " + "  AND (ar.is_consented_whatsapp IS NULL "
 		+ "   OR ar.is_consented_whatsapp != 'Tidak') " + "  GROUP BY " + "  me_id_only.mobile_phone_number) "
 		+ "ORDER BY " + " me.event_id";
