@@ -24,6 +24,8 @@ public class QontakProperties {
 	private String apiPathContactList;
 	private String apiPathUploadFile;
 	private WhatsApp whatsApp;
+	private Long responseTimeoutInMs;
+	private Long connectionTimeoutInMs;
 
 	@Data
 	public static class WhatsApp {
