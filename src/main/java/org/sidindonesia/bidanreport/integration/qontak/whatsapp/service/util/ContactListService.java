@@ -2,6 +2,7 @@ package org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util;
 
 import org.sidindonesia.bidanreport.config.property.SchedulingProperties;
 import org.sidindonesia.bidanreport.integration.qontak.config.property.QontakProperties;
+import org.sidindonesia.bidanreport.integration.qontak.constant.Constants;
 import org.sidindonesia.bidanreport.integration.qontak.web.response.RetrieveContactListResponse;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.ContactListRequest;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.response.CreateContactListResponse;
@@ -39,7 +40,7 @@ public class ContactListService {
 
 		CreateContactListResponse responseBody = response.block();
 		if (responseBody != null) {
-			if ("success".equals(responseBody.getStatus())) {
+			if (Constants.SUCCESS.equals(responseBody.getStatus())) {
 				return responseBody.getData().getId();
 			} else {
 				log.error("Request create contact list failed with error details: {}", responseBody.getError());
@@ -61,7 +62,7 @@ public class ContactListService {
 
 		RetrieveContactListResponse responseBody = response.block();
 		if (responseBody != null) {
-			if ("success".equals(responseBody.getStatus())) {
+			if (Constants.SUCCESS.equals(responseBody.getStatus())) {
 				return responseBody;
 			} else {
 				log.error("Request retrieve contact list failed with error details: {}", responseBody.getError());
@@ -80,7 +81,7 @@ public class ContactListService {
 			RetrieveContactListResponse response = retrieveContactListRequestToQontakAPI(contactListId);
 
 			if (response != null && response.getData() != null
-			    && "success".equalsIgnoreCase(response.getData().getProgress())) {
+			    && Constants.SUCCESS.equalsIgnoreCase(response.getData().getProgress())) {
 				return true;
 			}
 

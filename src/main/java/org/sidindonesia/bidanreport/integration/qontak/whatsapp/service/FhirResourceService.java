@@ -24,6 +24,7 @@ import org.hl7.fhir.r4.model.Quantity;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Type;
+import org.sidindonesia.bidanreport.integration.qontak.constant.Constants;
 import org.sidindonesia.bidanreport.integration.qontak.web.response.FileUploadResponse;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.request.ParametersWithHeader;
 import org.sidindonesia.bidanreport.integration.qontak.whatsapp.service.util.QRCodeService;
@@ -58,48 +59,48 @@ public class FhirResourceService {
 	private String hapiFhirBaseUrl;
 
 	public void fillHeaderWithQRCodeImage(AncVisitReminderProjection motherIdentity, List<String> values,
-		ParametersWithHeader parameters) {
+	    ParametersWithHeader parameters) {
 
 		// URL FHIR Resource "Patient" operation `$everything`
 		String urlPatientOperationEverything = postTransactionBundleToFHIRServerThenReturnURLPatientOperationEverything(
-			motherIdentity, values);
+		    motherIdentity, values);
 
 		FileUploadResponse responseBody = qrCodeService
-			.createQRCodeImageThenUploadToQontak(urlPatientOperationEverything);
+		    .createQRCodeImageThenUploadToQontak(urlPatientOperationEverything);
 		if (responseBody != null) {
-			if ("success".equals(responseBody.getStatus())) {
+			if (Constants.SUCCESS.equals(responseBody.getStatus())) {
 				parameters.getHeader().addHeaderParam("url", responseBody.getData().getUrl());
 				parameters.getHeader().addHeaderParam("filename", QR_CODE_GAP_CARE_PNG);
 			} else {
 				log.error(
-					"Upload QR Code Gap Care PNG file failed for: {}, at phone number: {}, with error details: {}",
-					motherIdentity.getFullName(), motherIdentity.getMobilePhoneNumber(), responseBody.getError());
+				    "Upload QR Code Gap Care PNG file failed for: {}, at phone number: {}, with error details: {}",
+				    motherIdentity.getFullName(), motherIdentity.getMobilePhoneNumber(), responseBody.getError());
 			}
 		} else {
 			log.error("Upload QR Code Gap Care PNG file failed with no content for: {}, at phone number: {}",
-				motherIdentity.getFullName(), motherIdentity.getMobilePhoneNumber());
+			    motherIdentity.getFullName(), motherIdentity.getMobilePhoneNumber());
 		}
 	}
 
 	public String postTransactionBundleToFHIRServerThenReturnURLPatientOperationEverything(
-		AncVisitReminderProjection motherIdentity, List<String> values) {
+	    AncVisitReminderProjection motherIdentity, List<String> values) {
 
 		Patient patient = createPatientResource(motherIdentity);
 
 		String patientUUID = "urn:uuid:" + UUID.randomUUID();
 		Bundle bundle = new Bundle().setType(BundleType.TRANSACTION)
-			.addEntry(new BundleEntryComponent().setResource(patient).setFullUrl(patientUUID)
-				.setRequest(new BundleEntryRequestComponent().setMethod(HTTPVerb.POST)
-					.setUrl(patient.getResourceType().toString())));
+		    .addEntry(new BundleEntryComponent().setResource(patient).setFullUrl(patientUUID)
+		        .setRequest(new BundleEntryRequestComponent().setMethod(HTTPVerb.POST)
+		            .setUrl(patient.getResourceType().toString())));
 		Reference referencePatient = new Reference().setReference(patientUUID);
 		Type ancEffectiveDateTime = new DateTimeType()
-			.setValue(Date.valueOf(values.get(0).equalsIgnoreCase("N/A") ? LocalDate.EPOCH.toString() : values.get(0)));
+		    .setValue(Date.valueOf(values.get(0).equalsIgnoreCase("N/A") ? LocalDate.EPOCH.toString() : values.get(0)));
 
 		fillBundleWithObservationResources(values, bundle, referencePatient, ancEffectiveDateTime);
 
 		String encodedJSON = fhirContext.newJsonParser().encodeResourceToString(bundle);
 		Mono<BundleTransactionResponse> response = webClientHapiFhirServer.post().bodyValue(encodedJSON).retrieve()
-			.bodyToMono(BundleTransactionResponse.class);
+		    .bodyToMono(BundleTransactionResponse.class);
 
 		BundleTransactionResponse transactionResponseBundle = response.block();
 		if (transactionResponseBundle == null) {
@@ -107,7 +108,7 @@ public class FhirResourceService {
 		} else {
 			String location = transactionResponseBundle.getEntryFirstRep().getResponse().getLocation();
 			return hapiFhirBaseUrl + "/" + location.substring(0, 1 + location.indexOf("/", 1 + location.indexOf("/")))
-				+ "$everything";
+			    + "$everything";
 		}
 	}
 
@@ -127,170 +128,170 @@ public class FhirResourceService {
 		}
 
 		patient.addTelecom().setSystem(ContactPointSystem.PHONE)
-			.setValue(IndonesiaPhoneNumberUtil.sanitize(motherIdentity.getMobilePhoneNumber()))
-			.setUse(ContactPointUse.MOBILE).setRank(1);
+		    .setValue(IndonesiaPhoneNumberUtil.sanitize(motherIdentity.getMobilePhoneNumber()))
+		    .setUse(ContactPointUse.MOBILE).setRank(1);
 		return patient;
 	}
 
 	private void fillBundleWithObservationResources(List<String> values, Bundle bundle, Reference referencePatient,
-		Type ancEffectiveDateTime) {
+	    Type ancEffectiveDateTime) {
 		BundleEntryRequestComponent requestComponentPostObservation = new BundleEntryRequestComponent()
-			.setMethod(HTTPVerb.POST).setUrl("Observation");
+		    .setMethod(HTTPVerb.POST).setUrl("Observation");
 
 		if (!values.get(2).equalsIgnoreCase("-")) {
 			addEntryObservation(bundle, requestComponentPostObservation).setResource(createObservation(
-				ancEffectiveDateTime, referencePatient, new Quantity(Double.valueOf(values.get(2))).setUnit("cm"),
-				new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "8302-2", "Body height"))
-					.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "body-height", "Body Height"))));
+			    ancEffectiveDateTime, referencePatient, new Quantity(Double.valueOf(values.get(2))).setUnit("cm"),
+			    new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "8302-2", "Body height"))
+			        .addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "body-height", "Body Height"))));
 		}
 
 		if (!values.get(3).equalsIgnoreCase("-")) {
 			addEntryObservation(bundle, requestComponentPostObservation).setResource(createObservation(
-				ancEffectiveDateTime, referencePatient, new Quantity(Double.valueOf(values.get(3))).setUnit("kg"),
-				new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "29463-7", "Body Weight"))
-					.addCoding(new Coding(HTTP_LOINC_ORG, "3141-9", "Body weight Measured"))
-					.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "body-weight", "Body Weight"))));
+			    ancEffectiveDateTime, referencePatient, new Quantity(Double.valueOf(values.get(3))).setUnit("kg"),
+			    new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "29463-7", "Body Weight"))
+			        .addCoding(new Coding(HTTP_LOINC_ORG, "3141-9", "Body weight Measured"))
+			        .addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "body-weight", "Body Weight"))));
 		}
 
 		if (!values.get(4).equalsIgnoreCase("-")) {
 			addEntryObservation(bundle, requestComponentPostObservation).setResource(createObservation(
-				ancEffectiveDateTime, referencePatient, new Quantity(Double.valueOf(values.get(4))).setUnit("cm"),
-				new CodeableConcept()
-					.addCoding(new Coding(HTTP_LOINC_ORG, "56072-2", "Circumference Mid upper arm - right"))
-					.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "mid-upper-arm-circumference",
-						"Mid upper arm circumference"))));
+			    ancEffectiveDateTime, referencePatient, new Quantity(Double.valueOf(values.get(4))).setUnit("cm"),
+			    new CodeableConcept()
+			        .addCoding(new Coding(HTTP_LOINC_ORG, "56072-2", "Circumference Mid upper arm - right"))
+			        .addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "mid-upper-arm-circumference",
+			            "Mid upper arm circumference"))));
 		}
 
 		if (!values.get(5).equalsIgnoreCase("-")) {
 			addEntryObservation(bundle, requestComponentPostObservation).setResource(createObservation(
-				ancEffectiveDateTime, referencePatient, new Quantity(Double.valueOf(values.get(5))).setUnit("mmHg"),
-				new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "8480-6", "Systolic blood pressure"))
-					.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "systolic-blood-pressure",
-						"Systolic blood pressure"))));
+			    ancEffectiveDateTime, referencePatient, new Quantity(Double.valueOf(values.get(5))).setUnit("mmHg"),
+			    new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "8480-6", "Systolic blood pressure"))
+			        .addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "systolic-blood-pressure",
+			            "Systolic blood pressure"))));
 		}
 
 		if (!values.get(6).equalsIgnoreCase("-")) {
 			addEntryObservation(bundle, requestComponentPostObservation).setResource(createObservation(
-				ancEffectiveDateTime, referencePatient, new Quantity(Double.valueOf(values.get(6))).setUnit("mmHg"),
-				new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "8462-4", "Diastolic blood pressure"))
-					.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "diastolic-blood-pressure",
-						"Diastolic blood pressure"))));
+			    ancEffectiveDateTime, referencePatient, new Quantity(Double.valueOf(values.get(6))).setUnit("mmHg"),
+			    new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "8462-4", "Diastolic blood pressure"))
+			        .addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "diastolic-blood-pressure",
+			            "Diastolic blood pressure"))));
 		}
 
 		if (!values.get(7).equalsIgnoreCase("-") && !values.get(7).equalsIgnoreCase("Janin belum teraba")) {
 			addEntryObservation(bundle, requestComponentPostObservation)
-				.setResource(createObservation(ancEffectiveDateTime, referencePatient,
-					new Quantity(Double.valueOf(values.get(7).replace(" cm", ""))).setUnit("cm"),
-					new CodeableConcept()
-						.addCoding(new Coding(HTTP_LOINC_ORG, "11881-0", "Uterus Fundal height Tape measure"))
-						.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "uterine-fundal-height",
-							"Uterine Fundal height"))));
+			    .setResource(createObservation(ancEffectiveDateTime, referencePatient,
+			        new Quantity(Double.valueOf(values.get(7).replace(" cm", ""))).setUnit("cm"),
+			        new CodeableConcept()
+			            .addCoding(new Coding(HTTP_LOINC_ORG, "11881-0", "Uterus Fundal height Tape measure"))
+			            .addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "uterine-fundal-height",
+			                "Uterine Fundal height"))));
 		}
 
 		if (!values.get(8).equalsIgnoreCase("-") && !values.get(8).equalsIgnoreCase("Janin belum teraba")) {
 			addEntryObservation(bundle, requestComponentPostObservation)
-				.setResource(createObservation(ancEffectiveDateTime, referencePatient, new StringType(values.get(8)),
-					new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "11877-8", "Fetal presentation US"))
-						.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "fetal-presentation",
-							"Fetal presentation"))));
+			    .setResource(createObservation(ancEffectiveDateTime, referencePatient, new StringType(values.get(8)),
+			        new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "11877-8", "Fetal presentation US"))
+			            .addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "fetal-presentation",
+			                "Fetal presentation"))));
 		}
 
 		if (!values.get(9).equalsIgnoreCase("-")
-			&& !values.get(9).equalsIgnoreCase("Detak jantung janin belum terdengar")) {
+		    && !values.get(9).equalsIgnoreCase("Detak jantung janin belum terdengar")) {
 			addEntryObservation(bundle, requestComponentPostObservation).setResource(createObservation(
-				ancEffectiveDateTime, referencePatient, new Quantity(Long.valueOf(values.get(9))).setUnit("/min"),
-				new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "55283-6", "Fetal Heart rate")).addCoding(
-					new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "fetal-heart-rate", "Fetal Heart rate"))));
+			    ancEffectiveDateTime, referencePatient, new Quantity(Long.valueOf(values.get(9))).setUnit("/min"),
+			    new CodeableConcept().addCoding(new Coding(HTTP_LOINC_ORG, "55283-6", "Fetal Heart rate")).addCoding(
+			        new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "fetal-heart-rate", "Fetal Heart rate"))));
 		}
 
 		if (!values.get(10).equalsIgnoreCase("-")) {
 			addEntryObservation(bundle, requestComponentPostObservation)
-				.setResource(createObservation(ancEffectiveDateTime, referencePatient, new StringType(values.get(10)),
-					new CodeableConcept().addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES,
-						"tetanus-toxoid-immunization-status", "Tetanus toxoid immunization status"))));
+			    .setResource(createObservation(ancEffectiveDateTime, referencePatient, new StringType(values.get(10)),
+			        new CodeableConcept().addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES,
+			            "tetanus-toxoid-immunization-status", "Tetanus toxoid immunization status"))));
 		}
 
 		extracted(values, bundle, referencePatient, ancEffectiveDateTime, requestComponentPostObservation);
 	}
 
 	private void extracted(List<String> values, Bundle bundle, Reference referencePatient, Type ancEffectiveDateTime,
-		BundleEntryRequestComponent requestComponentPostObservation) {
+	    BundleEntryRequestComponent requestComponentPostObservation) {
 		if (!values.get(11).equalsIgnoreCase("-")) {
 			addEntryObservation(bundle, requestComponentPostObservation).setResource(createObservation(
-				ancEffectiveDateTime, referencePatient, new BooleanType(values.get(11).equalsIgnoreCase("Ya")),
-				new CodeableConcept().addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES,
-					"is-given-tetanus-toxoid-injection", "Is given tetanus toxoid injection"))));
+			    ancEffectiveDateTime, referencePatient, new BooleanType(values.get(11).equalsIgnoreCase("Ya")),
+			    new CodeableConcept().addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES,
+			        "is-given-tetanus-toxoid-injection", "Is given tetanus toxoid injection"))));
 		}
 
 		if (!values.get(12).equalsIgnoreCase("-")) {
 			addEntryObservation(bundle, requestComponentPostObservation).setResource(createObservation(
-				ancEffectiveDateTime, referencePatient, new BooleanType(values.get(12).equalsIgnoreCase("Ya")),
-				new CodeableConcept().addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES,
-					"is-given-iron-folic-acid-tablet", "Is given iron folic acid tablet"))));
+			    ancEffectiveDateTime, referencePatient, new BooleanType(values.get(12).equalsIgnoreCase("Ya")),
+			    new CodeableConcept().addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES,
+			        "is-given-iron-folic-acid-tablet", "Is given iron folic acid tablet"))));
 		}
 
 		if (!values.get(13).equalsIgnoreCase("-")) {
 			addEntryObservation(bundle, requestComponentPostObservation)
-				.setResource(createObservation(ancEffectiveDateTime, referencePatient,
-					new BooleanType(values.get(13).equalsIgnoreCase(POSITIF)), new CodeableConcept().addCoding(
-						new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "has-proteinuria", "Has proteinuria"))));
+			    .setResource(createObservation(ancEffectiveDateTime, referencePatient,
+			        new BooleanType(values.get(13).equalsIgnoreCase(POSITIF)), new CodeableConcept().addCoding(
+			            new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "has-proteinuria", "Has proteinuria"))));
 		}
 
 		if (!values.get(14).equalsIgnoreCase("-")) {
 			addEntryObservation(bundle, requestComponentPostObservation).setResource(createObservation(
-				ancEffectiveDateTime, referencePatient, new Quantity(Double.valueOf(values.get(14))).setUnit("g/dL"),
-				new CodeableConcept()
-					.addCoding(new Coding(HTTP_LOINC_ORG, "718-7", "Hemoglobin [Mass/volume] in Blood"))
-					.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "hb-level-lab-test-result",
-						"Hb level lab test result"))));
+			    ancEffectiveDateTime, referencePatient, new Quantity(Double.valueOf(values.get(14))).setUnit("g/dL"),
+			    new CodeableConcept()
+			        .addCoding(new Coding(HTTP_LOINC_ORG, "718-7", "Hemoglobin [Mass/volume] in Blood"))
+			        .addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "hb-level-lab-test-result",
+			            "Hb level lab test result"))));
 		}
 
 		if (!values.get(15).equalsIgnoreCase("-")) {
 			addEntryObservation(bundle, requestComponentPostObservation)
-				.setResource(createObservation(ancEffectiveDateTime, referencePatient,
-					new BooleanType(values.get(15).equalsIgnoreCase("\u003e_140_mg_dl")),
-					new CodeableConcept().addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES,
-						"is-glucose-blood-more-than-140-mg-dl", "Is glucose blood more than 140 mg/dL"))));
+			    .setResource(createObservation(ancEffectiveDateTime, referencePatient,
+			        new BooleanType(values.get(15).equalsIgnoreCase("\u003e_140_mg_dl")),
+			        new CodeableConcept().addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES,
+			            "is-glucose-blood-more-than-140-mg-dl", "Is glucose blood more than 140 mg/dL"))));
 		}
 
 		if (!values.get(16).equalsIgnoreCase("-")) {
 			addEntryObservation(bundle, requestComponentPostObservation)
-				.setResource(createObservation(ancEffectiveDateTime, referencePatient,
-					new BooleanType(values.get(16).equalsIgnoreCase(POSITIF)), new CodeableConcept().addCoding(
-						new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "has-thalasemia", "Has thalasemia"))));
+			    .setResource(createObservation(ancEffectiveDateTime, referencePatient,
+			        new BooleanType(values.get(16).equalsIgnoreCase(POSITIF)), new CodeableConcept().addCoding(
+			            new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "has-thalasemia", "Has thalasemia"))));
 		}
 
 		if (!values.get(17).equalsIgnoreCase("-")) {
 			addEntryObservation(bundle, requestComponentPostObservation)
-				.setResource(createObservation(ancEffectiveDateTime, referencePatient,
-					new BooleanType(values.get(17).equalsIgnoreCase(POSITIF)), new CodeableConcept().addCoding(
-						new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "has-syphilis", "Has syphilis"))));
+			    .setResource(createObservation(ancEffectiveDateTime, referencePatient,
+			        new BooleanType(values.get(17).equalsIgnoreCase(POSITIF)), new CodeableConcept().addCoding(
+			            new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "has-syphilis", "Has syphilis"))));
 		}
 
 		if (!values.get(18).equalsIgnoreCase("-")) {
 			addEntryObservation(bundle, requestComponentPostObservation).setResource(createObservation(
-				ancEffectiveDateTime, referencePatient, new BooleanType(values.get(18).equalsIgnoreCase(POSITIF)),
-				new CodeableConcept()
-					.addCoding(new Coding(HTTP_LOINC_ORG, "75410-1",
-						"Hepatitis B virus surface Ag [Presence] in Serum, Plasma or Blood by Rapid immunoassay"))
-					.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "has-hbsag", "Has HBsAg"))));
+			    ancEffectiveDateTime, referencePatient, new BooleanType(values.get(18).equalsIgnoreCase(POSITIF)),
+			    new CodeableConcept()
+			        .addCoding(new Coding(HTTP_LOINC_ORG, "75410-1",
+			            "Hepatitis B virus surface Ag [Presence] in Serum, Plasma or Blood by Rapid immunoassay"))
+			        .addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "has-hbsag", "Has HBsAg"))));
 		}
 
 		if (!values.get(19).equalsIgnoreCase("-")) {
 			addEntryObservation(bundle, requestComponentPostObservation)
-				.setResource(createObservation(ancEffectiveDateTime, referencePatient,
-					new BooleanType(values.get(19).equalsIgnoreCase(POSITIF)), new CodeableConcept()
-						.addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "has-hiv", "Has HIV"))));
+			    .setResource(createObservation(ancEffectiveDateTime, referencePatient,
+			        new BooleanType(values.get(19).equalsIgnoreCase(POSITIF)), new CodeableConcept()
+			            .addCoding(new Coding(HTTPS_SID_INDONESIA_ORG_CLINICAL_CODES, "has-hiv", "Has HIV"))));
 		}
 	}
 
 	private BundleEntryComponent addEntryObservation(Bundle bundle,
-		BundleEntryRequestComponent requestComponentPostObservation) {
+	    BundleEntryRequestComponent requestComponentPostObservation) {
 		return bundle.addEntry().setRequest(requestComponentPostObservation);
 	}
 
 	private Observation createObservation(Type effective, Reference referencePatient, Type value,
-		CodeableConcept code) {
+	    CodeableConcept code) {
 		Observation observation = new Observation();
 		observation.setStatus(ObservationStatus.FINAL);
 		observation.setCode(code);
