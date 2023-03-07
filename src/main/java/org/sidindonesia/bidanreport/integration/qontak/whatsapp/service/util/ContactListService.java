@@ -28,25 +28,34 @@ public class ContactListService {
 	private final Gson gson;
 	private final SchedulingProperties schedulingProperties;
 
-	public String sendCreateContactListRequestToQontakAPI(ContactListRequest requestBody) {
+	public String sendCreateContactListRequestToQontakAPI(ContactListRequest requestBody) throws InterruptedException {
 		Mono<CreateContactListResponse> response = webClient.post().uri(qontakProperties.getApiPathContactListAsync())
 		    .body(BodyInserters.fromMultipartData("file", requestBody.getFile()).with("name", requestBody.getName())
 		        .with("source_type", requestBody.getSource_type()))
 		    .header("Authorization", "Bearer " + qontakProperties.getAccessToken()).retrieve()
-		    .bodyToMono(CreateContactListResponse.class).onErrorResume(WebClientResponseException.class,
-		        ex -> ex.getRawStatusCode() == 422 || ex.getRawStatusCode() == 401
-		            ? Mono.just(gson.fromJson(ex.getResponseBodyAsString(), CreateContactListResponse.class))
-		            : Mono.error(ex));
+		    .bodyToMono(CreateContactListResponse.class).onErrorResume(WebClientResponseException.class, ex -> {
+			    if (ex.getRawStatusCode() == 429) {
+				    return Mono.just(new CreateContactListResponse().withStatus(ex.getRawStatusCode()));
+			    }
+			    return ex.getRawStatusCode() == 422 || ex.getRawStatusCode() == 401
+			        ? Mono.just(gson.fromJson(ex.getResponseBodyAsString(), CreateContactListResponse.class))
+			        : Mono.error(ex);
+		    });
 
-		CreateContactListResponse responseBody = response.block();
-		if (responseBody != null) {
-			if (Constants.SUCCESS.equals(responseBody.getStatus())) {
-				return responseBody.getData().getId();
+		for (int i = 0; i < schedulingProperties.getContactList().getMaxNumberOfRetries(); i++) {
+			CreateContactListResponse responseBody = response.block();
+			if (responseBody != null) {
+				if ("429".equalsIgnoreCase(responseBody.getStatus())) {
+					Thread.sleep(schedulingProperties.getContactList().getDelayInMs());
+					log.debug("Retrying create Contact List: {}", requestBody);
+				} else if (Constants.SUCCESS.equals(responseBody.getStatus())) {
+					return responseBody.getData().getId();
+				} else {
+					log.error("Request create contact list failed with error details: {}", responseBody.getError());
+				}
 			} else {
-				log.error("Request create contact list failed with error details: {}", responseBody.getError());
+				log.error("Request create contact list failed with no content.");
 			}
-		} else {
-			log.error("Request create contact list failed with no content.");
 		}
 		return null;
 	}
@@ -85,11 +94,11 @@ public class ContactListService {
 				return true;
 			}
 
-			Thread.sleep(schedulingProperties.getContactList().getDelayInMs());
+			Thread.sleep(schedulingProperties.getContactList().getRetrieveDelayInMs());
 		}
 		log.error("Bulk broadcast request failed due to Contact List not available after {} retries with interval {}ms",
 		    schedulingProperties.getContactList().getMaxNumberOfRetries(),
-		    schedulingProperties.getContactList().getDelayInMs());
+		    schedulingProperties.getContactList().getRetrieveDelayInMs());
 		return false;
 	}
 }

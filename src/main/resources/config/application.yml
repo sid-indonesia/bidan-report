@@ -75,9 +75,10 @@ scheduling:
     cron: "0 0 13 * * Mon" # At 01:00 PM, only on Monday
     zone: Asia/Jakarta
   contact-list:
-    delay-in-ms: 60000 # 1 minute
+    delay-in-ms: 300000 # 5 minutes
     initial-delay-in-ms: 5000 # 5 seconds
     max-number-of-retries: 10
+    retrieve-delay-in-ms: 60000 # 1 minute
   broadcast-bulk:
     delay-in-ms: 300000 # 5 minutes
     initial-delay-in-ms: 5000 # 5 seconds

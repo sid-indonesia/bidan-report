@@ -24,4 +24,9 @@ public class CreateContactListResponse {
 		private Integer code;
 		private List<Object> messages;
 	}
+
+	public CreateContactListResponse withStatus(int rawStatusCode) {
+		this.status = String.valueOf(rawStatusCode);
+		return this;
+	}
 }

@@ -35,5 +35,6 @@ public class SchedulingProperties {
 		private Long delayInMs;
 		private Long initialDelayInMs;
 		private Integer maxNumberOfRetries;
+		private Long retrieveDelayInMs;
 	}
 }
