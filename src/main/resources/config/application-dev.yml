@@ -25,9 +25,9 @@ spring:
       indent-output: true
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:postgresql://localhost:5432/dbconverter_test_lotim
-    username: sid_bidan_readonly
-    password: readonly
+    url: jdbc:postgresql://localhost:5432/dbconverter_test_banggai
+    username: postgres
+    password: postgres
     hikari:
       poolName: Hikari
       auto-commit: false
