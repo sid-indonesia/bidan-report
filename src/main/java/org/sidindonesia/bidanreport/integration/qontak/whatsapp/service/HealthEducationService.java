@@ -132,8 +132,6 @@ public class HealthEducationService {
 	private void setParametersForHealthEducationMessage(BroadcastRequest requestBody) {
 		Parameters parameters = new Parameters();
 		parameters.addBodyWithValues("1", FULL_NAME);
-		parameters.addBodyWithValues("2", PREGNA_TRIMESTER);
-		parameters.addBodyWithValues("3", CALC_GESTATIONAL);
 		requestBody.setParameters(parameters);
 	}
 }
